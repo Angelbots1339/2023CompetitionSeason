@@ -20,7 +20,7 @@ public final class CTREConfigs {
         /* Swerve Angle Motor Configurations */
         SupplyCurrentLimitConfiguration angleSupplyLimit = new SupplyCurrentLimitConfiguration(
                 Constants.Swerve.ANGLE_ENABLE_CURRENT_LIMIT,
-                Constants.Swerve.ANGLE_COUNTINUOUS_CURRENT_LIMIT,
+                Constants.Swerve.ANGLE_CONTINUOUS_CURRENT_LIMIT,
                 Constants.Swerve.ANGLE_PEAK_CURRENT_LIMIT,
                 Constants.Swerve.ANGLE_PEAK_CURRENT_DURATION);
 
