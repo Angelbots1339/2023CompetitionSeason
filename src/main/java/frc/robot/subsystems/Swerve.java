@@ -1,6 +1,14 @@
 package frc.robot.subsystems;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+
+import org.apache.commons.collections4.functors.OrPredicate;
+import org.photonvision.PhotonCamera;
+import org.photonvision.RobotPoseEstimator;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.pathplanner.lib.PathPlannerTrajectory;
@@ -15,11 +23,16 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
@@ -32,6 +45,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.AutoConstants.*;
 import static frc.robot.Constants.Swerve.PoseEstimatorConstants.*;
 import static frc.robot.Constants.Swerve.*;
+import static frc.robot.Constants.Vision.*;
 
 public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
@@ -40,6 +54,8 @@ public class Swerve extends SubsystemBase {
     public LoggedSubsystem logger;
     private PIDController angularDrivePID;
     private SwerveDrivePoseEstimator poseEstimator;
+    private RobotPoseEstimator apriltagPoseEstimator;
+    private AprilTagFieldLayout layout;
 
     public Swerve() {
 
@@ -52,7 +68,15 @@ public class Swerve extends SubsystemBase {
 
         swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
         poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
-    
+        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
+        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
+        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
+
+        try {
+            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         mSwerveMods = new SwerveModule[] {
                 new SwerveModule(0, Mod0.constants),
@@ -194,6 +218,18 @@ public class Swerve extends SubsystemBase {
     public Pose2d getEstimatedPose() {
         return poseEstimator.getEstimatedPosition();
     }
+    public Optional<Pair<Pose2d, Double>> getApriltagEstimatedPose(Pose2d prevEstimatedRobotPose) {
+        apriltagPoseEstimator.setReferencePose(prevEstimatedRobotPose);
+    
+        double currentTime = Timer.getFPGATimestamp();
+        Optional<Pair<Pose3d, Double>> result = apriltagPoseEstimator.update();
+
+        if (result.isPresent()) {
+            return Optional.ofNullable(new Pair<Pose2d, Double>(result.get().getFirst().toPose2d(), currentTime - result.get().getSecond()));
+        } else {
+            return Optional.ofNullable(null);
+        }
+    }
 
     public void resetOdometry(Pose2d pose) {
         swerveOdometry.resetPosition(getYaw(), new SwerveModulePosition[4], pose);
@@ -236,12 +272,15 @@ public class Swerve extends SubsystemBase {
         swerveOdometry.update(getYaw(), getPositions());
         poseEstimator.update(getYaw(),  getPositions());
 
+        Optional<Pair<Pose2d, Double>> aprilTagEstimation = getApriltagEstimatedPose(getEstimatedPose());
+        if(aprilTagEstimation.isPresent()){
+            poseEstimator.addVisionMeasurement(aprilTagEstimation.get().getFirst(), aprilTagEstimation.get().getSecond());
+        }
+
+
+
         ChassisSpeeds speed = new ChassisSpeeds(0, 2, 10);
 
-        SmartDashboard.putString("t", speed.toString());
-        SmartDashboard.putString("254", reduceSkewFromChassisSpeeds254(speed).toString());
-        SmartDashboard.putString("ff1", reduceSkewFromChassisSpeedsFudgeFactor(speed).toString());
-        SmartDashboard.putString("ff2", reduceSkewFromChassisSpeedsSimpleFudgeFactor(speed).toString());
     }
 
     public void initializeLog() {
