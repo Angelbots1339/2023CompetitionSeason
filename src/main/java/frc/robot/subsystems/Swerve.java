@@ -45,7 +45,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.AutoConstants.*;
 import static frc.robot.Constants.Swerve.PoseEstimatorConstants.*;
 import static frc.robot.Constants.Swerve.*;
-import static frc.robot.Constants.Vision.*;
+import static frc.robot.Constants.VisionConstants.*;
 
 public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
