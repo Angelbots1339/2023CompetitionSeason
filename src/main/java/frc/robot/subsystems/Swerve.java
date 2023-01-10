@@ -45,7 +45,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.AutoConstants.*;
 import static frc.robot.Constants.Swerve.PoseEstimatorConstants.*;
 import static frc.robot.Constants.Swerve.*;
-import static frc.robot.Constants.VisionConstants.*;
+import static frc.robot.Constants.Vision.*;
 
 public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
@@ -68,15 +68,18 @@ public class Swerve extends SubsystemBase {
 
         swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
         poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
-        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
-        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
-
+        
         try {
             layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
+        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
+        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
+
+        
 
         mSwerveMods = new SwerveModule[] {
                 new SwerveModule(0, Mod0.constants),
@@ -279,7 +282,6 @@ public class Swerve extends SubsystemBase {
 
 
 
-        ChassisSpeeds speed = new ChassisSpeeds(0, 2, 10);
 
     }
 
