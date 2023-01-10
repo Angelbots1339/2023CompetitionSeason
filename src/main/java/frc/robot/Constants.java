@@ -215,9 +215,11 @@ public final class Constants {
         public static final int ELEVATOR_MOTOR_ID = -1;// TODO
     }
 
-    public static final class VisonConstants {
+    public static final class VisionConstants {
         public static final String CAMERA_NAME = "";
-        public static final PhotonCamera CAMERA = new PhotonCamera(CAMERA_NAME);
+        public static final PhotonCamera APRILTAG_CAM = new PhotonCamera(CAMERA_NAME);
+        public static final Transform3d APRILTAG_CAM_POS = new Transform3d();
+        public static final PoseStrategy APRILTAG_POSE_STRATEGY = PoseStrategy.AVERAGE_BEST_TARGETS;
         
 
 
