@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.collections4.functors.OrPredicate;
 import org.photonvision.PhotonCamera;
 import org.photonvision.RobotPoseEstimator;
 
@@ -16,6 +15,7 @@ import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 
 import frc.robot.SwerveModule;
+import frc.robot.commands.CancelableSwerveController;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.lib.util.logging.loggedObjects.LoggedFalcon;
 import frc.robot.LoggingConstants;
@@ -36,7 +36,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
@@ -46,6 +45,8 @@ import static frc.robot.Constants.AutoConstants.*;
 import static frc.robot.Constants.Swerve.PoseEstimatorConstants.*;
 import static frc.robot.Constants.Swerve.*;
 import static frc.robot.Constants.VisionConstants.*;
+import static frc.robot.Constants.PIDToPoseConstants.*;
+
 
 public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
@@ -57,42 +58,11 @@ public class Swerve extends SubsystemBase {
     private RobotPoseEstimator apriltagPoseEstimator;
     private AprilTagFieldLayout layout;
 
+    private PIDController pidToPoseXController;
+    private PIDController pidToPoseYController;
+
     public Swerve() {
-
-        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
-
-        gyro = new Pigeon2(PIGEON_ID);
-        gyro.configFactoryDefault();
-        zeroGyro();
-
-
-        swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
-        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
-        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
-        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
-
-        try {
-            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mSwerveMods = new SwerveModule[] {
-                new SwerveModule(0, Mod0.constants),
-                new SwerveModule(1, Mod1.constants),
-                new SwerveModule(2, Mod2.constants),
-                new SwerveModule(3, Mod3.constants)
-        };
-
-        initializeLog();
-
-
-        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
-                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
-
-        angularDrivePID.enableContinuousInput(0, 360);
-        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
+        ConstructorHelper();
     }
 
     
@@ -267,6 +237,18 @@ public class Swerve extends SubsystemBase {
     }
 
 
+
+    public boolean PIDToPose(Translation2d target, Rotation2d rot) {
+
+        Translation2d calculatedValues = new Translation2d(pidToPoseXController.calculate(getPose().getTranslation().getX(), target.getX()),
+                pidToPoseYController.calculate(getPose().getTranslation().getY(), target.getY()));
+        
+        angularDrive(calculatedValues, rot, true, true);
+
+        return pidToPoseXController.atSetpoint() && pidToPoseYController.atSetpoint() && angularDrivePID.atSetpoint();
+    }
+
+
     @Override
     public void periodic() {
         swerveOdometry.update(getYaw(), getPositions());
@@ -294,6 +276,15 @@ public class Swerve extends SubsystemBase {
         }
     }
 
+
+    /**
+     * 
+     * Returns a new command that, when ran, will make the swerve drivebase drive along the path
+     * 
+     * @param traj The trajectory to follow
+     * @param isFirstPath If set to true, the robot odometry will be reset
+     * @return The Command that, when ran, will make the swerve drivebase drive along the path
+     */
     public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
         // This is just an example event map. It would be better to have a constant,
         // global event map
@@ -323,8 +314,115 @@ public class Swerve extends SubsystemBase {
                 ));
     }
 
+    /**
+     * 
+     * Returns a new command that, when ran, will make the swerve drivebase drive along the path
+     * 
+     * @param traj The trajectory to follow
+     * @return The Command that, when ran, will make the swerve drivebase drive along the path
+     */
     public Command followTrajectoryCommand(PathPlannerTrajectory traj) {
         return followTrajectoryCommand(traj, false);
+    }
+
+
+
+    /**
+     * 
+     * Returns a new command that, when ran, will make the swerve drivebase drive along the path until the given time is reached, where it will stop the path early
+     * 
+     * @param traj The trajectory to follow
+     * @param isFirstPath If set to true, the robot odometry will be reset
+     * @param time The time after which the path will be stopped
+     * @return The Command that, when ran, will make the swerve drivebase drive along the path
+     */
+    public Command followTrajectoryCommandCancelable(PathPlannerTrajectory traj, boolean isFirstPath, double time) {
+        // This is just an example event map. It would be better to have a constant,
+        // global event map
+        // in your code that will be used by all path following commands.
+        HashMap<String, Command> eventMap = new HashMap<>();
+        eventMap.put("marker1", new PrintCommand("Passed marker 1"));
+
+        return new SequentialCommandGroup(
+                new InstantCommand(() -> {
+                    // Reset odometry for the first path you run during auto
+                    if (isFirstPath) {
+                        this.resetOdometry(traj.getInitialHolonomicPose());
+                    }
+                }),
+                new CancelableSwerveController(
+                        time,
+                        traj,
+                        this::getPose, // Pose supplier
+                        KINEMATICS, // SwerveDriveKinematics
+                        new PIDController(3.2023, 0, 0), // X controller. Tune these values for your robot. Leaving them
+                                                         // 0 will only use feedforwards.
+                        new PIDController(3.2023, 0, 0), // Y controller (usually the same values as X controller)
+                        new PIDController(THETA_KP, 0, 0), // Rotation controller. Tune these values for your robot.
+                                                           // Leaving them 0 will only use feedforwards.
+                        this::setModuleStates, // Module states consumer // This argument is optional if you don't use
+                                               // event markers
+                        this // Requires this drive subsystem
+                ));
+    }
+
+    /**
+     * 
+     * Returns a new command that, when ran, will make the swerve drivebase drive along the path until the given time is reached, where it will stop the path early
+     * 
+     * @param traj The trajectory to follow
+     * @param time The time after which the path will be stopped
+     * @return The Command that, when ran, will make the swerve drivebase drive along the path
+     */
+    public Command followTrajectoryCommandCancelable(PathPlannerTrajectory traj, double time) {
+        return followTrajectoryCommandCancelable(traj, false, time);
+    }
+
+
+    /**
+     * 
+     * Contains all the code that needs to be run inside the constructor. This is just used to clean things up.
+     */
+    private void ConstructorHelper() {
+        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
+
+        gyro = new Pigeon2(PIGEON_ID);
+        gyro.configFactoryDefault();
+        zeroGyro();
+
+
+        swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
+        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
+        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
+        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
+        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
+
+        try {
+            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mSwerveMods = new SwerveModule[] {
+                new SwerveModule(0, Mod0.constants),
+                new SwerveModule(1, Mod1.constants),
+                new SwerveModule(2, Mod2.constants),
+                new SwerveModule(3, Mod3.constants)
+        };
+
+        initializeLog();
+
+
+        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
+                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
+        angularDrivePID.enableContinuousInput(0, 360);
+        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
+
+
+        pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
+        pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
+        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
+        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
     }
 
 }

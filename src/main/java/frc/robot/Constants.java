@@ -1,12 +1,9 @@
 package frc.robot;
 
 import java.util.Map;
-
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-
 import org.photonvision.PhotonCamera;
 import org.photonvision.RobotPoseEstimator.PoseStrategy;
-
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
@@ -17,7 +14,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.lib.util.SwerveModuleConstants;
 import edu.wpi.first.wpilibj.I2C.Port;
@@ -213,13 +209,31 @@ public final class Constants {
 
 
         //look up table for target location <fiducial id, location>
-        public static final Map<Integer, Pose2d> targetLocations = Map.of(
+        public static final Map<Integer, Pose2d> TARGET_LOCATIONS = Map.of(
             1, new Pose2d()
             );
+
     }
 
     public final static class MultiplexerConstants {
         public static final byte DEFAULT_ADDRESS = 0x70;
         public static final Port DEFAULT_PORT = Port.kOnboard;
     }
+
+
+    public final static class PIDToPoseConstants {
+
+        public static final double PID_TO_POSE_X_P = 0;
+        public static final double PID_TO_POSE_X_I = 0;
+        public static final double PID_TO_POSE_X_D = 0;
+
+        public static final double PID_TO_POSE_Y_P = 0;
+        public static final double PID_TO_POSE_Y_I = 0;
+        public static final double PID_TO_POSE_Y_D = 0;
+
+        public static final double PID_TO_POSE_TOLERANCE = 0.1;
+
+    }
+
+    
 }
