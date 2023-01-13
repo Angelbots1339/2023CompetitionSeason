@@ -4,13 +4,17 @@ import java.util.Map;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import org.photonvision.PhotonCamera;
 import org.photonvision.RobotPoseEstimator.PoseStrategy;
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -164,6 +168,8 @@ public final class Constants {
         }
 
         public static final class PoseEstimatorConstants {
+
+            public static final PoseStrategy APRILTAG_POSE_STRATEGY = PoseStrategy.AVERAGE_BEST_TARGETS;
             /*
              * Standard deviations of model states. Increase these numbers to trust your
              * model's state estimates less. This matrix is in the form [x, y, theta]ᵀ, with
@@ -200,11 +206,10 @@ public final class Constants {
         public static final int ELEVATOR_MOTOR_ID = -1;// TODO
     }
 
-    public static final class VisionConstants {
+    public static final class Vision {
         public static final String CAMERA_NAME = "";
-        public static final PhotonCamera APRILTAG_CAM = new PhotonCamera(CAMERA_NAME);
-        public static final Transform3d APRILTAG_CAM_POS = new Transform3d();
-        public static final PoseStrategy APRILTAG_POSE_STRATEGY = PoseStrategy.AVERAGE_BEST_TARGETS;
+        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)); //TODO OPI pos 
+        public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Camera"); //TODO set correct name
         
 
 
