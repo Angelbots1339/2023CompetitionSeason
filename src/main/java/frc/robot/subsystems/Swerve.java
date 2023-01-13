@@ -61,41 +61,7 @@ public class Swerve extends SubsystemBase {
     private PIDController pidToPoseYController;
 
     public Swerve() {
-
-        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
-
-        gyro = new Pigeon2(PIGEON_ID);
-        gyro.configFactoryDefault();
-        zeroGyro();
-
-
-        swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
-        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
-        
-        try {
-            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
-        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
-
-        
-
-        mSwerveMods = new SwerveModule[] {
-                new SwerveModule(0, Mod0.constants),
-                new SwerveModule(1, Mod1.constants),
-                new SwerveModule(2, Mod2.constants),
-                new SwerveModule(3, Mod3.constants)
-        };
-
-        initializeLog();
-
-
-        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
-                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
+        ConstructorHelper();
     }
 
     
