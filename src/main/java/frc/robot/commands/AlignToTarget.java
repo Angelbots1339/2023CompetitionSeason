@@ -8,6 +8,8 @@ import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.PathPoint;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory.State;
@@ -35,7 +37,12 @@ public class AlignToTarget extends CommandBase {
 
 
 
-  /** Creates a new AlignToTarget. */
+  /** Creates a new AlignToTarget. 
+   * 
+   * This command will align the robot to an apriltag target. The robot will follow a path, and then utilize PID when it gets close. 
+   * 
+   * @param swerve The swerve drivebase subsystem
+  */
   public AlignToTarget(Swerve swerve) {
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(swerve);
@@ -72,15 +79,15 @@ for(int i = traj.getStates().size() / 2; i < traj.getStates().size(); i++) {
 
 this.idealState = traj.getState(idealStateIdx);
 this.trajCommand = swerve.followTrajectoryCommandCancelable(traj, this.idealState.timeSeconds);
-
+this.trajCommand.schedule();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
     if(timer.get() >= idealState.timeSeconds){
-      isFinished = swerve.PIDToPose(testTagPos, testTagRot);
-    } 
+      isFinished = swerve.PIDToPose(new Pose2d(testTagPos, testTagRot));
+    }
   }
 
 

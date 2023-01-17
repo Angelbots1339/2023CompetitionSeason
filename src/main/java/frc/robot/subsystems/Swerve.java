@@ -60,6 +60,10 @@ public class Swerve extends SubsystemBase {
     private PIDController pidToPoseXController;
     private PIDController pidToPoseYController;
 
+
+    /**
+     * Constructs a new Swerve subsystem
+     */
     public Swerve() {
         ConstructorHelper();
     }
@@ -136,7 +140,7 @@ public class Swerve extends SubsystemBase {
 
         }
     }
-    /*-----Possible Slutions for Swerve Drive Skew------ */
+    /*-----Possible Solutions for Swerve Drive Skew------ */
 
     // See
     // https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/5?u=ethan1
@@ -237,12 +241,18 @@ public class Swerve extends SubsystemBase {
 
 
 
-    public boolean PIDToPose(Translation2d target, Rotation2d rot) {
+    /**
+     * Use this to have the robot move to a position. Ideally use when the robot isn't very far away.
+     * 
+     * @param target The Pose for the robot to go to
+     * @return Whether or not the robot has gotten to within tolerance on both translation and rotation
+     */
+    public boolean PIDToPose(Pose2d target) {
 
-        Translation2d calculatedValues = new Translation2d(pidToPoseXController.calculate(getPose().getTranslation().getX(), target.getX()),
-                pidToPoseYController.calculate(getPose().getTranslation().getY(), target.getY()));
+        Translation2d calculatedValues = new Translation2d(pidToPoseXController.calculate(getEstimatedPose().getTranslation().getX(), target.getX()),
+                pidToPoseYController.calculate(getEstimatedPose().getTranslation().getY(), target.getY()));
         
-        angularDrive(calculatedValues, rot, true, true);
+        angularDrive(calculatedValues, target.getRotation(), true, true);
 
         return pidToPoseXController.atSetpoint() && pidToPoseYController.atSetpoint() && angularDrivePID.atSetpoint();
     }
@@ -378,7 +388,6 @@ public class Swerve extends SubsystemBase {
 
 
     /**
-     * 
      * Contains all the code that needs to be run inside the constructor. This is just used to clean things up.
      */
     private void ConstructorHelper() {
