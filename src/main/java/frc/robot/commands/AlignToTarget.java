@@ -52,7 +52,7 @@ public class AlignToTarget extends CommandBase {
     PathPlannerTrajectory traj = PathPlanner.generatePath(
     new PathConstraints(4, 3), 
     new PathPoint(new Translation2d(swerve.getPose().getX(), swerve.getPose().getY()), swerve.getYaw(), swerve.getYaw()), // position, heading(direction to move in), orientation
-    new PathPoint( testTagPos, swerve.getYaw(), testTagRot) // position, heading(direction to move in), orientation
+    new PathPoint(testTagPos, swerve.getYaw(), testTagRot) // position, heading(direction to move in), orientation
 );
 
 int idealStateIdx = 0;

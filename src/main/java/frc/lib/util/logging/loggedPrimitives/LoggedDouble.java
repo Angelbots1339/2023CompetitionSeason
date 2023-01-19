@@ -7,6 +7,7 @@ package frc.lib.util.logging.loggedPrimitives;
 import java.util.function.Supplier;
 
 import edu.wpi.first.util.datalog.DoubleLogEntry;
+
 import edu.wpi.first.wpilibj.DataLogManager;
 import frc.lib.util.logging.LoggedContainer;
 import frc.lib.util.logging.Logger.LoggingLevel;
@@ -43,7 +44,7 @@ public class LoggedDouble extends LoggedPrimitive<Double> {
 
     @Override
     protected void initializeOnboardLog(String name, String prefix) {
-        logEntry = new DoubleLogEntry(DataLogManager.getLog(), prefix + "/" + name);
+        logEntry = new DoubleLogEntry(DataLogManager.getLog(), getOnboardLogName(name, prefix));
     }
 
 }

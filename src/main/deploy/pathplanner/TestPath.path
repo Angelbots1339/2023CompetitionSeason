@@ -7,10 +7,10 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.050082391979731,
-        "y": 3.016549805341604
+        "x": 3.617127928475109,
+        "y": 3.0
       },
-      "holonomicAngle": -0.48503629112155505,
+      "holonomicAngle": 0.0,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
@@ -24,44 +24,19 @@
     },
     {
       "anchorPoint": {
-        "x": 3.182508856120916,
-        "y": 4.94948463206535
-      },
-      "prevControl": {
-        "x": 2.327804184063411,
-        "y": 4.94948463206535
-      },
-      "nextControl": {
-        "x": 4.057671630273106,
-        "y": 4.94948463206535
-      },
-      "holonomicAngle": -44.99999999999995,
-      "isReversal": false,
-      "velOverride": null,
-      "isLocked": false,
-      "isStopPoint": false,
-      "stopEvent": {
-        "names": [],
-        "executionBehavior": "parallel",
-        "waitBehavior": "none",
-        "waitTime": 0
-      }
-    },
-    {
-      "anchorPoint": {
-        "x": 5.0,
+        "x": 3.0,
         "y": 3.0
       },
       "prevControl": {
-        "x": 4.281284859040351,
+        "x": 2.365305786212968,
         "y": 3.0
       },
       "nextControl": {
-        "x": 5.718715140959649,
+        "x": 2.365305786212968,
         "y": 3.0
       },
-      "holonomicAngle": -90.0,
-      "isReversal": false,
+      "holonomicAngle": 0.0,
+      "isReversal": true,
       "velOverride": null,
       "isLocked": false,
       "isStopPoint": false,
@@ -74,15 +49,15 @@
     },
     {
       "anchorPoint": {
-        "x": 1.0,
-        "y": 3.0
+        "x": 0.9576813459676755,
+        "y": 1.5975456861945754
       },
       "prevControl": {
-        "x": -0.14129869473451295,
-        "y": 3.0
+        "x": 2.2414234152311736,
+        "y": 1.6546008892729538
       },
       "nextControl": null,
-      "holonomicAngle": 180.0,
+      "holonomicAngle": -90.0,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
@@ -112,6 +87,12 @@
         "hello",
         "sjgr",
         "hi"
+      ]
+    },
+    {
+      "position": 0.0,
+      "names": [
+        "event"
       ]
     }
   ]

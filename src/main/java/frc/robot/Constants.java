@@ -38,7 +38,7 @@ public final class Constants {
         /* Drivetrain Constants */
         public static final double TRACK_WIDTH = Units.inchesToMeters(19.75);
         public static final double WHEEL_BASE = Units.inchesToMeters(19.75);
-        public static final double WHEEL_CIRCUMFERENCE = 0.1;
+        public static final double WHEEL_CIRCUMFERENCE = 0.1 * Math.PI;
 
         /* Module Gear Ratios */
         /** SDS MK4i l1 - 8.14 : 1 */
@@ -105,9 +105,9 @@ public final class Constants {
 
         /* Swerve Profiling Values */
         /** Meters per Second */
-        public static final double MAX_SPEED = 0.5;//1.5; // TODO: This must be tuned to specific robot
+        public static final double MAX_SPEED = 1.5;//1.5; // TODO: This must be tuned to specific robot
         /** Radians per Second */
-        public static final double MAX_ANGULAR_VELOCITY = 2.5;//5.0; // TODO: This must be tuned to specific robot
+        public static final double MAX_ANGULAR_VELOCITY = 5;//5.0; // TODO: This must be tuned to specific robot
 
         /* Neutral Modes */
         public static final NeutralMode ANGLE_NEUTRAL_MODE = NeutralMode.Coast;
@@ -207,9 +207,8 @@ public final class Constants {
     }
 
     public static final class Vision {
-        public static final String CAMERA_NAME = "";
         public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)); //TODO OPI pos 
-        public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Camera"); //TODO set correct name
+        public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Cam1"); 
         
 
 

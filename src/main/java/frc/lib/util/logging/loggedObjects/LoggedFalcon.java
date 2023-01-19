@@ -19,8 +19,8 @@ public class LoggedFalcon extends LoggedObject<TalonFX> {
     }
 
     public LoggedFalcon(String name, LoggedContainer subsystemLogger, TalonFX object, String logType,
-            Boolean SeprateTab) {
-        super(name, subsystemLogger, object, logType, SeprateTab);
+            Boolean SeptateTab) {
+        super(name, subsystemLogger, object, logType, SeptateTab);
     }
 
     public LoggedFalcon(String name, LoggedContainer subsystemLogger, TalonFX object, String logType) {
@@ -30,7 +30,6 @@ public class LoggedFalcon extends LoggedObject<TalonFX> {
     @Override
     public void initializeShuffleboard() {
         ShuffleboardLayout layout = getTab().getLayout(name, BuiltInLayouts.kList);
-        System.out.println(getTab().getTitle());
     
         layout.add("title", 0).withSize(1, 2).withPosition(1, 1).getEntry();
         layout.addNumber(name + ":Stator Current", () -> object.getStatorCurrent()).withSize(2, 2);

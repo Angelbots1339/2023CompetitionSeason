@@ -18,6 +18,8 @@ import frc.robot.SwerveModule;
 import frc.robot.commands.CancelableSwerveController;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.lib.util.logging.loggedObjects.LoggedFalcon;
+import frc.lib.util.logging.loggedObjects.LoggedPigeon2;
+import frc.lib.util.logging.loggedObjects.LoggedSwerveModule;
 import frc.robot.LoggingConstants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -36,6 +38,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
@@ -61,7 +64,41 @@ public class Swerve extends SubsystemBase {
     private PIDController pidToPoseYController;
 
     public Swerve() {
-        ConstructorHelper();
+        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
+
+        gyro = new Pigeon2(PIGEON_ID);
+        gyro.configFactoryDefault();
+        zeroGyro();
+
+        mSwerveMods = new SwerveModule[] {
+                new SwerveModule(0, Mod0.constants),
+                new SwerveModule(1, Mod1.constants),
+                new SwerveModule(2, Mod2.constants),
+                new SwerveModule(3, Mod3.constants)
+        };
+
+        try {
+            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), getPositions());
+        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), new Pose2d(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
+        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
+        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
+        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
+
+        initializeLog();
+
+        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
+                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
+        angularDrivePID.enableContinuousInput(0, 360);
+        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
+
+        pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
+        pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
+        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
+        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
     }
 
     
@@ -75,16 +112,23 @@ public class Swerve extends SubsystemBase {
      * @param isOpenLoop
      */
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-        SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(
-                fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                        translation.getX(),
-                        translation.getY(),
-                        rotation,
-                        getYaw())
-                        : new ChassisSpeeds(
-                                translation.getX(),
-                                translation.getY(),
-                                rotation));
+        ChassisSpeeds chassisSpeeds;
+        if(fieldRelative){
+            chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                translation.getX(),
+                translation.getY(),
+                rotation,
+                getYaw());
+        }
+        else{
+            chassisSpeeds = new ChassisSpeeds(
+                translation.getX(),
+                translation.getY(),
+                rotation);
+        }
+        chassisSpeeds = reduceSkewFromChassisSpeeds254(chassisSpeeds);
+        
+        SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
         setModuleStates(swerveModuleStates, isOpenLoop);
     }
@@ -108,25 +152,34 @@ public class Swerve extends SubsystemBase {
         lastDesiredDegrees = desiredDegrees.getDegrees();
         lastTime = Timer.getFPGATimestamp();
 
+        
         double rotation = 0;
         // convert yaw into -180 -> 180 and absolute
         double yaw = (0 > getYaw().getDegrees() ? getYaw().getDegrees() % 360 + 360 : getYaw().getDegrees() % 360);
+
+        logger.updateDouble("desiredHeading", desiredDegrees.getDegrees(), "AngularDrive");
+        logger.updateDouble("currentHeading", yaw, "AngularDrive");
+        
+        
         rotation = MathUtil.clamp(
-                angularDrivePID.calculate(yaw, desiredDegrees.getDegrees() + // PID
+            angularDrivePID.calculate(yaw, desiredDegrees.getDegrees() + // PID
                         (!angularDrivePID.atSetpoint() ? // feed foward
                                 (-desiredAngularVelocity.getRadians() * AngularDriveConstants.ANGLE_KV) + // Kv Velocity
-                                                                                                          // Feedfoward
-                                        ((Math.signum(angularDrivePID.getPositionError())
+                                // Feedfoward
+                                ((Math.signum(angularDrivePID.getPositionError())
                                                 * AngularDriveConstants.ANGLE_KS)) // Ks Static Friction Feedforward
-                                : 0)),
-                -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
-
-        drive(translation, rotation, fieldRelative, isOpenLoop);
+                                                : 0)),
+                                                -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+                                                
+        logger.updateDouble("Output rotation", rotation, "AngularDrive");
+        logger.updateBoolean("At setpoint", angularDrivePID.atSetpoint(), "AngularDrive");
+       
+        drive(translation, -rotation, fieldRelative, isOpenLoop);
     }
 
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) {
-        setModuleStates(desiredStates, false);
+        setModuleStates(desiredStates, true);
     }
 
     public void setModuleStates(SwerveModuleState[] desiredStates, Boolean isOpenLoop) {
@@ -201,8 +254,8 @@ public class Swerve extends SubsystemBase {
     }
 
     public void resetOdometry(Pose2d pose) {
-        swerveOdometry.resetPosition(getYaw(), new SwerveModulePosition[4], pose);
-        poseEstimator.resetPosition(getYaw(), new SwerveModulePosition[4], pose);
+        swerveOdometry.resetPosition(getYaw(), getPositions(), pose);
+        poseEstimator.resetPosition(getYaw(), getPositions(), pose);
     }
 
     public SwerveModuleState[] getStates() {
@@ -257,21 +310,19 @@ public class Swerve extends SubsystemBase {
         if(aprilTagEstimation.isPresent()){
             poseEstimator.addVisionMeasurement(aprilTagEstimation.get().getFirst(), aprilTagEstimation.get().getSecond());
         }
-
-
-
-
     }
 
     public void initializeLog() {
-        logger.addDouble("Yaw", () -> gyro.getYaw(), "Gyro");
-        logger.addDouble("Roll", () -> gyro.getRoll(), "Gyro");
-        logger.addDouble("Pitch", () -> gyro.getPitch(), "Gyro");
+        logger.add(new LoggedPigeon2("Gyro", logger, gyro, "Gyro"));
+
+        logger.addDouble("est x", () -> getEstimatedPose().getX(), "Pose");
+        logger.addDouble("est y", () -> getEstimatedPose().getY(), "Pose");
 
         for (int i = 0; i < mSwerveMods.length; i++) {
             logger.add(new LoggedFalcon("Angle Motor: " + i, logger, mSwerveMods[i].getAngleMotor(), "Motor", true));
             logger.add(new LoggedFalcon("Drive Motor: " + i, logger, mSwerveMods[i].getDriveMotor(), "Motor", true));
-        }
+            logger.add(new LoggedSwerveModule("Module : "+ i, logger, mSwerveMods[i], "Module", true));
+        } 
     }
 
 
@@ -377,50 +428,6 @@ public class Swerve extends SubsystemBase {
     }
 
 
-    /**
-     * 
-     * Contains all the code that needs to be run inside the constructor. This is just used to clean things up.
-     */
-    private void ConstructorHelper() {
-        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
-
-        gyro = new Pigeon2(PIGEON_ID);
-        gyro.configFactoryDefault();
-        zeroGyro();
-
-
-        swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
-        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
-        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
-        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
-
-        try {
-            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mSwerveMods = new SwerveModule[] {
-                new SwerveModule(0, Mod0.constants),
-                new SwerveModule(1, Mod1.constants),
-                new SwerveModule(2, Mod2.constants),
-                new SwerveModule(3, Mod3.constants)
-        };
-
-        initializeLog();
-
-
-        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
-                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
-        angularDrivePID.enableContinuousInput(0, 360);
-        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
-
-
-        pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
-        pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
-        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
-        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
-    }
+    
 
 }
