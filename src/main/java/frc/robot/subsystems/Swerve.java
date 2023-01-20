@@ -18,6 +18,8 @@ import frc.robot.SwerveModule;
 import frc.robot.commands.CancelableSwerveController;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.lib.util.logging.loggedObjects.LoggedFalcon;
+import frc.lib.util.logging.loggedObjects.LoggedPigeon2;
+import frc.lib.util.logging.loggedObjects.LoggedSwerveModule;
 import frc.robot.LoggingConstants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -108,7 +110,6 @@ public class Swerve extends SubsystemBase {
         angularDrivePID.enableContinuousInput(0, 360);
         angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
 
-
         pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
         pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
         pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
@@ -126,16 +127,23 @@ public class Swerve extends SubsystemBase {
      * @param isOpenLoop
      */
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-        SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(
-                fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                        translation.getX(),
-                        translation.getY(),
-                        rotation,
-                        getYaw())
-                        : new ChassisSpeeds(
-                                translation.getX(),
-                                translation.getY(),
-                                rotation));
+        ChassisSpeeds chassisSpeeds;
+        if(fieldRelative){
+            chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                translation.getX(),
+                translation.getY(),
+                rotation,
+                getYaw());
+        }
+        else{
+            chassisSpeeds = new ChassisSpeeds(
+                translation.getX(),
+                translation.getY(),
+                rotation);
+        }
+        chassisSpeeds = reduceSkewFromChassisSpeeds254(chassisSpeeds);
+        
+        SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
         setModuleStates(swerveModuleStates, isOpenLoop);
     }
@@ -157,25 +165,34 @@ public class Swerve extends SubsystemBase {
         lastDesiredDegrees = desiredDegrees.getDegrees();
         lastTimeDrive = Timer.getFPGATimestamp();
 
+        
         double rotation = 0;
         // convert yaw into -180 -> 180 and absolute
         double yaw = (0 > getYaw().getDegrees() ? getYaw().getDegrees() % 360 + 360 : getYaw().getDegrees() % 360);
+
+        logger.updateDouble("desiredHeading", desiredDegrees.getDegrees(), "AngularDrive");
+        logger.updateDouble("currentHeading", yaw, "AngularDrive");
+        
+        
         rotation = MathUtil.clamp(
-                angularDrivePID.calculate(yaw, desiredDegrees.getDegrees() + // PID
+            angularDrivePID.calculate(yaw, desiredDegrees.getDegrees() + // PID
                         (!angularDrivePID.atSetpoint() ? // feed foward
                                 (-desiredAngularVelocity.getRadians() * AngularDriveConstants.ANGLE_KV) + // Kv Velocity
-                                                                                                          // Feedfoward
-                                        ((Math.signum(angularDrivePID.getPositionError())
+                                // Feedfoward
+                                ((Math.signum(angularDrivePID.getPositionError())
                                                 * AngularDriveConstants.ANGLE_KS)) // Ks Static Friction Feedforward
-                                : 0)),
-                -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
-
-        drive(translation, rotation, fieldRelative, isOpenLoop);
+                                                : 0)),
+                                                -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+                                                
+        logger.updateDouble("Output rotation", rotation, "AngularDrive");
+        logger.updateBoolean("At setpoint", angularDrivePID.atSetpoint(), "AngularDrive");
+       
+        drive(translation, -rotation, fieldRelative, isOpenLoop);
     }
 
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) {
-        setModuleStates(desiredStates, false);
+        setModuleStates(desiredStates, true);
     }
 
     public void setModuleStates(SwerveModuleState[] desiredStates, Boolean isOpenLoop) {
@@ -258,8 +275,8 @@ public class Swerve extends SubsystemBase {
     }
 
     public void resetOdometry(Pose2d pose) {
-        swerveOdometry.resetPosition(getYaw(), new SwerveModulePosition[4], pose);
-        poseEstimator.resetPosition(getYaw(), new SwerveModulePosition[4], pose);
+        swerveOdometry.resetPosition(getYaw(), getPositions(), pose);
+        poseEstimator.resetPosition(getYaw(), getPositions(), pose);
     }
 
     public SwerveModuleState[] getStates() {
@@ -331,14 +348,16 @@ public class Swerve extends SubsystemBase {
     }
 
     public void initializeLog() {
-        logger.addDouble("Yaw", () -> gyro.getYaw(), "Gyro");
-        logger.addDouble("Roll", () -> gyro.getRoll(), "Gyro");
-        logger.addDouble("Pitch", () -> gyro.getPitch(), "Gyro");
+        logger.add(new LoggedPigeon2("Gyro", logger, gyro, "Gyro"));
+
+        logger.addDouble("est x", () -> getEstimatedPose().getX(), "Pose");
+        logger.addDouble("est y", () -> getEstimatedPose().getY(), "Pose");
 
         for (int i = 0; i < mSwerveMods.length; i++) {
             logger.add(new LoggedFalcon("Angle Motor: " + i, logger, mSwerveMods[i].getAngleMotor(), "Motor", true));
             logger.add(new LoggedFalcon("Drive Motor: " + i, logger, mSwerveMods[i].getDriveMotor(), "Motor", true));
-        }
+            logger.add(new LoggedSwerveModule("Module : "+ i, logger, mSwerveMods[i], "Module", true));
+        } 
     }
 
 
@@ -442,7 +461,6 @@ public class Swerve extends SubsystemBase {
     public Command followTrajectoryCommandCancelable(PathPlannerTrajectory traj, double time) {
         return followTrajectoryCommandCancelable(traj, false, time);
     }
-
 
 
 

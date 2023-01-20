@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.lib.math.Conversions;
 import frc.robot.autos.*;
@@ -41,8 +42,8 @@ public class RobotContainer {
     // Maps to rect than applys deadband
     private DoubleSupplier translation = () -> MathUtil.applyDeadband(Conversions.mapJoystick(-driver.getLeftY(),
             -driver.getLeftX()), Constants.stickDeadband);
-    private DoubleSupplier strafe = () -> MathUtil.applyDeadband(Conversions.mapJoystick(-driver.getLeftY(),
-            -driver.getLeftX()), Constants.stickDeadband);
+    private DoubleSupplier strafe = () -> MathUtil.applyDeadband(Conversions.mapJoystick(-driver.getLeftX(),
+            -driver.getLeftY()), Constants.stickDeadband);
     private DoubleSupplier rotation = () -> MathUtil.applyDeadband(-driver.getRightX(), Constants.stickDeadband);
 
     private Rotation2d previousAngle = swerve.getYaw();
@@ -62,6 +63,8 @@ public class RobotContainer {
             XboxController.Button.kA.value);
     private final JoystickButton switchDriveMode = new JoystickButton(driver,
             XboxController.Button.kRightStick.value);
+    private final JoystickButton alignToTarget = new JoystickButton(driver,
+            XboxController.Button.kB.value);
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -90,6 +93,7 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
         zeroEncoders.onTrue(new InstantCommand(() -> swerve.resetOdometry(new Pose2d()), swerve));
         switchDriveMode.onTrue(new InstantCommand(() -> isAngularDrive = !isAngularDrive));
+        alignToTarget.whileTrue(new SimpleAlignToTarget(swerve));
 
     }
 

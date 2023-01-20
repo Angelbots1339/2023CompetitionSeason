@@ -64,6 +64,10 @@ public abstract class LoggedPrimitive<T> implements Iloggable {
         }
     }
 
+    protected String getOnboardLogName(String name, String prefix){
+        return prefix + "/" + name;
+    }
+
     protected abstract void initializeOnboardLog(String name, String prefix);
 
     protected abstract void logOnboard(long timestamp, T value);

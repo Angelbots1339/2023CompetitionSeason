@@ -6,47 +6,48 @@ package frc.lib.util.logging.loggedPrimitives;
 
 import java.util.function.Supplier;
 
-import edu.wpi.first.util.datalog.StringLogEntry;
-
+import edu.wpi.first.util.datalog.IntegerLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import frc.lib.util.logging.LoggedContainer;
 import frc.lib.util.logging.Logger.LoggingLevel;
 
 /** Add your docs here. */
-public class LoggedString extends LoggedPrimitive<String> {
-    private StringLogEntry logEntry;
+public class LoggedInteger extends LoggedPrimitive<Integer>{
 
-    public LoggedString(String name, LoggingLevel level, String prefix) {
+    private IntegerLogEntry logEntry;
+    
+    public LoggedInteger(String name, LoggingLevel level, String prefix) {
         super(name, level, prefix);
     }
-
-    public LoggedString(String name, LoggingLevel level, String prefix, Supplier<String> supplier) {
+    public LoggedInteger(String name, LoggingLevel level, String prefix, Supplier<Integer> supplier) {
         super(name, level, prefix, supplier);
     }
-
-    public LoggedString(String name, LoggingLevel level, LoggedContainer subsystem) {
+    public LoggedInteger(String name, LoggingLevel level, LoggedContainer subsystem) {
         super(name, level, subsystem);
     }
-
-    public LoggedString(String name, LoggingLevel level, LoggedContainer subsystem, Supplier<String> supplier) {
+    public LoggedInteger(String name, LoggingLevel level, LoggedContainer subsystem, Supplier<Integer> supplier) {
         super(name, level, subsystem, supplier);
     }
 
+    
+
+    
+
+
     @Override
     protected void initializeOnboardLog(String name, String prefix) {
-        logEntry = new StringLogEntry(DataLogManager.getLog(), getOnboardLogName(name, prefix));
-
+        logEntry = new IntegerLogEntry(DataLogManager.getLog(), getOnboardLogName(name, prefix));
+        
     }
 
     @Override
-    protected void logOnboard(long timestamp, String value) {
+    protected void logOnboard(long timestamp, Integer value) {
         logEntry.append(value, timestamp);
-
     }
 
     @Override
-    protected void logShuffleboard(String value) {
-        shuffleboardEntry.setString(value);
+    protected void logShuffleboard(Integer value) {
+        shuffleboardEntry.setInteger(value);
     }
 
 }

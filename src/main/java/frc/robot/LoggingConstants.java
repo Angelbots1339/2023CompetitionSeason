@@ -13,6 +13,9 @@ public final class LoggingConstants {
     public static final Map<String, LoggingLevel> SWERVE = Map.of(
             "Motor", LoggingLevel.ONBOARD_ONLY,
             "Gyro", LoggingLevel.ONBOARD_ONLY,
+            "Module", LoggingLevel.ONBOARD_ONLY,
+            "Pose", LoggingLevel.ONBOARD_ONLY,
+            "AngularDrive", LoggingLevel.ONBOARD_ONLY,
             "Default", LoggingLevel.NONE);
     public static final Map<String, LoggingLevel> GLOBAL = Map.of(
             "Default", LoggingLevel.NONE);
