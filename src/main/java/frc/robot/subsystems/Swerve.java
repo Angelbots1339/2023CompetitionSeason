@@ -57,15 +57,62 @@ public class Swerve extends SubsystemBase {
     private RobotPoseEstimator apriltagPoseEstimator;
     private AprilTagFieldLayout layout;
 
+    private double lastTimePeriodic;
+    private double lastTimeDrive;
+    private double lastDesiredDegrees;
+
+
     private PIDController pidToPoseXController;
     private PIDController pidToPoseYController;
+
+    private Translation2d currentVel;
+    private Pose2d lastPose;
 
 
     /**
      * Constructs a new Swerve subsystem
      */
     public Swerve() {
-        ConstructorHelper();
+        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
+
+        gyro = new Pigeon2(PIGEON_ID);
+        gyro.configFactoryDefault();
+        zeroGyro();
+
+
+
+        swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
+        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
+        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
+        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
+        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
+
+        try {
+            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mSwerveMods = new SwerveModule[] {
+                new SwerveModule(0, Mod0.constants),
+                new SwerveModule(1, Mod1.constants),
+                new SwerveModule(2, Mod2.constants),
+                new SwerveModule(3, Mod3.constants)
+        };
+
+        initializeLog();
+
+
+        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
+                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
+        angularDrivePID.enableContinuousInput(0, 360);
+        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
+
+
+        pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
+        pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
+        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
+        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
     }
 
     
@@ -93,8 +140,6 @@ public class Swerve extends SubsystemBase {
         setModuleStates(swerveModuleStates, isOpenLoop);
     }
 
-    private double lastDesiredDegrees;
-    private double lastTime;
 
     /**
      * @param translation    Translation2d holding the desired velocities on each
@@ -108,9 +153,9 @@ public class Swerve extends SubsystemBase {
             boolean isOpenLoop) {
 
         Rotation2d desiredAngularVelocity = Rotation2d.fromDegrees(
-                (lastDesiredDegrees - desiredDegrees.getDegrees()) / (Timer.getFPGATimestamp() - lastTime));
+                (lastDesiredDegrees - desiredDegrees.getDegrees()) / (Timer.getFPGATimestamp() - lastTimeDrive));
         lastDesiredDegrees = desiredDegrees.getDegrees();
-        lastTime = Timer.getFPGATimestamp();
+        lastTimeDrive = Timer.getFPGATimestamp();
 
         double rotation = 0;
         // convert yaw into -180 -> 180 and absolute
@@ -204,6 +249,14 @@ public class Swerve extends SubsystemBase {
         }
     }
 
+    /**
+     * Get the current velocity of the robot
+     * @return A Translation2d containing the current X and Y velocity
+     */
+    public Translation2d getCurrentVelocity() {
+        return currentVel;
+    }
+
     public void resetOdometry(Pose2d pose) {
         swerveOdometry.resetPosition(getYaw(), new SwerveModulePosition[4], pose);
         poseEstimator.resetPosition(getYaw(), new SwerveModulePosition[4], pose);
@@ -268,8 +321,12 @@ public class Swerve extends SubsystemBase {
             poseEstimator.addVisionMeasurement(aprilTagEstimation.get().getFirst(), aprilTagEstimation.get().getSecond());
         }
 
-
-
+        double deltaTime = Timer.getFPGATimestamp() - lastTimePeriodic;
+        currentVel = new Translation2d(
+            (lastPose.getX() - getPose().getX()) / deltaTime, 
+            lastPose.getY() - getPose().getY());
+        lastPose = getPose();
+        lastTimePeriodic = Timer.getFPGATimestamp();
 
     }
 
@@ -387,49 +444,6 @@ public class Swerve extends SubsystemBase {
     }
 
 
-    /**
-     * Contains all the code that needs to be run inside the constructor. This is just used to clean things up.
-     */
-    private void ConstructorHelper() {
-        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
 
-        gyro = new Pigeon2(PIGEON_ID);
-        gyro.configFactoryDefault();
-        zeroGyro();
-
-
-        swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
-        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
-        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
-        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
-
-        try {
-            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mSwerveMods = new SwerveModule[] {
-                new SwerveModule(0, Mod0.constants),
-                new SwerveModule(1, Mod1.constants),
-                new SwerveModule(2, Mod2.constants),
-                new SwerveModule(3, Mod3.constants)
-        };
-
-        initializeLog();
-
-
-        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
-                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
-        angularDrivePID.enableContinuousInput(0, 360);
-        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
-
-
-        pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
-        pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
-        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
-        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
-    }
 
 }

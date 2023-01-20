@@ -22,7 +22,7 @@ public class TeleopSwerve extends CommandBase {
 
   /**
    * @param swerve          subsystem
-   * @param translation     -1 -> 1: 1 is foward -1 is backwards
+   * @param translation     -1 -> 1: 1 is forward -1 is backwards
    * @param strafe          -1 -> 1: 1 is right -1 is left
    * @param rotation        -1 -> 1: 1 is turn ccw -1 is turn cw
    * @param angle           0 -> 360: 0 is up ccw is + cw is - (for angular drive)

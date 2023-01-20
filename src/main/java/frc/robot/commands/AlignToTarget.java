@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Swerve;
+import static frc.robot.Constants.PIDToPoseConstants.*;
 
 
 
@@ -31,9 +32,8 @@ public class AlignToTarget extends CommandBase {
   
 
   // Test Variables (Replace with the real ones when possible)
-  private double testPValue = 0;
   private Translation2d testTagPos = new Translation2d(0, 0);
-  private Rotation2d testTagRot = Rotation2d.fromDegrees(180);
+  private Rotation2d testTagRot = Rotation2d.fromDegrees(180); 
 
 
 
@@ -57,29 +57,42 @@ public class AlignToTarget extends CommandBase {
   public void initialize() {
 
     PathPlannerTrajectory traj = PathPlanner.generatePath(
-    new PathConstraints(4, 3), 
-    new PathPoint(new Translation2d(swerve.getPose().getX(), swerve.getPose().getY()), swerve.getYaw(), swerve.getYaw()), // position, heading(direction to move in), orientation
-    new PathPoint( testTagPos, swerve.getYaw(), testTagRot) // position, heading(direction to move in), orientation
+    new PathConstraints(2, 2), 
+    new PathPoint(new Translation2d(swerve.getPose().getX(), swerve.getPose().getY()), 
+      Rotation2d.fromDegrees(Math.atan2(swerve.getCurrentVelocity().getX(), swerve.getCurrentVelocity().getY())), swerve.getYaw()), // position, heading(direction to move in), orientation
+    new PathPoint( testTagPos, testTagRot, testTagRot) // position, heading(direction to move in), orientation  
 );
 
 int idealStateIdx = 0;
-double idealStateDelta = 0;
+double idealStateDeltaX = 0;
+double idealStateDeltaY = 0;
 
 
 for(int i = traj.getStates().size() / 2; i < traj.getStates().size(); i++) {
 
   Translation2d currentTranslation = new Translation2d(traj.getState(i).poseMeters.getX(), traj.getState(i).poseMeters.getY());
-  double delta = Math.abs(traj.getState(i).velocityMetersPerSecond - currentTranslation.getDistance(testTagPos) * testPValue);
 
-  if(delta <= idealStateDelta){
+  double xComponent = traj.getState(i).velocityMetersPerSecond / Math.cos(traj.getState(i).poseMeters.getRotation().getRadians());
+  double yComponent = traj.getState(i).velocityMetersPerSecond / Math.sin(traj.getState(i).poseMeters.getRotation().getRadians());
+
+
+  double deltaX = Math.abs(xComponent - Math.abs(currentTranslation.getX() - testTagPos.getX()) * PID_TO_POSE_X_P);
+  double deltaY = Math.abs(yComponent - Math.abs(currentTranslation.getY() - testTagPos.getY()) * PID_TO_POSE_Y_P);
+
+  if(deltaX <= idealStateDeltaX && deltaY <= idealStateDeltaY){ // TODO Find a better way to determine which state is better
     idealStateIdx = i;
-    idealStateDelta = delta;
+    idealStateDeltaX = deltaX;
+    idealStateDeltaY = deltaY;
   }
 }
 
 this.idealState = traj.getState(idealStateIdx);
 this.trajCommand = swerve.followTrajectoryCommandCancelable(traj, this.idealState.timeSeconds);
 this.trajCommand.schedule();
+  }
+
+  private Translation2d findIdealPoint() {
+    return new Translation2d(0, 0); // TODO Find the closest point on a predefined arc in relation to the robot's current position
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -103,3 +116,4 @@ this.trajCommand.schedule();
     return isFinished;
   }
 }
+

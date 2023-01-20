@@ -69,7 +69,7 @@ public class RobotContainer {
     public RobotContainer() {
         swerve.setDefaultCommand(
                 new TeleopSwerve(swerve, translation, strafe, rotation, angle, () -> false,
-                        true // Is feild relitive
+                        true // Is field relative
                 ));
 
         // Configure the button bindings
