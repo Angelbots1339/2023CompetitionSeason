@@ -4,12 +4,12 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import static frc.robot.Constants.Vision.*;
 
-import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import frc.robot.subsystems.Swerve;
@@ -17,11 +17,23 @@ import frc.robot.subsystems.Swerve;
 public class SimpleAlignToTarget extends CommandBase {
   /** Creates a new SimpleAlignToTarget. */
   Swerve swerve; 
-  PhotonCamera photonCamera;       
+  //private ShuffleboardLayout translationLayout = Shuffleboard.getTab("VisionTuning").getLayout("Translation", BuiltInLayouts.kList);
+  //private ShuffleboardLayout strafeLayout = Shuffleboard.getTab("VisionTuning").getLayout("Strafe", BuiltInLayouts.kList);
+
+  private double translationKP = 0.0;
+  private double strafeKP = 0.0;
+  private double KS = 0.0;
+
+  PIDController translationController = new PIDController(translationKP, 0, 0);
+  PIDController strafeController = new PIDController(strafeKP, 0, 0);
+
+
   public SimpleAlignToTarget(Swerve swerve) {
-    photonCamera = new PhotonCamera("Cam1");
     this.swerve = swerve;
     addRequirements(swerve);
+    //translationLayout.add(translationController);
+    //strafeLayout.add(strafeController);
+
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -29,24 +41,28 @@ public class SimpleAlignToTarget extends CommandBase {
   @Override
   public void initialize() {}
 
-  private double testKp = 0;
-
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    
-    SmartDashboard.putBoolean("target", photonCamera.getLatestResult().hasTargets());
-    SmartDashboard.putBoolean("connected", photonCamera.isConnected());
+    SmartDashboard.putBoolean("target", APRILTAG_CAM.getLatestResult().hasTargets());
+    SmartDashboard.putBoolean("connected", APRILTAG_CAM.isConnected());
 
+    if(APRILTAG_CAM.getLatestResult().hasTargets()){
+      PhotonTrackedTarget target = APRILTAG_CAM.getLatestResult().getBestTarget();
+      Translation3d targetPose = target.getAlternateCameraToTarget().getTranslation();
 
+      SmartDashboard.putNumber("targetPoseX", targetPose.getX());
+      SmartDashboard.putNumber("targetPoseY", targetPose.getY());
+      SmartDashboard.putNumber("targetPoseZ", targetPose.getZ());
 
-    if(photonCamera.getLatestResult().hasTargets()){
-      PhotonTrackedTarget target = photonCamera.getLatestResult().getBestTarget();
-      SmartDashboard.putNumber("yaw ", target.getYaw());
-      //swerve.drive(new Translation2d(), target.getYaw() * testKp , false, false);
+      double strafe = strafeController.calculate(targetPose.getX(), 0) + KS * Math.signum(strafeController.getPositionError());
+      double translation = translationController.calculate(targetPose.getZ(), 1) + KS * Math.signum(translationController.getPositionError());
+      SmartDashboard.putNumber("strafe", strafe);
+      SmartDashboard.putNumber("translation", translation);
+
+      //swerve.angularDrive(new Translation2d(translation, strafe), Rotation2d.fromDegrees(0), true, true);
+      
     }
-
-
   }
 
   // Called once the command ends or is interrupted.

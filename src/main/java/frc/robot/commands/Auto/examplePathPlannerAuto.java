@@ -2,15 +2,13 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.autos;
+package frc.robot.commands.Auto;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.lib.util.Auto.AutoUtils;
 import frc.robot.subsystems.Swerve;
 
@@ -20,13 +18,12 @@ import frc.robot.subsystems.Swerve;
 public class examplePathPlannerAuto extends SequentialCommandGroup {
   /** Creates a new examplePathPlannerAuto. */
   public examplePathPlannerAuto(Swerve swerve) {
-    // ArrayList<PathPlannerTrajectory> trajectories =
-    // AutoUtils.loadTrajectoriesWithConstraints("TestPath");
-    PathPlannerTrajectory trajectory = PathPlanner.loadPath("TestPath", PathPlanner.getConstraintsFromPath("TestPath"));
+    List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("TestPath");
+    //PathPlannerTrajectory trajectory = PathPlanner.loadPath("TestPath", PathPlanner.getConstraintsFromPath("TestPath"));
 
     addRequirements(swerve);
     addCommands(
-        swerve.followTrajectoryCommand(trajectory, true));
+        swerve.followTrajectoryCommand(trajectories.get(0), true));
 
   }
 }

@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import frc.lib.util.logging.Logger.LoggingLevel;
-import frc.lib.util.logging.loggedObjects.LoggedObject;
 import frc.lib.util.logging.loggedPrimitives.LoggedBoolean;
 import frc.lib.util.logging.loggedPrimitives.LoggedDouble;
 import frc.lib.util.logging.loggedPrimitives.LoggedInteger;

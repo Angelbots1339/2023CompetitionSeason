@@ -7,10 +7,7 @@ package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.util.datalog.BooleanArrayLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -26,13 +23,9 @@ import frc.lib.util.logging.Logger;
  * project.
  */
 public class Robot extends TimedRobot {
-  public static CTREConfigs ctreConfigs;
 
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
-  private final Joystick joystick = new Joystick(0);
-
-  private BooleanArrayLogEntry booleanArrayLogEntry = new BooleanArrayLogEntry(DataLogManager.getLog(), "test");
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -44,7 +37,6 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
     DataLogManager.logNetworkTables(true);
 
-    ctreConfigs = new CTREConfigs();
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our
     // autonomous chooser on the dashboard.

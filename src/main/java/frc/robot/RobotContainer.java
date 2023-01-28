@@ -1,6 +1,5 @@
 package frc.robot;
 
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.MathUtil;
@@ -12,8 +11,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.lib.math.Conversions;
-import frc.robot.autos.*;
+import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.commands.*;
+import frc.robot.commands.Auto.examplePathPlannerAuto;
 import frc.robot.subsystems.*;
 
 /**
@@ -26,6 +26,8 @@ import frc.robot.subsystems.*;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
+        private final LoggedSubsystem log = new LoggedSubsystem("RobotContainer", LoggingConstants.ROBOT_CONTAINER );
     /* Controllers */
     private final XboxController driver = new XboxController(0);
     /* Subsystems */
@@ -39,11 +41,11 @@ public class RobotContainer {
     // Up is positive right is positive
 
     // Maps to rect than applys deadband
-    private DoubleSupplier translation = () -> MathUtil.applyDeadband(Conversions.mapJoystick(-driver.getLeftY(),
+    private Supplier<Double> translation = () -> MathUtil.applyDeadband(Conversions.mapJoystick(-driver.getLeftY(),
             -driver.getLeftX()), Constants.stickDeadband);
-    private DoubleSupplier strafe = () -> MathUtil.applyDeadband(Conversions.mapJoystick(-driver.getLeftX(),
+    private Supplier<Double> strafe = () -> MathUtil.applyDeadband(Conversions.mapJoystick(-driver.getLeftX(),
             -driver.getLeftY()), Constants.stickDeadband);
-    private DoubleSupplier rotation = () -> MathUtil.applyDeadband(-driver.getRightX(), Constants.stickDeadband);
+    private Supplier<Double> rotation = () -> MathUtil.applyDeadband(-driver.getRightX(), Constants.stickDeadband);
 
     private Rotation2d previousAngle = swerve.getYaw();
     private Supplier<Rotation2d> angle = () -> {
@@ -73,6 +75,11 @@ public class RobotContainer {
                 new TeleopSwerve(swerve, translation, strafe, rotation, angle, () -> false,
                         true // Is field relative
                 ));
+
+        log.addDouble("Translation", (Supplier<Double>)translation, "Drive");
+        log.addDouble("Strafe", (Supplier<Double>)strafe, "Drive");
+        log.addDouble("Rotation", (Supplier<Double>)rotation, "Drive");
+        log.addDouble("Angle", () -> angle.get().getDegrees(), "Drive");
 
         // Configure the button bindings
         configureButtonBindings();

@@ -1,10 +1,11 @@
 package frc.robot.commands;
 
+import frc.lib.util.logging.LoggedCommand;
 import frc.robot.Constants;
+import frc.robot.LoggingConstants;
 import frc.robot.subsystems.Swerve;
 
 import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,12 +14,13 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 
 public class TeleopSwerve extends CommandBase {
   private Swerve swerve;
-  private DoubleSupplier translation;
-  private DoubleSupplier strafe;
-  private DoubleSupplier rotation;
+  private Supplier<Double> translation;
+  private Supplier<Double> strafe;
+  private Supplier<Double> rotation;
   private Supplier<Rotation2d> angle;
   private boolean isFieldRelative;
   private BooleanSupplier isAngularDrive;
+  private LoggedCommand log = new LoggedCommand("TeleopSwerve", LoggingConstants.SWERVE);
 
   /**
    * @param swerve          subsystem
@@ -29,7 +31,7 @@ public class TeleopSwerve extends CommandBase {
    * @param isAngularDrive
    * @param isFieldRelative
    */
-  public TeleopSwerve(Swerve swerve, DoubleSupplier translation, DoubleSupplier strafe, DoubleSupplier rotation,
+  public TeleopSwerve(Swerve swerve, Supplier<Double> translation, Supplier<Double> strafe, Supplier<Double> rotation,
       Supplier<Rotation2d> angle, BooleanSupplier isAngularDrive, boolean isFieldRelative) {
     this.swerve = swerve;
     addRequirements(swerve);
@@ -47,17 +49,23 @@ public class TeleopSwerve extends CommandBase {
     /* Drive */
     if (isAngularDrive.getAsBoolean()) {
       swerve.angularDrive(
-          new Translation2d(translation.getAsDouble(), strafe.getAsDouble()).times(Constants.SwerveConstants.MAX_SPEED),
+          new Translation2d(translation.get(), strafe.get()).times(Constants.SwerveConstants.MAX_SPEED),
           angle.get(),
           isFieldRelative, // Field relative
           true);
     } else {
       swerve.drive(
-          new Translation2d(translation.getAsDouble(), strafe.getAsDouble()).times(Constants.SwerveConstants.MAX_SPEED),
-          (rotation.getAsDouble() * Constants.SwerveConstants.MAX_ANGULAR_VELOCITY),
+          new Translation2d(translation.get(), strafe.get()).times(Constants.SwerveConstants.MAX_SPEED),
+          (rotation.get() * Constants.SwerveConstants.MAX_ANGULAR_VELOCITY),
           isFieldRelative, // Field relative
           true);
     }
+
+  }
+
+  @Override
+  public void end(boolean interrupted) {
+    log.stopLogging();
   }
 
 }
