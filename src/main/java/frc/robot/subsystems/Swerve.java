@@ -82,6 +82,7 @@ public class Swerve extends SubsystemBase {
         TalonUtil.checkError(gyro.configFactoryDefault(), "Failed to config factory default on pigeon"); 
         zeroGyro();
 
+
        
         try {
             layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile);
@@ -359,17 +360,17 @@ public class Swerve extends SubsystemBase {
         swerveOdometry.update(getYaw(), getPositions());
         poseEstimator.update(getYaw(),  getPositions());
 
-        Optional<Pair<Pose2d, Double>> aprilTagEstimation = getApriltagEstimatedPose(getEstimatedPose());
-        if(aprilTagEstimation.isPresent()){
-            poseEstimator.addVisionMeasurement(aprilTagEstimation.get().getFirst(), aprilTagEstimation.get().getSecond());
-        }
+        // Optional<Pair<Pose2d, Double>> aprilTagEstimation = getApriltagEstimatedPose(getEstimatedPose());
+        // if(aprilTagEstimation.isPresent()){
+        //     poseEstimator.addVisionMeasurement(aprilTagEstimation.get().getFirst(), aprilTagEstimation.get().getSecond());
+        // }
 
-        double deltaTime = Timer.getFPGATimestamp() - lastTimePeriodic;
-        currentVel = new Translation2d(
-            (lastPose.getX() - getEstimatedPose().getX()) / deltaTime, 
-            (lastPose.getY() - getEstimatedPose().getY()) / deltaTime);
-        lastPose = getPose();
-        lastTimePeriodic = Timer.getFPGATimestamp();
+        // double deltaTime = Timer.getFPGATimestamp() - lastTimePeriodic;
+        // currentVel = new Translation2d(
+        //     (lastPose.getX() - getEstimatedPose().getX()) / deltaTime, 
+        //     (lastPose.getY() - getEstimatedPose().getY()) / deltaTime);
+        // lastPose = getPose();
+        // lastTimePeriodic = Timer.getFPGATimestamp();
 
     }
 

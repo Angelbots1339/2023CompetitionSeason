@@ -14,7 +14,7 @@ public final class LoggingConstants {
                         "Motor", LoggingLevel.ONBOARD_ONLY,
                         "Gyro", LoggingLevel.ONBOARD_ONLY,
                         "Module", LoggingLevel.ONBOARD_ONLY,
-                        "Pose", LoggingLevel.ONBOARD_ONLY,
+                        "Pose", LoggingLevel.NONE,
                         "AngularDrive", LoggingLevel.NONE,
                         "Drive", LoggingLevel.NONE,
                         "Default", LoggingLevel.NONE);
