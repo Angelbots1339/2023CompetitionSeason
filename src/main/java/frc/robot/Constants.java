@@ -2,6 +2,11 @@ package frc.robot;
 
 import java.util.Map;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
+import com.ctre.phoenix.sensors.AbsoluteSensorRange;
+import com.ctre.phoenix.sensors.SensorInitializationStrategy;
+import com.ctre.phoenix.sensors.SensorTimeBase;
+
 import org.photonvision.PhotonCamera;
 import org.photonvision.RobotPoseEstimator.PoseStrategy;
 import edu.wpi.first.apriltag.AprilTag;
@@ -26,7 +31,11 @@ public final class Constants {
     public static final double stickDeadband = 0.04;
     public static final double angularStickDeadband = 0.04;
 
-    public static final class Swerve {
+    public static final String CANIVORE = "canivore";
+    public static final int MAX_VOLTAGE = 12;
+    public static final int CAN_TIMEOUT = 100; // ms
+
+    public static final class SwerveConstants {
 
         public static final double LOOPER_DT = 0.01; // used for 254's solution to swerve skew it is loop time in sec
         public static final double FUDGE_FACTOR_KP = 0.1; // used for the CD fudge factor solution to swerve skew
@@ -46,13 +55,6 @@ public final class Constants {
         /** SDS MK4i l1 - (150 / 7) : 1 */
         public static final double ANGLE_GEAR_RATIO = ((150.0 / 7.0) / 1.0);
 
-        /* Motor Inverts */
-        public static final boolean ANGLE_MOTOR_INVERT = true;
-        public static final boolean DRIVE_MOTOR_INVERT = true;
-
-        /* Angle Encoder Invert */
-        public static final boolean CANCODER_INVERT = false;
-
         /*
          * Swerve Kinematics
          * No need to ever change this unless you are not doing a traditional
@@ -64,37 +66,6 @@ public final class Constants {
                 new Translation2d(-WHEEL_BASE / 2.0, TRACK_WIDTH / 2.0),
                 new Translation2d(-WHEEL_BASE / 2.0, -TRACK_WIDTH / 2.0));
 
-        /* Swerve Current Limiting */
-        public static final int ANGLE_CONTINUOUS_CURRENT_LIMIT = 25;
-        public static final int ANGLE_PEAK_CURRENT_LIMIT = 40;
-        public static final double ANGLE_PEAK_CURRENT_DURATION = 0.1;
-        public static final boolean ANGLE_ENABLE_CURRENT_LIMIT = true;
-
-        public static final int DRIVE_CONTINUOUS_CURRENT_LIMIT = 35;
-        public static final int DRIVE_PEAK_CURRENT_LIMIT = 60;
-        public static final double DRIVE_PEAL_CURRENT_DURATION = 0.1;
-        public static final boolean DRIVE_ENABLE_CURRENT_LIMIT = true;
-
-        /*
-         * These values are used by the drive falcon to ramp in open loop and closed
-         * loop driving.
-         * We found a small open loop ramp (0.25) helps with tread wear, tipping, etc
-         */
-        public static final double OPEN_LOOP_RAMP = 0.25;
-        public static final double CLOSED_LOOP_RAMP = 0.0;
-
-        /* Angle Motor PID Values */
-        public static final double ANGLE_KP = 0.3;
-        public static final double ANGLE_KI = 0.0;
-        public static final double ANGLE_KD = 0.0;
-        public static final double ANGLE_KF = 0.0;
-
-        /* Drive Motor PID Values */
-        public static final double DRIVE_KP = 0.05; // TODO: This must be tuned to specific robot
-        public static final double DRIVE_KI = 0.0;
-        public static final double DRIVE_KD = 0.0;
-        public static final double DRIVE_KF = 0.0;
-
         /*
          * Drive Motor Characterization Values
          * Divide SYSID values by 12 to convert from volts to percent output for CTRE
@@ -105,13 +76,66 @@ public final class Constants {
 
         /* Swerve Profiling Values */
         /** Meters per Second */
-        public static final double MAX_SPEED = 1.5;//1.5; // TODO: This must be tuned to specific robot
+        public static final double MAX_SPEED = 1.5;// 1.5; // TODO: This must be tuned to specific robot
         /** Radians per Second */
-        public static final double MAX_ANGULAR_VELOCITY = 5;//5.0; // TODO: This must be tuned to specific robot
+        public static final double MAX_ANGULAR_VELOCITY = 5;// 5.0; // TODO: This must be tuned to specific robot
 
-        /* Neutral Modes */
-        public static final NeutralMode ANGLE_NEUTRAL_MODE = NeutralMode.Coast;
-        public static final NeutralMode DRIVE_NEUTRAL_MODE = NeutralMode.Brake;
+        public static final class FalconConfigConstants {
+            /* Neutral Modes */
+            public static final NeutralMode ANGLE_NEUTRAL_MODE = NeutralMode.Coast;
+            public static final NeutralMode DRIVE_NEUTRAL_MODE = NeutralMode.Brake;
+
+            /* Sensor Initialization strategy */
+            public static final SensorInitializationStrategy ANGLE_SENSOR_INIT_STRATEGY = SensorInitializationStrategy.BootToZero;
+            public static final SensorInitializationStrategy DRIVE_SENSOR_INIT_STRATEGY = SensorInitializationStrategy.BootToZero;
+
+            /* Angle Motor PID Values */
+            public static final double ANGLE_KP = 0.3;
+            public static final double ANGLE_KI = 0.0;
+            public static final double ANGLE_KD = 0.0;
+            public static final double ANGLE_KF = 0.0;
+
+            /* Drive Motor PID Values */
+            public static final double DRIVE_KP = 0.05; // TODO: This must be tuned to specific robot
+            public static final double DRIVE_KI = 0.0;
+            public static final double DRIVE_KD = 0.0;
+            public static final double DRIVE_KF = 0.0;
+            /*
+             * These values are used by the drive falcon to ramp in open loop and closed
+             * loop driving.
+             * We found a small open loop ramp (0.25) helps with tread wear, tipping, etc
+             */
+            public static final double OPEN_LOOP_RAMP = 0.25;
+            public static final double CLOSED_LOOP_RAMP = 0.0;
+
+            /* Motor Inverts */
+            public static final boolean ANGLE_MOTOR_INVERT = true;
+            public static final boolean DRIVE_MOTOR_INVERT = true;
+
+            /* Swerve Current Limiting */
+            private static final int ANGLE_CONTINUOUS_CURRENT_LIMIT = 25;
+            private static final int ANGLE_PEAK_CURRENT_LIMIT = 40;
+            private static final double ANGLE_PEAK_CURRENT_DURATION = 0.1;
+            private static final boolean ANGLE_ENABLE_CURRENT_LIMIT = true;
+            public static final SupplyCurrentLimitConfiguration ANGLE_CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
+                    ANGLE_ENABLE_CURRENT_LIMIT, ANGLE_CONTINUOUS_CURRENT_LIMIT, ANGLE_PEAK_CURRENT_LIMIT,
+                    ANGLE_PEAK_CURRENT_DURATION);
+
+            private static final int DRIVE_CONTINUOUS_CURRENT_LIMIT = 35;
+            private static final int DRIVE_PEAK_CURRENT_LIMIT = 60;
+            private static final double DRIVE_PEAL_CURRENT_DURATION = 0.1;
+            private static final boolean DRIVE_ENABLE_CURRENT_LIMIT = true;
+            public static final SupplyCurrentLimitConfiguration DRIVE_CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
+                    DRIVE_ENABLE_CURRENT_LIMIT, DRIVE_CONTINUOUS_CURRENT_LIMIT, DRIVE_PEAK_CURRENT_LIMIT,
+                    DRIVE_PEAL_CURRENT_DURATION);
+            /*------- CANcoder Config ------- */
+            /* Angle Encoder Invert */
+            public static final boolean CANCODER_INVERT = false;
+            
+            public static final AbsoluteSensorRange CANCODER_ABSOLUTE_SENSOR_RANGE = AbsoluteSensorRange.Unsigned_0_to_360;
+            public static final SensorInitializationStrategy CANCODER_SENSOR_INIT_STRATEGY = SensorInitializationStrategy.BootToAbsolutePosition;
+            public static final SensorTimeBase CANCODER_SENSOR_TIME_BASE = SensorTimeBase.PerSecond;
+        }
 
         /* Module Specific Constants */
         /** Front Left Module - Module 0 */
@@ -187,9 +211,9 @@ public final class Constants {
              * with units in meters and radians.
              */
             public static final Matrix<N3, N1> VISION_MEASUREMENT_STD_DEVS = new MatBuilder<>(Nat.N3(), Nat.N1()).fill(
-                0.90,
-                0.90,
-                0.90);
+                    0.90,
+                    0.90,
+                    0.90);
         }
 
     }
@@ -202,20 +226,18 @@ public final class Constants {
 
     }
 
-    public static final class Elevator {
+    public static final class ElevatorConstants {
         public static final int ELEVATOR_MOTOR_ID = -1;// TODO
     }
 
     public static final class Vision {
-        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)); //TODO OPI pos 
-        public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Cam1"); 
-        
+        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0, 0, 0),
+                new Rotation3d(0, 0, 0)); // TODO OPI pos
+        public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Cam1");
 
-
-        //look up table for target location <fiducial id, location>
+        // look up table for target location <fiducial id, location>
         public static final Map<Integer, Pose2d> TARGET_LOCATIONS = Map.of(
-            1, new Pose2d()
-            );
+                1, new Pose2d());
 
     }
 
@@ -223,7 +245,6 @@ public final class Constants {
         public static final byte DEFAULT_ADDRESS = 0x70;
         public static final Port DEFAULT_PORT = Port.kOnboard;
     }
-
 
     public final static class PIDToPoseConstants {
 
@@ -239,5 +260,4 @@ public final class Constants {
 
     }
 
-    
 }

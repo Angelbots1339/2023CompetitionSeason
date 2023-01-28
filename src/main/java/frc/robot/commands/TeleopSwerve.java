@@ -47,14 +47,14 @@ public class TeleopSwerve extends CommandBase {
     /* Drive */
     if (isAngularDrive.getAsBoolean()) {
       swerve.angularDrive(
-          new Translation2d(translation.getAsDouble(), strafe.getAsDouble()).times(Constants.Swerve.MAX_SPEED),
+          new Translation2d(translation.getAsDouble(), strafe.getAsDouble()).times(Constants.SwerveConstants.MAX_SPEED),
           angle.get(),
           isFieldRelative, // Field relative
           true);
     } else {
       swerve.drive(
-          new Translation2d(translation.getAsDouble(), strafe.getAsDouble()).times(Constants.Swerve.MAX_SPEED),
-          (rotation.getAsDouble() * Constants.Swerve.MAX_ANGULAR_VELOCITY),
+          new Translation2d(translation.getAsDouble(), strafe.getAsDouble()).times(Constants.SwerveConstants.MAX_SPEED),
+          (rotation.getAsDouble() * Constants.SwerveConstants.MAX_ANGULAR_VELOCITY),
           isFieldRelative, // Field relative
           true);
     }

@@ -8,7 +8,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import static frc.robot.Constants.Elevator.*;
+import static frc.robot.Constants.ElevatorConstants.*;
 
 public class Elevator extends SubsystemBase {
 

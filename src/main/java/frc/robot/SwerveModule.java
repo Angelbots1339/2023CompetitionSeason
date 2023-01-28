@@ -5,8 +5,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.math.Conversions;
+import frc.lib.team254.util.TalonFXFactory;
+import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.CTREModuleState;
 import frc.lib.util.SwerveModuleConstants;
+import static frc.robot.Constants.SwerveConstants.FalconConfigConstants.*;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -22,23 +26,23 @@ public class SwerveModule {
     private TalonFX driveMotor;
     private CANCoder angleEncoder;
 
-    SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.Swerve.DRIVE_KS,
-            Constants.Swerve.DRIVE_KV, Constants.Swerve.DRIVE_KA);
+    SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.SwerveConstants.DRIVE_KS,
+            Constants.SwerveConstants.DRIVE_KV, Constants.SwerveConstants.DRIVE_KA);
 
     public SwerveModule(int moduleNumber, SwerveModuleConstants moduleConstants) {
         this.moduleNumber = moduleNumber;
         this.angleOffset = moduleConstants.angleOffset;
 
         /* Angle Encoder Config */
-        angleEncoder = new CANCoder(moduleConstants.cancoderID);
+        angleEncoder = new CANCoder(moduleConstants.cancoderID, Constants.CANIVORE);
         configAngleEncoder();
 
         /* Angle Motor Config */
-        angleMotor = new TalonFX(moduleConstants.angleMotorID);
+        angleMotor = TalonFXFactory.createDefaultTalon(moduleConstants.angleMotorID, Constants.CANIVORE);
         configAngleMotor();
 
         /* Drive Motor Config */
-        driveMotor = new TalonFX(moduleConstants.driveMotorID);
+        driveMotor = TalonFXFactory.createDefaultTalon(moduleConstants.driveMotorID, Constants.CANIVORE);
         configDriveMotor();
 
         lastAngle = getState().angle;
@@ -56,29 +60,29 @@ public class SwerveModule {
 
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
         if (isOpenLoop) {
-            double percentOutput = desiredState.speedMetersPerSecond / Constants.Swerve.MAX_SPEED;
+            double percentOutput = desiredState.speedMetersPerSecond / Constants.SwerveConstants.MAX_SPEED;
             driveMotor.set(ControlMode.PercentOutput, percentOutput);
         } else {
             double velocity = Conversions.MPSToFalcon(desiredState.speedMetersPerSecond,
-                    Constants.Swerve.WHEEL_CIRCUMFERENCE, Constants.Swerve.DRIVE_GEAR_RATIO);
+                    Constants.SwerveConstants.WHEEL_CIRCUMFERENCE, Constants.SwerveConstants.DRIVE_GEAR_RATIO);
             driveMotor.set(ControlMode.Velocity, velocity, DemandType.ArbitraryFeedForward,
                     feedforward.calculate(desiredState.speedMetersPerSecond));
         }
     }
 
     private void setAngle(SwerveModuleState desiredState) {
-        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.MAX_SPEED * 0.01))
+        Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (Constants.SwerveConstants.MAX_SPEED * 0.01))
                 ? lastAngle
                 : desiredState.angle; // Prevent rotating module if speed is less then 1%. Prevents Jittering.
 
         angleMotor.set(ControlMode.Position,
-                Conversions.degreesToFalcon(angle.getDegrees(), Constants.Swerve.ANGLE_GEAR_RATIO));
+                Conversions.degreesToFalcon(angle.getDegrees(), Constants.SwerveConstants.ANGLE_GEAR_RATIO));
         lastAngle = angle;
     }
 
     private Rotation2d getAngle() {
         return Rotation2d.fromDegrees(Conversions.falconToDegrees(angleMotor.getSelectedSensorPosition(),
-                Constants.Swerve.ANGLE_GEAR_RATIO));
+                Constants.SwerveConstants.ANGLE_GEAR_RATIO));
     }
 
     public Rotation2d getCanCoder() {
@@ -94,54 +98,106 @@ public class SwerveModule {
     }
 
     public double getEncoderInMeters() {
-        return Conversions.falconToMeters(driveMotor.getSelectedSensorPosition(), Constants.Swerve.WHEEL_CIRCUMFERENCE,
-                Constants.Swerve.DRIVE_GEAR_RATIO);
+        return Conversions.falconToMeters(driveMotor.getSelectedSensorPosition(),
+                Constants.SwerveConstants.WHEEL_CIRCUMFERENCE,
+                Constants.SwerveConstants.DRIVE_GEAR_RATIO);
     }
 
     public void resetToAbsolute() {
         double absolutePosition = Conversions.degreesToFalcon(
-                angleEncoder.getAbsolutePosition() - angleOffset.getDegrees(), Constants.Swerve.ANGLE_GEAR_RATIO);
+                angleEncoder.getAbsolutePosition() - angleOffset.getDegrees(),
+                Constants.SwerveConstants.ANGLE_GEAR_RATIO);
         angleMotor.setSelectedSensorPosition(absolutePosition);
 
     }
 
     private void configAngleEncoder() {
-        angleEncoder.configFactoryDefault();
-        angleEncoder.configAllSettings(Robot.ctreConfigs.swerveCanCoderConfig);
+        TalonUtil.checkError(angleEncoder.configFactoryDefault(Constants.CAN_TIMEOUT),
+                "failed to config factory default CANCoder mod: " + moduleNumber);
+        TalonUtil.checkError(
+                angleEncoder.configSensorInitializationStrategy(ANGLE_SENSOR_INIT_STRATEGY, Constants.CAN_TIMEOUT),
+                "failed to config sensor init strategy CANCoder mod: " + moduleNumber);
+        TalonUtil.checkError(
+                angleEncoder.configAbsoluteSensorRange(CANCODER_ABSOLUTE_SENSOR_RANGE, Constants.CAN_TIMEOUT),
+                "failed to config absolute sensor range CANCoder mod: " + moduleNumber);
+        TalonUtil.checkError(angleEncoder.configFeedbackCoefficient(0.087890625, "deg", CANCODER_SENSOR_TIME_BASE,
+                Constants.CAN_TIMEOUT), "failed to config feedback coefficient CANCoder mod: " + moduleNumber);
+
     }
 
     private void configAngleMotor() {
-        angleMotor.configFactoryDefault();
 
-        angleMotor.configAllSettings(Robot.ctreConfigs.swerveAngleFXConfig);
+        TalonUtil.checkError(angleMotor.configVoltageCompSaturation(Constants.MAX_VOLTAGE, Constants.CAN_TIMEOUT),
+                "failed to config voltage comp angle motor mod: " + moduleNumber);
+        TalonUtil.checkError(angleMotor.configSupplyCurrentLimit(ANGLE_CURRENT_LIMIT, Constants.CAN_TIMEOUT),
+                "failed to config current limit angle motor mod: " + moduleNumber);
+        TalonUtil.checkError(angleMotor.config_kP(0, ANGLE_KP, Constants.CAN_TIMEOUT),
+                "failed to config kP angle motor mod: "
+                        + moduleNumber);
+        TalonUtil.checkError(angleMotor.config_kI(0, ANGLE_KI, Constants.CAN_TIMEOUT),
+                "failed to config kI angle motor mod: "
+                        + moduleNumber);
+        TalonUtil.checkError(angleMotor.config_kD(0, ANGLE_KD, Constants.CAN_TIMEOUT),
+                "failed to config kD angle motor mod: "
+                        + moduleNumber);
+        TalonUtil.checkError(angleMotor.config_kF(0, ANGLE_KF, Constants.CAN_TIMEOUT),
+                "failed to config kF angle motor mod: " + moduleNumber);
+        TalonUtil.checkError(
+                angleMotor.configIntegratedSensorInitializationStrategy(ANGLE_SENSOR_INIT_STRATEGY,
+                        Constants.CAN_TIMEOUT),
+                "failed to config sensor init strategy angle motor mod: " + moduleNumber);
 
-        angleMotor.setInverted(Constants.Swerve.ANGLE_MOTOR_INVERT);
-        angleMotor.setNeutralMode(Constants.Swerve.ANGLE_NEUTRAL_MODE);
+        angleMotor.selectProfileSlot(0, 0);
+        angleMotor.enableVoltageCompensation(true);
+        angleMotor.setInverted(ANGLE_MOTOR_INVERT);
+        angleMotor.setNeutralMode(ANGLE_NEUTRAL_MODE);
         resetToAbsolute();
     }
 
     private void configDriveMotor() {
-        driveMotor.configFactoryDefault();
-        driveMotor.configAllSettings(Robot.ctreConfigs.swerveDriveFXConfig);
-        driveMotor.setInverted(Constants.Swerve.DRIVE_MOTOR_INVERT);
-        driveMotor.setNeutralMode(NeutralMode.Coast);
-        driveMotor.setSelectedSensorPosition(0);
-        System.out.println(driveMotor.getLastError() + ":" + moduleNumber);
+        TalonUtil.checkError(driveMotor.configVoltageCompSaturation(Constants.MAX_VOLTAGE, Constants.CAN_TIMEOUT),
+                "failed to config voltage comp drive motor mod: " + moduleNumber);
+        TalonUtil.checkError(driveMotor.configSupplyCurrentLimit(DRIVE_CURRENT_LIMIT, Constants.CAN_TIMEOUT),
+                "failed to config current limit drive motor mod: " + moduleNumber);
+        TalonUtil.checkError(driveMotor.config_kP(0, DRIVE_KP, Constants.CAN_TIMEOUT),
+                "failed to config kP drive motor mod: " + moduleNumber);
+        TalonUtil.checkError(driveMotor.config_kI(0, DRIVE_KI, Constants.CAN_TIMEOUT),
+                "failed to config kI drive motor mod: " + moduleNumber);
+        TalonUtil.checkError(driveMotor.config_kD(0, DRIVE_KD, Constants.CAN_TIMEOUT),
+                "failed to config kD drive motor mod: " + moduleNumber);
+        TalonUtil.checkError(driveMotor.config_kF(0, DRIVE_KF, Constants.CAN_TIMEOUT),
+                "failed to config kF drive motor mod: " + moduleNumber);
+        TalonUtil.checkError(
+                driveMotor.configIntegratedSensorInitializationStrategy(DRIVE_SENSOR_INIT_STRATEGY,
+                        Constants.CAN_TIMEOUT),
+                "failed to config sensor init strategy drive motor mod: " + moduleNumber);
+        TalonUtil.checkError(driveMotor.configOpenloopRamp(OPEN_LOOP_RAMP),
+                "failed to config open loop ramp drive motor mod: " + moduleNumber);
+        TalonUtil.checkError(driveMotor.configClosedloopRamp(CLOSED_LOOP_RAMP),
+                "failed to config closed loop ramp drive motor mod: " + moduleNumber);
+
+        driveMotor.selectProfileSlot(0, 0);
+        driveMotor.enableVoltageCompensation(true);
+        driveMotor.setInverted(DRIVE_MOTOR_INVERT);
+        driveMotor.setNeutralMode(DRIVE_NEUTRAL_MODE);
     }
 
     public SwerveModuleState getState() {
         return new SwerveModuleState(
                 // FIXME check conversion
-                Conversions.falconToMPS(driveMotor.getSelectedSensorVelocity(), Constants.Swerve.WHEEL_CIRCUMFERENCE,
-                        Constants.Swerve.DRIVE_GEAR_RATIO),
+                Conversions.falconToMPS(driveMotor.getSelectedSensorVelocity(),
+                        Constants.SwerveConstants.WHEEL_CIRCUMFERENCE,
+                        Constants.SwerveConstants.DRIVE_GEAR_RATIO),
                 getAngle());
     }
 
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(Conversions.falconToMeters(driveMotor.getSelectedSensorPosition(),
-                Constants.Swerve.WHEEL_CIRCUMFERENCE, Constants.Swerve.DRIVE_GEAR_RATIO), getAngle());
+                Constants.SwerveConstants.WHEEL_CIRCUMFERENCE, Constants.SwerveConstants.DRIVE_GEAR_RATIO), getAngle());
     }
-    public double getRotations(){
-        return Conversions.falconToRotaiton(driveMotor.getSelectedSensorPosition(), Constants.Swerve.DRIVE_GEAR_RATIO);
+
+    public double getRotations() {
+        return Conversions.falconToRotaiton(driveMotor.getSelectedSensorPosition(),
+                Constants.SwerveConstants.DRIVE_GEAR_RATIO);
     }
 }

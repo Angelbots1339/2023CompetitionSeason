@@ -16,6 +16,7 @@ import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 import frc.robot.SwerveModule;
 import frc.robot.commands.CancelableSwerveController;
+import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.lib.util.logging.loggedObjects.LoggedFalcon;
 import frc.lib.util.logging.loggedObjects.LoggedPigeon2;
@@ -38,14 +39,15 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.AutoConstants.*;
-import static frc.robot.Constants.Swerve.PoseEstimatorConstants.*;
-import static frc.robot.Constants.Swerve.*;
+import static frc.robot.Constants.SwerveConstants.PoseEstimatorConstants.*;
+import static frc.robot.Constants.SwerveConstants.*;
 import static frc.robot.Constants.Vision.*;
 import static frc.robot.Constants.PIDToPoseConstants.*;
 
@@ -78,10 +80,8 @@ public class Swerve extends SubsystemBase {
         logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
 
         gyro = new Pigeon2(PIGEON_ID);
-        gyro.configFactoryDefault();
+        TalonUtil.checkError(gyro.configFactoryDefault(), "Failed to config factory default on pigeon"); 
         zeroGyro();
-
-
 
         swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), new SwerveModulePosition[4]);
         poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), getEstimatedPose(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
