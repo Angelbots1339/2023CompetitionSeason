@@ -30,8 +30,6 @@ public class LoggedFalcon extends LoggedObject<TalonFX> {
     @Override
     public void initializeShuffleboard() {
         ShuffleboardLayout layout = getTab().getLayout(name, BuiltInLayouts.kList);
-    
-        layout.add("title", 0).withSize(1, 2).withPosition(1, 1).getEntry();
         layout.addNumber(name + ":Stator Current", () -> object.getStatorCurrent()).withSize(2, 2);
         layout.addNumber(name + ":Supply Current", () -> object.getSupplyCurrent()).withSize(2, 2);
     }

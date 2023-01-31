@@ -33,13 +33,49 @@ public class TalonFXFactory {
         public boolean INVERTED = false;
         public boolean SENSOR_PHASE = false;
 
-        public int CONTROL_FRAME_PERIOD_MS = 10;
-        public int MOTION_CONTROL_FRAME_PERIOD_MS = 1000;
+
+       
+
+        /*
+         * Status 1 (Default Period 10ms):
+         - Applied Motor Output
+         - Fault Information
+         - Limit Switch Information
+         */
         public int GENERAL_STATUS_FRAME_RATE_MS = 10;
+
+        /*
+         * Status 2 (Default Period 20ms):
+         - Selected Sensor Position (PID 0)
+         - Selected Sensor Velocity (PID 0)
+         - Brushed Supply Current Measurement
+         - Sticky Fault Information
+         */
         public int FEEDBACK_STATUS_FRAME_RATE_MS = 1000;
+        
+        /*
+         * Status 3 (Default Period >100ms):
+         - Quadrature Information
+         */
         public int QUAD_ENCODER_STATUS_FRAME_RATE_MS = 1000;
+        
+        /*
+         * Status 4 (Default Period >100ms):
+         - Analog Input
+         - Supply Battery Voltage
+         - Controller Temperature
+         */
         public int ANALOG_TEMP_VBAT_STATUS_FRAME_RATE_MS = 1000;
+
+        /*Status 8 (Default Period >100ms):
+        - Pulse Width Information 
+        */
         public int PULSE_WIDTH_STATUS_FRAME_RATE_MS = 1000;
+        public int CONTROL_FRAME_PERIOD_MS = 10;
+
+        public int MOTION_CONTROL_FRAME_PERIOD_MS = 1000;
+        
+        
 
         public SensorVelocityMeasPeriod VELOCITY_MEASUREMENT_PERIOD = SensorVelocityMeasPeriod.Period_100Ms;
         public int VELOCITY_MEASUREMENT_ROLLING_AVERAGE_WINDOW = 64;
@@ -97,11 +133,13 @@ public class TalonFXFactory {
         talon.configSetParameter(
                 ParamEnum.eClearPositionOnLimitR, 0, 0, 0, kTimeoutMs);
 
+
         talon.configNominalOutputForward(0, kTimeoutMs);
         talon.configNominalOutputReverse(0, kTimeoutMs);
         talon.configNeutralDeadband(config.NEUTRAL_DEADBAND, kTimeoutMs);
 
-        talon.configMotorCommutation(MotorCommutation.Trapezoidal);
+        talon.configMotorCommutation(MotorCommutation.Trapezoidal, kTimeoutMs);
+
 
         talon.configPeakOutputForward(1.0, kTimeoutMs);
         talon.configPeakOutputReverse(-1.0, kTimeoutMs);

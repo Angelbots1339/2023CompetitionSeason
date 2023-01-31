@@ -11,11 +11,12 @@ import org.photonvision.RobotPoseEstimator;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.PathPoint;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
-
 
 import frc.robot.SwerveModule;
 import frc.robot.commands.CancelableSwerveController;
+import frc.robot.commands.Auto.SwerveFollowTrajectory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.lib.util.logging.loggedObjects.LoggedFalcon;
@@ -39,15 +40,16 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.AutoConstants.*;
-import static frc.robot.Constants.SwerveConstants.PoseEstimatorConstants.*;
 import static frc.robot.Constants.SwerveConstants.*;
-import static frc.robot.Constants.Vision.*;
+import static frc.robot.Constants.VisionConstants.*;
 import static frc.robot.Constants.PIDToPoseConstants.*;
 
 public class Swerve extends SubsystemBase {
@@ -64,13 +66,13 @@ public class Swerve extends SubsystemBase {
     private double lastTimeDrive;
     private double lastDesiredDegrees;
 
-
     private PIDController pidToPoseXController;
     private PIDController pidToPoseYController;
 
-    private Translation2d currentVel;
-    private Pose2d lastPose;
+    private Translation2d currentVel = new Translation2d();
+    private Pose2d lastPose = new Pose2d();
 
+    private Field2d field2d = new Field2d();
 
     /**
      * Constructs a new Swerve subsystem
@@ -78,12 +80,17 @@ public class Swerve extends SubsystemBase {
     public Swerve() {
         logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
 
-        gyro = new Pigeon2(PIGEON_ID);
-        TalonUtil.checkError(gyro.configFactoryDefault(), "Failed to config factory default on pigeon"); 
-        zeroGyro();
+        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
+                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
+        angularDrivePID.enableContinuousInput(0, 360);
 
+        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
 
-       
+        pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
+        pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
+        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
+        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
+
         try {
             layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile);
         } catch (IOException e) {
@@ -96,29 +103,21 @@ public class Swerve extends SubsystemBase {
                 new SwerveModule(2, Mod2.constants),
                 new SwerveModule(3, Mod3.constants)
         };
+        gyro = new Pigeon2(PIGEON_ID);
+        TalonUtil.checkError(gyro.configFactoryDefault(), "Failed to config factory default on pigeon");
+        zeroGyro();
 
         swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), getPositions());
-        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), new Pose2d(), STATE_STD_DEVS, VISION_MEASUREMENT_STD_DEVS);
+        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), new Pose2d(), STATE_STD_DEVS,
+                VISION_MEASUREMENT_STD_DEVS);
         List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-        camList.add(new Pair<PhotonCamera,Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
+        camList.add(new Pair<PhotonCamera, Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
+        
         apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
-
 
         initializeLog();
 
-
-        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
-                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
-        angularDrivePID.enableContinuousInput(0, 360);
-        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
-
-        pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
-        pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
-        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
-        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
     }
-
-    
 
     /**
      * 
@@ -129,32 +128,29 @@ public class Swerve extends SubsystemBase {
      * @param isOpenLoop
      */
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-        
-        
+
         ChassisSpeeds chassisSpeeds;
-        if(fieldRelative){
+        if (fieldRelative) {
             chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                translation.getX(),
-                translation.getY(),
-                rotation,
-                getYaw());
-        }
-        else{
+                    translation.getX(),
+                    translation.getY(),
+                    rotation,
+                    getYaw());
+        } else {
             chassisSpeeds = new ChassisSpeeds(
-                translation.getX(),
-                translation.getY(),
-                rotation);
+                    translation.getX(),
+                    translation.getY(),
+                    rotation);
         }
         chassisSpeeds = reduceSkewFromChassisSpeeds254(chassisSpeeds);
         logger.updateDouble("x", chassisSpeeds.vxMetersPerSecond, "Drive");
         logger.updateDouble("y", chassisSpeeds.vyMetersPerSecond, "Drive");
         logger.updateDouble("rot", chassisSpeeds.omegaRadiansPerSecond, "Drive");
-        
+
         SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
         setModuleStates(swerveModuleStates, isOpenLoop);
     }
-
 
     /**
      * @param translation    Translation2d holding the desired velocities on each
@@ -169,32 +165,34 @@ public class Swerve extends SubsystemBase {
 
         Rotation2d desiredAngularVelocity = Rotation2d.fromDegrees(
                 (lastDesiredDegrees - desiredDegrees.getDegrees()) / (Timer.getFPGATimestamp() - lastTimeDrive));
+
         lastDesiredDegrees = desiredDegrees.getDegrees();
         lastTimeDrive = Timer.getFPGATimestamp();
 
-        
         double rotation = 0;
         // convert yaw into -180 -> 180 and absolute
         double yaw = (0 > getYaw().getDegrees() ? getYaw().getDegrees() % 360 + 360 : getYaw().getDegrees() % 360);
 
-        logger.updateDouble("desiredHeading", desiredDegrees.getDegrees(), "AngularDrive");
+        logger.updateDouble("desiredHeading", desiredDegrees.getDegrees(),
+                "AngularDrive");
         logger.updateDouble("currentHeading", yaw, "AngularDrive");
-        
-        
-        rotation = MathUtil.clamp(
-            angularDrivePID.calculate(yaw, desiredDegrees.getDegrees() + // PID
-                        (!angularDrivePID.atSetpoint() ? // feed foward
-                                (-desiredAngularVelocity.getRadians() * AngularDriveConstants.ANGLE_KV) + // Kv Velocity
-                                // Feedfoward
-                                ((Math.signum(angularDrivePID.getPositionError())
-                                                * AngularDriveConstants.ANGLE_KS)) // Ks Static Friction Feedforward
-                                                : 0)),
-                                                -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
-                                                
+        double pid = angularDrivePID.calculate(yaw, desiredDegrees.getDegrees());
+        if (Math.abs(angularDrivePID.getPositionError()) >= 2) {
+            rotation = MathUtil.clamp(pid + (-desiredAngularVelocity.getRadians() * AngularDriveConstants.ANGLE_KV) + // Kv
+                                                                                                                      // //
+                                                                                                                      // Velocity
+            // Feedfoward
+                    ((Math.signum(angularDrivePID.getPositionError())
+                            * AngularDriveConstants.ANGLE_KS)) // Ks Static Friction Feedforward
+                    , -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+
+        }
+
         logger.updateDouble("Output rotation", rotation, "AngularDrive");
-        logger.updateBoolean("At setpoint", angularDrivePID.atSetpoint(), "AngularDrive");
-       
-        drive(translation, -rotation, fieldRelative, isOpenLoop);
+        logger.updateBoolean("At setpoint", angularDrivePID.atSetpoint(),
+                "AngularDrive");
+
+        drive(translation, rotation, fieldRelative, isOpenLoop);
     }
     /*-----Possible Solutions for Swerve Drive Skew------ */
 
@@ -218,7 +216,7 @@ public class Swerve extends SubsystemBase {
                 + Math.pow(chassisSpeeds.vyMetersPerSecond, 2);
         double fudgeFactor = chassisSpeeds.omegaRadiansPerSecond / linearVelocity * FUDGE_FACTOR_KP;
         double unitOrthX = chassisSpeeds.vyMetersPerSecond / linearVelocity; // might need to swith signs to get corect
-                                                                              // sign of movment
+                                                                             // sign of movment
         double unitOrthy = -chassisSpeeds.vxMetersPerSecond / linearVelocity;
         double fudgeOrthX = fudgeFactor * unitOrthX;
         double fudgeOrthY = fudgeFactor * unitOrthy;
@@ -230,10 +228,9 @@ public class Swerve extends SubsystemBase {
         double linearVelocity = Math.sqrt(Math.pow(chassisSpeeds.vxMetersPerSecond, 2))
                 + Math.pow(chassisSpeeds.vyMetersPerSecond, 2);
 
-                
         double fudgeFactor = Math.signum(chassisSpeeds.omegaRadiansPerSecond) * FUDGE_FACTOR_SIMPLE_KP;
         double unitOrthX = chassisSpeeds.vyMetersPerSecond / linearVelocity; // might need to swith signs to get corect
-                                                                              // sign of movment
+                                                                             // sign of movment
         double unitOrthy = -chassisSpeeds.vxMetersPerSecond / linearVelocity;
         double fudgeOrthX = fudgeFactor * unitOrthX;
         double fudgeOrthY = fudgeFactor * unitOrthy;
@@ -241,23 +238,21 @@ public class Swerve extends SubsystemBase {
                 fudgeOrthY + chassisSpeeds.vyMetersPerSecond, chassisSpeeds.omegaRadiansPerSecond);
     }
 
-
-     /*-----Setters----- */
-     /* Used by SwerveControllerCommand in Auto */
-     public void setModuleStates(SwerveModuleState[] desiredStates) {
-        setModuleStates(desiredStates, true);
+    /*-----Setters----- */
+    /* Used by SwerveControllerCommand in Auto */
+    public void setModuleStates(SwerveModuleState[] desiredStates) {
+        setModuleStates(desiredStates, false);
     }
 
     public void setChassisSpeeds(ChassisSpeeds chassisSpeeds) {
         SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
-        setModuleStates(swerveModuleStates, true);  
+        setModuleStates(swerveModuleStates, true);
     }
 
     public void setModuleStates(SwerveModuleState[] desiredStates, Boolean isOpenLoop) {
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, MAX_SPEED);
         for (SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(desiredStates[mod.moduleNumber], isOpenLoop);
-
         }
     }
 
@@ -271,28 +266,37 @@ public class Swerve extends SubsystemBase {
         swerveOdometry.resetPosition(getYaw(), getPositions(), pose);
         poseEstimator.resetPosition(getYaw(), getPositions(), pose);
     }
+    public void resetToVision() {
+
+        Optional<Pair<Pose2d, Double>> aprilTagEstimation = getApriltagEstimatedPose(getEstimatedPose());
+        if (aprilTagEstimation.isPresent()) {
+            swerveOdometry.resetPosition(getYaw(), getPositions(), aprilTagEstimation.get().getFirst());
+            poseEstimator.resetPosition(getYaw(), getPositions(), aprilTagEstimation.get().getFirst());
+        }
+    }
 
     public void zeroGyro() {
         gyro.setYaw(0);
     }
-
 
     /*-----Getters----- */
 
     public Pose2d getPose() {
         return swerveOdometry.getPoseMeters();
     }
+
     public Pose2d getEstimatedPose() {
         return poseEstimator.getEstimatedPosition();
     }
+
     public Optional<Pair<Pose2d, Double>> getApriltagEstimatedPose(Pose2d prevEstimatedRobotPose) {
         apriltagPoseEstimator.setReferencePose(prevEstimatedRobotPose);
-    
+
         double currentTime = Timer.getFPGATimestamp();
         Optional<Pair<Pose3d, Double>> result = apriltagPoseEstimator.update();
-
-        if (result.isPresent()) {
-            return Optional.ofNullable(new Pair<Pose2d, Double>(result.get().getFirst().toPose2d(), currentTime - result.get().getSecond()));
+        if (result.get().getFirst() != null) {
+            return Optional.ofNullable(new Pair<Pose2d, Double>(result.get().getFirst().toPose2d(),
+                    currentTime - (result.get().getSecond() / 1000)));
         } else {
             return Optional.ofNullable(null);
         }
@@ -300,17 +304,20 @@ public class Swerve extends SubsystemBase {
 
     /**
      * Get the current velocity of the robot
+     * 
      * @return A Translation2d containing the current X and Y velocity
      */
     public Translation2d getCurrentVelocity() {
         return currentVel;
     }
 
-    public double getCurrentTotalVelocity(){
+    public double getCurrentTotalVelocity() {
         return Math.sqrt(Math.pow(currentVel.getX(), 2) + Math.pow(currentVel.getY(), 2));
     }
-    public Rotation2d getHeading(){
-        return Rotation2d.fromRadians(Math.atan2(currentVel.getY(), currentVel.getX()));
+
+    public Rotation2d getHeading() {
+        return Rotation2d.fromRadians(Math.atan2(MathUtil.applyDeadband(currentVel.getY(), HEADING_DEADBAND),
+                MathUtil.applyDeadband(currentVel.getX(), HEADING_DEADBAND)));
     }
 
     public SwerveModuleState[] getStates() {
@@ -321,56 +328,74 @@ public class Swerve extends SubsystemBase {
         return states;
     }
 
-    public SwerveModulePosition[] getPositions(){
+    public SwerveModulePosition[] getPositions() {
         SwerveModulePosition[] states = new SwerveModulePosition[4];
         for (SwerveModule mod : mSwerveMods) {
             states[mod.moduleNumber] = mod.getPosition();
         }
         return states;
     }
+
     public Rotation2d getYaw() {
         return (INVERT_GYRO) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
-    
-
-    
-    
-
-
 
     /**
-     * Use this to have the robot move to a position. Ideally use when the robot isn't very far away.
+     * Use this to have the robot move to a position. Ideally use when the robot
+     * isn't very far away.
      * 
      * @param target The Pose for the robot to go to
-     * @return Whether or not the robot has gotten to within tolerance on both translation and rotation
+     * @return Whether or not the robot has gotten to within tolerance on both
+     *         translation and rotation
      */
     public boolean PIDToPose(Pose2d target) {
 
-        Translation2d calculatedValues = new Translation2d(pidToPoseXController.calculate(getEstimatedPose().getTranslation().getX(), target.getX()),
+        logger.updateDouble("set x", target.getX(), "PidPose");
+        logger.updateDouble("set y", target.getY(), "PidPose");
+
+        Translation2d calculatedValues = new Translation2d(
+                pidToPoseXController.calculate(getEstimatedPose().getTranslation().getX(), target.getX()),
                 pidToPoseYController.calculate(getEstimatedPose().getTranslation().getY(), target.getY()));
-        
         angularDrive(calculatedValues, target.getRotation(), true, true);
+        
+        logger.updateDouble("out x", calculatedValues.getX(), "PidPose");
+        logger.updateDouble("out y", calculatedValues.getY(), "PidPose");
 
         return pidToPoseXController.atSetpoint() && pidToPoseYController.atSetpoint() && angularDrivePID.atSetpoint();
     }
 
+    public void TestTrajectoryGeneration(PathPoint endpoint) {
+        field2d.getObject("traj").setTrajectory(SwerveFollowTrajectory.SwerveGenerateTrajectoryToPoint(endpoint, this));
+    }
 
     @Override
     public void periodic() {
         swerveOdometry.update(getYaw(), getPositions());
-        poseEstimator.update(getYaw(),  getPositions());
+        poseEstimator.update(getYaw(), getPositions());
 
-        // Optional<Pair<Pose2d, Double>> aprilTagEstimation = getApriltagEstimatedPose(getEstimatedPose());
-        // if(aprilTagEstimation.isPresent()){
-        //     poseEstimator.addVisionMeasurement(aprilTagEstimation.get().getFirst(), aprilTagEstimation.get().getSecond());
-        // }
 
-        // double deltaTime = Timer.getFPGATimestamp() - lastTimePeriodic;
-        // currentVel = new Translation2d(
-        //     (lastPose.getX() - getEstimatedPose().getX()) / deltaTime, 
-        //     (lastPose.getY() - getEstimatedPose().getY()) / deltaTime);
-        // lastPose = getPose();
-        // lastTimePeriodic = Timer.getFPGATimestamp();
+      
+        apriltagPoseEstimator.setReferencePose(getEstimatedPose());
+
+        double currentTime = Timer.getFPGATimestamp();
+        Optional<Pair<Pose3d, Double>> result = apriltagPoseEstimator.update();
+
+        if(result.isPresent()){
+            if (result.get().getFirst() != null) {
+                poseEstimator.addVisionMeasurement(result.get().getFirst().toPose2d(), currentTime - (result.get().getSecond() / 1000));
+           } 
+        }
+        SmartDashboard.putBoolean("Has target", result.isPresent());
+        
+        field2d.setRobotPose(getEstimatedPose());
+        SmartDashboard.putData("est feild", field2d);
+
+        double deltaTime = Timer.getFPGATimestamp() - lastTimePeriodic;
+        currentVel = new Translation2d(
+                (getEstimatedPose().getX() - lastPose.getX()) / deltaTime,
+                (getEstimatedPose().getY() - lastPose.getY()) / deltaTime);
+        lastPose = getEstimatedPose();
+        lastTimePeriodic = Timer.getFPGATimestamp();
 
     }
 
@@ -382,27 +407,31 @@ public class Swerve extends SubsystemBase {
         logger.addDouble("est x", () -> getEstimatedPose().getX(), "Pose");
         logger.addDouble("est y", () -> getEstimatedPose().getY(), "Pose");
 
-
-        logger.addDouble("heading", () -> getHeading().getDegrees(), "Pose");
-        logger.addDouble("velocity x", () -> getCurrentVelocity().getX(), "Pose");
-        logger.addDouble("velocity y", () -> getCurrentVelocity().getX(), "Pose");
-
+        logger.addDouble("Heading", () -> getHeading().getDegrees(), "Pose");
+        logger.addDouble("x velocity", () -> getCurrentVelocity().getX(), "Pose");
+        logger.addDouble("y velocity", () -> getCurrentVelocity().getY(), "Pose");
 
         for (int i = 0; i < mSwerveMods.length; i++) {
             logger.add(new LoggedFalcon("Angle Motor: " + i, logger, mSwerveMods[i].getAngleMotor(), "Motor", true));
             logger.add(new LoggedFalcon("Drive Motor: " + i, logger, mSwerveMods[i].getDriveMotor(), "Motor", true));
-            logger.add(new LoggedSwerveModule("Module : "+ i, logger, mSwerveMods[i], "Module", true));
-        } 
-    }
+            logger.add(new LoggedSwerveModule("Module : " + i, logger, mSwerveMods[i], "Module", true));
+        }
 
+        logger.addDouble("Mod : 0 v", () -> mSwerveMods[0].getState().speedMetersPerSecond, "Drive");
+        logger.addDouble("Mod : 1 v", () -> mSwerveMods[1].getState().speedMetersPerSecond, "Drive");
+        logger.addDouble("Mod : 2 v", () -> mSwerveMods[2].getState().speedMetersPerSecond, "Drive");
+        logger.addDouble("Mod : 3 v", () -> mSwerveMods[3].getState().speedMetersPerSecond, "Drive");
+    }
 
     /**
      * 
-     * Returns a new command that, when ran, will make the swerve drivebase drive along the path
+     * Returns a new command that, when ran, will make the swerve drivebase drive
+     * along the path
      * 
-     * @param traj The trajectory to follow
+     * @param traj        The trajectory to follow
      * @param isFirstPath If set to true, the robot odometry will be reset
-     * @return The Command that, when ran, will make the swerve drivebase drive along the path
+     * @return The Command that, when ran, will make the swerve drivebase drive
+     *         along the path
      */
     public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
         // This is just an example event map. It would be better to have a constant,
@@ -420,7 +449,7 @@ public class Swerve extends SubsystemBase {
                 }),
                 new PPSwerveControllerCommand(
                         traj,
-                        this::getPose, // Pose supplier
+                        this::getEstimatedPose, // Pose supplier
                         KINEMATICS, // SwerveDriveKinematics
                         new PIDController(3.2023, 0, 0), // X controller. Tune these values for your robot. Leaving them
                                                          // 0 will only use feedforwards.
@@ -435,25 +464,28 @@ public class Swerve extends SubsystemBase {
 
     /**
      * 
-     * Returns a new command that, when ran, will make the swerve drivebase drive along the path
+     * Returns a new command that, when ran, will make the swerve drivebase drive
+     * along the path
      * 
      * @param traj The trajectory to follow
-     * @return The Command that, when ran, will make the swerve drivebase drive along the path
+     * @return The Command that, when ran, will make the swerve drivebase drive
+     *         along the path
      */
     public Command followTrajectoryCommand(PathPlannerTrajectory traj) {
         return followTrajectoryCommand(traj, false);
     }
 
-
-
     /**
      * 
-     * Returns a new command that, when ran, will make the swerve drivebase drive along the path until the given time is reached, where it will stop the path early
+     * Returns a new command that, when ran, will make the swerve drivebase drive
+     * along the path until the given time is reached, where it will stop the path
+     * early
      * 
-     * @param traj The trajectory to follow
+     * @param traj        The trajectory to follow
      * @param isFirstPath If set to true, the robot odometry will be reset
-     * @param time The time after which the path will be stopped
-     * @return The Command that, when ran, will make the swerve drivebase drive along the path
+     * @param time        The time after which the path will be stopped
+     * @return The Command that, when ran, will make the swerve drivebase drive
+     *         along the path
      */
     public Command followTrajectoryCommandCancelable(PathPlannerTrajectory traj, boolean isFirstPath, double time) {
         // This is just an example event map. It would be better to have a constant,
@@ -487,16 +519,17 @@ public class Swerve extends SubsystemBase {
 
     /**
      * 
-     * Returns a new command that, when ran, will make the swerve drivebase drive along the path until the given time is reached, where it will stop the path early
+     * Returns a new command that, when ran, will make the swerve drivebase drive
+     * along the path until the given time is reached, where it will stop the path
+     * early
      * 
      * @param traj The trajectory to follow
      * @param time The time after which the path will be stopped
-     * @return The Command that, when ran, will make the swerve drivebase drive along the path
+     * @return The Command that, when ran, will make the swerve drivebase drive
+     *         along the path
      */
     public Command followTrajectoryCommandCancelable(PathPlannerTrajectory traj, double time) {
         return followTrajectoryCommandCancelable(traj, false, time);
     }
-
-
 
 }

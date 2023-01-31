@@ -25,7 +25,7 @@ public class LoggedSwerveModule extends LoggedObject<SwerveModule> {
     }
     @Override
     protected void initializeShuffleboard() {
-        ShuffleboardLayout layout = getTab().getLayout(name, BuiltInLayouts.kList);
+        ShuffleboardLayout layout = getTab().getLayout(name, BuiltInLayouts.kList).withSize(2, 3);
         layout.addDouble("CanCoder", () -> object.getCanCoder().getDegrees());
         layout.addDouble("Integrated", () -> object.getPosition().angle.getDegrees());
         layout.addDouble("Distance Meters", () -> object.getPosition().distanceMeters);

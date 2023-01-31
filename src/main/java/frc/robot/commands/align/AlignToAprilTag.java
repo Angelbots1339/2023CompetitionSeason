@@ -2,19 +2,19 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands;
+package frc.robot.commands.align;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import static frc.robot.Constants.Vision.*;
+import static frc.robot.Constants.VisionConstants.*;
 
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import frc.robot.subsystems.Swerve;
 
-public class SimpleAlignToTarget extends CommandBase {
+public class AlignToAprilTag extends CommandBase {
   /** Creates a new SimpleAlignToTarget. */
   Swerve swerve; 
   //private ShuffleboardLayout translationLayout = Shuffleboard.getTab("VisionTuning").getLayout("Translation", BuiltInLayouts.kList);
@@ -28,7 +28,7 @@ public class SimpleAlignToTarget extends CommandBase {
   PIDController strafeController = new PIDController(strafeKP, 0, 0);
 
 
-  public SimpleAlignToTarget(Swerve swerve) {
+  public AlignToAprilTag(Swerve swerve) {
     this.swerve = swerve;
     addRequirements(swerve);
     //translationLayout.add(translationController);

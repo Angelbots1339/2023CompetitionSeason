@@ -12,6 +12,7 @@ import com.pathplanner.lib.PathPoint;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.trajectory.Trajectory;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.Swerve;
@@ -45,6 +46,12 @@ public class SwerveFollowTrajectory extends PPSwerveControllerCommand {
             swerve.getCurrentTotalVelocity()),
         endPoint);
     return new SwerveFollowTrajectory(traj, swerve);
+  }
+  public static Trajectory SwerveGenerateTrajectoryToPoint(PathPoint endPoint, Swerve swerve){
+      return PathPlanner.generatePath(new PathConstraints(2, 2),
+      new PathPoint(swerve.getPose().getTranslation(), swerve.getHeading(), swerve.getYaw(),
+          swerve.getCurrentTotalVelocity()),
+      endPoint);
   }
 
 }

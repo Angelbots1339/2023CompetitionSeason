@@ -32,11 +32,18 @@ public class LoggedPigeon2 extends LoggedObject<Pigeon2> {
         layout.addDouble("Yaw", () -> object.getYaw());
         layout.addDouble("Pitch", () -> object.getPitch());
         layout.addDouble("Roll", () -> object.getRoll());
-        short[] accel = new short[3];
-        object.getBiasedAccelerometer(accel);
-        layout.addDouble("Accel x", () -> accel[0]);
-        layout.addDouble("Accel y", () -> accel[1]);
 
+        layout.addDouble("Accel x", () -> {
+            short[] accel = new short[3];
+            object.getBiasedAccelerometer(accel);
+            return accel[0];
+
+        });
+        layout.addDouble("Accel y", () -> {
+            short[] accel = new short[3];
+            object.getBiasedAccelerometer(accel);
+            return accel[1];
+        });
 
     }
 
@@ -48,9 +55,9 @@ public class LoggedPigeon2 extends LoggedObject<Pigeon2> {
         short[] accel = new short[3];
 
         object.getBiasedAccelerometer(accel);
-        addDoubleToOnboardLog("Accel x", () -> (double)accel[0]);
-        addDoubleToOnboardLog("Accel y", () -> (double)accel[1]);
-        
+        addDoubleToOnboardLog("Accel x", () -> (double) accel[0]);
+        addDoubleToOnboardLog("Accel y", () -> (double) accel[1]);
+
     }
-    
+
 }

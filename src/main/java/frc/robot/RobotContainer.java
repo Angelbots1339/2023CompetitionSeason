@@ -14,6 +14,7 @@ import frc.lib.math.Conversions;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.commands.*;
 import frc.robot.commands.Auto.examplePathPlannerAuto;
+import frc.robot.commands.align.AlignToAprilTag;
 import frc.robot.subsystems.*;
 
 /**
@@ -32,6 +33,7 @@ public class RobotContainer {
     private final XboxController driver = new XboxController(0);
     /* Subsystems */
     private final Swerve swerve = new Swerve();
+
 
     /* States */
     private boolean isAngularDrive = false;
@@ -76,10 +78,10 @@ public class RobotContainer {
                         true // Is field relative
                 ));
 
-        log.addDouble("Translation", (Supplier<Double>)translation, "Drive");
-        log.addDouble("Strafe", (Supplier<Double>)strafe, "Drive");
-        log.addDouble("Rotation", (Supplier<Double>)rotation, "Drive");
-        log.addDouble("Angle", () -> angle.get().getDegrees(), "Drive");
+        log.addDouble("Translation", (Supplier<Double>)translation, "Drive values");
+        log.addDouble("Strafe", (Supplier<Double>)strafe, "Drive values");
+        log.addDouble("Rotation", (Supplier<Double>)rotation, "Drive values");
+        log.addDouble("Angle", () -> angle.get().getDegrees(), "Drive values");
 
         // Configure the button bindings
         configureButtonBindings();
@@ -97,9 +99,9 @@ public class RobotContainer {
         /* Driver Buttons */
 
         zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
-        zeroEncoders.onTrue(new InstantCommand(() -> swerve.resetOdometry(new Pose2d()), swerve));
+        zeroEncoders.onTrue(new InstantCommand(swerve::resetToVision));
         switchDriveMode.onTrue(new InstantCommand(() -> isAngularDrive = !isAngularDrive));
-        alignToTarget.whileTrue(new SimpleAlignToTarget(swerve));
+        alignToTarget.whileTrue(new AlignToAprilTag(swerve));
 
     }
 

@@ -5,13 +5,16 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.sensors.Pigeon2;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Test extends SubsystemBase {
 
-  private TalonFX test = new TalonFX(1, Constants.CANIVORE)
+  private TalonFX test = new TalonFX(1, Constants.CANIVORE);
+  private Pigeon2 pigeon2 = new Pigeon2(1);
   /** Creates a new Test. */
   public Test() {
 
@@ -19,6 +22,9 @@ public class Test extends SubsystemBase {
 
   @Override
   public void periodic() {
+
+
+    SmartDashboard.putNumber("Test", test.getSelectedSensorVelocity());
     // This method will be called once per scheduler run
   }
 }

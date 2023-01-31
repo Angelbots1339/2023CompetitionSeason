@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands;
+package frc.robot.commands.align;
 
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
@@ -21,7 +21,7 @@ import static frc.robot.Constants.PIDToPoseConstants.*;
 
 
 
-public class AlignToTarget extends CommandBase {
+public class AlignToTargetDresdon extends CommandBase {
 
   private Swerve swerve;
   private final Timer timer = new Timer();
@@ -43,7 +43,7 @@ public class AlignToTarget extends CommandBase {
    * 
    * @param swerve The swerve drivebase subsystem
   */
-  public AlignToTarget(Swerve swerve) {
+  public AlignToTargetDresdon(Swerve swerve) {
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(swerve);
 

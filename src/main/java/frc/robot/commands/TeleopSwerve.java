@@ -52,13 +52,13 @@ public class TeleopSwerve extends CommandBase {
           new Translation2d(translation.get(), strafe.get()).times(Constants.SwerveConstants.MAX_SPEED),
           angle.get(),
           isFieldRelative, // Field relative
-          true);
+          false);
     } else {
       swerve.drive(
           new Translation2d(translation.get(), strafe.get()).times(Constants.SwerveConstants.MAX_SPEED),
           (rotation.get() * Constants.SwerveConstants.MAX_ANGULAR_VELOCITY),
           isFieldRelative, // Field relative
-          true);
+          false);
     }
 
   }

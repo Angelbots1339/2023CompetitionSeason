@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.util.logging.Logger.LoggingLevel;
 import frc.lib.util.logging.loggedPrimitives.LoggedBoolean;
 import frc.lib.util.logging.loggedPrimitives.LoggedDouble;
@@ -52,20 +54,46 @@ public class LoggedContainer implements Iloggable {
     }
 
     public void updateDouble(String name, double value, String logType) {
-        loggedPrimitives.putIfAbsent(name, new LoggedDouble(name, getLoggingLevel(logType), this));
-        ((LoggedDouble) loggedPrimitives.get(name)).log(0, value);
+
+        if(!loggedPrimitives.containsKey(name)){
+            loggedPrimitives.putIfAbsent(name, new LoggedDouble(name, getLoggingLevel(logType), this));
+        }
+        if(loggedPrimitives.get(name) instanceof LoggedDouble){
+            ((LoggedDouble) loggedPrimitives.get(name)).log(0, value);
+            return;
+        }
+        DriverStation.reportError("Incorrect log type", null);
     }
     public void updateBoolean(String name, boolean value, String logType) {
-        loggedPrimitives.putIfAbsent(name, new LoggedBoolean(name, getLoggingLevel(logType), this));
-        ((LoggedBoolean) loggedPrimitives.get(name)).log(0, value);
+        if(!loggedPrimitives.containsKey(name)){
+            loggedPrimitives.putIfAbsent(name, new LoggedBoolean(name, getLoggingLevel(logType), this));
+        }
+        if(loggedPrimitives.get(name) instanceof LoggedBoolean){
+            ((LoggedBoolean) loggedPrimitives.get(name)).log(0, value);
+            return;
+        }
+        DriverStation.reportError("Incorrect log type", null);
+        
     }
     public void updateString(String name, String value, String logType) {
-        loggedPrimitives.putIfAbsent(name, new LoggedString(name, getLoggingLevel(logType), this));
-        ((LoggedString) loggedPrimitives.get(name)).log(0, value);
+        if(!loggedPrimitives.containsKey(name)){
+            loggedPrimitives.putIfAbsent(name, new LoggedString(name, getLoggingLevel(logType), this));
+        }
+        if(loggedPrimitives.get(name) instanceof LoggedString){
+            ((LoggedString) loggedPrimitives.get(name)).log(0, value);
+            return;
+        }
+        DriverStation.reportError("Incorrect log type", null);
     }
     public void updateInteger(String name, int value, String logType) {
-        loggedPrimitives.putIfAbsent(name, new LoggedInteger(name, getLoggingLevel(logType), this));
-        ((LoggedInteger) loggedPrimitives.get(name)).log(0, value);
+        if(!loggedPrimitives.containsKey(name)){
+            loggedPrimitives.putIfAbsent(name, new LoggedInteger(name, getLoggingLevel(logType), this));
+        }
+        if(loggedPrimitives.get(name) instanceof LoggedInteger){
+            ((LoggedInteger) loggedPrimitives.get(name)).log(0, value);
+            return;
+        }
+        DriverStation.reportError("Incorrect log type", null);
     }
 
     public LoggingLevel getLoggingLevel(String logType) {
