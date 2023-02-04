@@ -10,10 +10,13 @@ import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.CTREModuleState;
 import frc.lib.util.SwerveModuleConstants;
 import static frc.robot.Constants.SwerveConstants.FalconConfigConstants.*;
+import static frc.robot.Constants.SwerveConstants.*;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
+import com.ctre.phoenix.motorcontrol.TalonFXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
 
 public class SwerveModule {
@@ -24,6 +27,8 @@ public class SwerveModule {
         private TalonFX angleMotor;
         private TalonFX driveMotor;
         private CANCoder angleEncoder;
+
+        private SwerveModuleState desiredState = new SwerveModuleState();
 
         SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.SwerveConstants.DRIVE_KS,
                         Constants.SwerveConstants.DRIVE_KV, Constants.SwerveConstants.DRIVE_KA);
@@ -38,11 +43,14 @@ public class SwerveModule {
 
                 /* Angle Motor Config */
                 angleMotor = TalonFXFactory.createDefaultTalon(moduleConstants.angleMotorID, Constants.CANIVORE);
+                //angleMotor = new WPI_TalonFX(moduleConstants.angleMotorID, Constants.CANIVORE);
                 configAngleMotor();
 
                 /* Drive Motor Config */
-                driveMotor = TalonFXFactory.createDefaultTalon(moduleConstants.driveMotorID, Constants.CANIVORE);
+                 driveMotor = TalonFXFactory.createDefaultTalon(moduleConstants.driveMotorID, Constants.CANIVORE);
+                //driveMotor = new WPI_TalonFX(moduleConstants.driveMotorID, Constants.CANIVORE);
                 configDriveMotor();
+              
 
                 lastAngle = getState().angle;
         }
@@ -55,6 +63,7 @@ public class SwerveModule {
                 desiredState = CTREModuleState.optimize(desiredState, getState().angle);
                 setAngle(desiredState);
                 setSpeed(desiredState, isOpenLoop);
+                this.desiredState = desiredState;
         }
 
         private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
@@ -63,8 +72,12 @@ public class SwerveModule {
                         driveMotor.set(ControlMode.PercentOutput, percentOutput);
                 } else {
                         double velocity = Conversions.MPSToFalcon(desiredState.speedMetersPerSecond,
-                                        Constants.SwerveConstants.WHEEL_CIRCUMFERENCE,
-                                        Constants.SwerveConstants.DRIVE_GEAR_RATIO);
+                        Constants.SwerveConstants.WHEEL_CIRCUMFERENCE,
+                        Constants.SwerveConstants.DRIVE_GEAR_RATIO);
+                        if(Math.abs(desiredState.speedMetersPerSecond) <= MIN_CLOSE_LOOP_SPEED){
+                                driveMotor.set(ControlMode.PercentOutput, feedforward.calculate(desiredState.speedMetersPerSecond));
+                                return;    
+                        }
                         driveMotor.set(ControlMode.Velocity, velocity, DemandType.ArbitraryFeedForward,
                                         feedforward.calculate(desiredState.speedMetersPerSecond));
                 }
@@ -205,6 +218,9 @@ public class SwerveModule {
                                                 Constants.SwerveConstants.WHEEL_CIRCUMFERENCE,
                                                 Constants.SwerveConstants.DRIVE_GEAR_RATIO),
                                 getAngle());
+        }
+        public SwerveModuleState getDesiredState() {
+                return desiredState;
         }
 
         public SwerveModulePosition getPosition() {

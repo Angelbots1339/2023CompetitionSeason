@@ -1,122 +1,66 @@
 package frc.robot.subsystems;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-
-import org.photonvision.PhotonCamera;
-import org.photonvision.RobotPoseEstimator;
-
 import com.ctre.phoenix.sensors.Pigeon2;
-import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.PathPoint;
-import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 import frc.robot.SwerveModule;
-import frc.robot.commands.CancelableSwerveController;
 import frc.robot.commands.Auto.SwerveFollowTrajectory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.lib.util.logging.loggedObjects.LoggedFalcon;
+import frc.lib.util.logging.loggedObjects.LoggedField;
 import frc.lib.util.logging.loggedObjects.LoggedPigeon2;
 import frc.lib.util.logging.loggedObjects.LoggedSwerveModule;
 import frc.robot.LoggingConstants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import static frc.robot.Constants.AutoConstants.*;
 import static frc.robot.Constants.SwerveConstants.*;
-import static frc.robot.Constants.VisionConstants.*;
 import static frc.robot.Constants.PIDToPoseConstants.*;
 
 public class Swerve extends SubsystemBase {
-    public SwerveDriveOdometry swerveOdometry;
-    public SwerveModule[] mSwerveMods;
+    public SwerveModule[] swerveMods;
     public Pigeon2 gyro;
     public LoggedSubsystem logger;
-    private PIDController angularDrivePID;
-    private SwerveDrivePoseEstimator poseEstimator;
-    private RobotPoseEstimator apriltagPoseEstimator;
-    private AprilTagFieldLayout layout;
-
-    private double lastTimePeriodic;
-    private double lastTimeDrive;
-    private double lastDesiredDegrees;
-
-    private PIDController pidToPoseXController;
-    private PIDController pidToPoseYController;
-
+    
     private Translation2d currentVel = new Translation2d();
     private Pose2d lastPose = new Pose2d();
 
-    private Field2d field2d = new Field2d();
+    private PoseEstimation poseEstimation;
+    private LoggedField field;
 
-    /**
-     * Constructs a new Swerve subsystem
-     */
     public Swerve() {
-        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
+        configPIDtoPoseControllers();
+        configPidAngularDrive();
 
-        angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
-                AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
-        angularDrivePID.enableContinuousInput(0, 360);
-
-        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
-
-        pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);
-        pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);
-        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
-        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
-
-        try {
-            layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        mSwerveMods = new SwerveModule[] {
-                new SwerveModule(0, Mod0.constants),
-                new SwerveModule(1, Mod1.constants),
-                new SwerveModule(2, Mod2.constants),
-                new SwerveModule(3, Mod3.constants)
+        swerveMods = new SwerveModule[] {
+            new SwerveModule(0, Mod0.constants),
+            new SwerveModule(1, Mod1.constants),
+            new SwerveModule(2, Mod2.constants),
+            new SwerveModule(3, Mod3.constants)
         };
+
+        
         gyro = new Pigeon2(PIGEON_ID);
         TalonUtil.checkError(gyro.configFactoryDefault(), "Failed to config factory default on pigeon");
         zeroGyro();
-
-        swerveOdometry = new SwerveDriveOdometry(KINEMATICS, getYaw(), getPositions());
-        poseEstimator = new SwerveDrivePoseEstimator(KINEMATICS, getYaw(), getPositions(), new Pose2d(), STATE_STD_DEVS,
-                VISION_MEASUREMENT_STD_DEVS);
-        List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-        camList.add(new Pair<PhotonCamera, Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
         
-        apriltagPoseEstimator = new RobotPoseEstimator(layout, APRILTAG_POSE_STRATEGY, camList);
+        //logging
+        logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
 
-        initializeLog();
+        field = new LoggedField("PoseEstimator", logger, "PoseEstimator", true);
+        poseEstimation = new PoseEstimation(field, getYaw(), getPositions());
 
+        initializeLog();  
     }
 
     /**
@@ -147,11 +91,20 @@ public class Swerve extends SubsystemBase {
         logger.updateDouble("y", chassisSpeeds.vyMetersPerSecond, "Drive");
         logger.updateDouble("rot", chassisSpeeds.omegaRadiansPerSecond, "Drive");
 
+
         SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
         setModuleStates(swerveModuleStates, isOpenLoop);
     }
 
+
+
+    private PIDController angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
+    AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
+    private void configPidAngularDrive() {
+        angularDrivePID.enableContinuousInput(0, 360);
+        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
+    }
     /**
      * @param translation    Translation2d holding the desired velocities on each
      *                       axis
@@ -196,8 +149,16 @@ public class Swerve extends SubsystemBase {
     }
     /*-----Possible Solutions for Swerve Drive Skew------ */
 
-    // See
-    // https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/5?u=ethan1
+    
+
+    
+    private double previousDriveTime;
+
+    /**
+     * @param chassisSpeeds
+     * @return adjusted chassisSpeeds
+     * See {@link https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/5?u=ethan1}
+     */
     public ChassisSpeeds reduceSkewFromChassisSpeeds254(ChassisSpeeds chassisSpeeds) {
         frc.lib.team254.geometry.Pose2d robot_pose_vel = new frc.lib.team254.geometry.Pose2d(
                 chassisSpeeds.vxMetersPerSecond * LOOPER_DT,
@@ -206,24 +167,51 @@ public class Swerve extends SubsystemBase {
         frc.lib.team254.geometry.Twist2d twist_vel = frc.lib.team254.geometry.Pose2d.log(robot_pose_vel);
         return new ChassisSpeeds(
                 twist_vel.dx / LOOPER_DT, twist_vel.dy / LOOPER_DT, twist_vel.dtheta / LOOPER_DT);
-
+        
+    }
+    /**
+     * @param chassisSpeeds
+     * @return adjusted chassisSpeeds
+     * See {@link https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/11?u=ethan1}
+     */
+    public ChassisSpeeds reduceSkewFromLogTwist2d(ChassisSpeeds chassisSpeeds) {
+        double timerDt = (Timer.getFPGATimestamp() - previousDriveTime);
+        Pose2d robot_pose_vel = new Pose2d(chassisSpeeds.vxMetersPerSecond * timerDt,
+                                           chassisSpeeds.vyMetersPerSecond * timerDt,
+                                           Rotation2d.fromRadians(chassisSpeeds.omegaRadiansPerSecond * timerDt));
+        Twist2d twist_vel = new Pose2d(0, 0, new Rotation2d(0)).log(robot_pose_vel);
+        ChassisSpeeds updated_chassis_speeds = new ChassisSpeeds(
+            twist_vel.dx / timerDt, twist_vel.dy / timerDt, twist_vel.dtheta / timerDt);
+        previousDriveTime = Timer.getFPGATimestamp();
+        return updated_chassis_speeds;
     }
 
-    // See
-    // https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/11?u=ethan1
+     
+     /**
+     * @param chassisSpeeds
+     * @return adjusted chassisSpeeds
+     * See {@link https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/11?u=ethan1}
+     */
     public ChassisSpeeds reduceSkewFromChassisSpeedsFudgeFactor(ChassisSpeeds chassisSpeeds) {
         double linearVelocity = Math.sqrt(Math.pow(chassisSpeeds.vxMetersPerSecond, 2))
                 + Math.pow(chassisSpeeds.vyMetersPerSecond, 2);
         double fudgeFactor = chassisSpeeds.omegaRadiansPerSecond / linearVelocity * FUDGE_FACTOR_KP;
         double unitOrthX = chassisSpeeds.vyMetersPerSecond / linearVelocity; // might need to swith signs to get corect
                                                                              // sign of movment
-        double unitOrthy = -chassisSpeeds.vxMetersPerSecond / linearVelocity;
+        double unitOrthY = -chassisSpeeds.vxMetersPerSecond / linearVelocity;
         double fudgeOrthX = fudgeFactor * unitOrthX;
-        double fudgeOrthY = fudgeFactor * unitOrthy;
+        double fudgeOrthY = fudgeFactor * unitOrthY;
         return new ChassisSpeeds(fudgeOrthX + chassisSpeeds.vxMetersPerSecond,
                 fudgeOrthY + chassisSpeeds.vyMetersPerSecond, chassisSpeeds.omegaRadiansPerSecond);
     }
-
+    
+    
+    
+    /**
+     * @param chassisSpeeds
+     * @return adjusted chassisSpeeds
+     * Takes the unit orthogonal vector and scales it by a constant times the angular velocity
+     */
     public ChassisSpeeds reduceSkewFromChassisSpeedsSimpleFudgeFactor(ChassisSpeeds chassisSpeeds) {
         double linearVelocity = Math.sqrt(Math.pow(chassisSpeeds.vxMetersPerSecond, 2))
                 + Math.pow(chassisSpeeds.vyMetersPerSecond, 2);
@@ -231,9 +219,9 @@ public class Swerve extends SubsystemBase {
         double fudgeFactor = Math.signum(chassisSpeeds.omegaRadiansPerSecond) * FUDGE_FACTOR_SIMPLE_KP;
         double unitOrthX = chassisSpeeds.vyMetersPerSecond / linearVelocity; // might need to swith signs to get corect
                                                                              // sign of movment
-        double unitOrthy = -chassisSpeeds.vxMetersPerSecond / linearVelocity;
+        double unitOrthY = -chassisSpeeds.vxMetersPerSecond / linearVelocity;
         double fudgeOrthX = fudgeFactor * unitOrthX;
-        double fudgeOrthY = fudgeFactor * unitOrthy;
+        double fudgeOrthY = fudgeFactor * unitOrthY;
         return new ChassisSpeeds(fudgeOrthX + chassisSpeeds.vxMetersPerSecond,
                 fudgeOrthY + chassisSpeeds.vyMetersPerSecond, chassisSpeeds.omegaRadiansPerSecond);
     }
@@ -244,35 +232,31 @@ public class Swerve extends SubsystemBase {
         setModuleStates(desiredStates, false);
     }
 
+     /* Used by SwerveControllerCommand in Auto */
     public void setChassisSpeeds(ChassisSpeeds chassisSpeeds) {
         SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
+
         setModuleStates(swerveModuleStates, true);
     }
 
     public void setModuleStates(SwerveModuleState[] desiredStates, Boolean isOpenLoop) {
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, MAX_SPEED);
-        for (SwerveModule mod : mSwerveMods) {
+        for (SwerveModule mod : swerveMods) {
             mod.setDesiredState(desiredStates[mod.moduleNumber], isOpenLoop);
         }
     }
 
     public void resetToAbsolute() {
-        for (SwerveModule mod : mSwerveMods) {
+        for (SwerveModule mod : swerveMods) {
             mod.resetToAbsolute();
         }
     }
 
     public void resetOdometry(Pose2d pose) {
-        swerveOdometry.resetPosition(getYaw(), getPositions(), pose);
-        poseEstimator.resetPosition(getYaw(), getPositions(), pose);
+        poseEstimation.resetPose(getYaw(), getPositions(), pose);
     }
     public void resetToVision() {
-
-        Optional<Pair<Pose2d, Double>> aprilTagEstimation = getApriltagEstimatedPose(getEstimatedPose());
-        if (aprilTagEstimation.isPresent()) {
-            swerveOdometry.resetPosition(getYaw(), getPositions(), aprilTagEstimation.get().getFirst());
-            poseEstimator.resetPosition(getYaw(), getPositions(), aprilTagEstimation.get().getFirst());
-        }
+        poseEstimation.resetToVisionPose(getPositions());
     }
 
     public void zeroGyro() {
@@ -281,26 +265,19 @@ public class Swerve extends SubsystemBase {
 
     /*-----Getters----- */
 
-    public Pose2d getPose() {
-        return swerveOdometry.getPoseMeters();
+    public Pose2d getPoseOdometry() {
+        return poseEstimation.getPoseNonVision();
     }
 
     public Pose2d getEstimatedPose() {
-        return poseEstimator.getEstimatedPosition();
+        return poseEstimation.getPose();
     }
 
-    public Optional<Pair<Pose2d, Double>> getApriltagEstimatedPose(Pose2d prevEstimatedRobotPose) {
-        apriltagPoseEstimator.setReferencePose(prevEstimatedRobotPose);
 
-        double currentTime = Timer.getFPGATimestamp();
-        Optional<Pair<Pose3d, Double>> result = apriltagPoseEstimator.update();
-        if (result.get().getFirst() != null) {
-            return Optional.ofNullable(new Pair<Pose2d, Double>(result.get().getFirst().toPose2d(),
-                    currentTime - (result.get().getSecond() / 1000)));
-        } else {
-            return Optional.ofNullable(null);
-        }
-    }
+
+    private double lastTimePeriodic;
+    private double lastTimeDrive;
+    private double lastDesiredDegrees;
 
     /**
      * Get the current velocity of the robot
@@ -310,6 +287,13 @@ public class Swerve extends SubsystemBase {
     public Translation2d getCurrentVelocity() {
         return currentVel;
     }
+    public void calculateVelocity() {
+        double deltaTime = Timer.getFPGATimestamp() - lastTimePeriodic;
+        currentVel = getEstimatedPose().minus(lastPose).getTranslation().div(deltaTime);
+        lastPose = getEstimatedPose();
+        lastTimePeriodic = Timer.getFPGATimestamp();
+    }
+
 
     public double getCurrentTotalVelocity() {
         return Math.sqrt(Math.pow(currentVel.getX(), 2) + Math.pow(currentVel.getY(), 2));
@@ -318,11 +302,13 @@ public class Swerve extends SubsystemBase {
     public Rotation2d getHeading() {
         return Rotation2d.fromRadians(Math.atan2(MathUtil.applyDeadband(currentVel.getY(), HEADING_DEADBAND),
                 MathUtil.applyDeadband(currentVel.getX(), HEADING_DEADBAND)));
+
+        
     }
 
     public SwerveModuleState[] getStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
-        for (SwerveModule mod : mSwerveMods) {
+        for (SwerveModule mod : swerveMods) {
             states[mod.moduleNumber] = mod.getState();
         }
         return states;
@@ -330,7 +316,7 @@ public class Swerve extends SubsystemBase {
 
     public SwerveModulePosition[] getPositions() {
         SwerveModulePosition[] states = new SwerveModulePosition[4];
-        for (SwerveModule mod : mSwerveMods) {
+        for (SwerveModule mod : swerveMods) {
             states[mod.moduleNumber] = mod.getPosition();
         }
         return states;
@@ -340,6 +326,14 @@ public class Swerve extends SubsystemBase {
         return (INVERT_GYRO) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
 
+
+    private PIDController pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);;
+    private PIDController pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);;
+
+    private void configPIDtoPoseControllers(){
+        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
+        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
+    }
     /**
      * Use this to have the robot move to a position. Ideally use when the robot
      * isn't very far away.
@@ -356,7 +350,8 @@ public class Swerve extends SubsystemBase {
         Translation2d calculatedValues = new Translation2d(
                 pidToPoseXController.calculate(getEstimatedPose().getTranslation().getX(), target.getX()),
                 pidToPoseYController.calculate(getEstimatedPose().getTranslation().getY(), target.getY()));
-        angularDrive(calculatedValues, target.getRotation(), true, true);
+        
+        angularDrive(calculatedValues, target.getRotation(), true, false);
         
         logger.updateDouble("out x", calculatedValues.getX(), "PidPose");
         logger.updateDouble("out y", calculatedValues.getY(), "PidPose");
@@ -365,171 +360,29 @@ public class Swerve extends SubsystemBase {
     }
 
     public void TestTrajectoryGeneration(PathPoint endpoint) {
-        field2d.getObject("traj").setTrajectory(SwerveFollowTrajectory.SwerveGenerateTrajectoryToPoint(endpoint, this));
-    }
-
-    @Override
-    public void periodic() {
-        swerveOdometry.update(getYaw(), getPositions());
-        poseEstimator.update(getYaw(), getPositions());
-
-
-      
-        apriltagPoseEstimator.setReferencePose(getEstimatedPose());
-
-        double currentTime = Timer.getFPGATimestamp();
-        Optional<Pair<Pose3d, Double>> result = apriltagPoseEstimator.update();
-
-        if(result.isPresent()){
-            if (result.get().getFirst() != null) {
-                poseEstimator.addVisionMeasurement(result.get().getFirst().toPose2d(), currentTime - (result.get().getSecond() / 1000));
-           } 
-        }
-        SmartDashboard.putBoolean("Has target", result.isPresent());
-        
-        field2d.setRobotPose(getEstimatedPose());
-        SmartDashboard.putData("est feild", field2d);
-
-        double deltaTime = Timer.getFPGATimestamp() - lastTimePeriodic;
-        currentVel = new Translation2d(
-                (getEstimatedPose().getX() - lastPose.getX()) / deltaTime,
-                (getEstimatedPose().getY() - lastPose.getY()) / deltaTime);
-        lastPose = getEstimatedPose();
-        lastTimePeriodic = Timer.getFPGATimestamp();
-
+        field.setTrajectory("AlignTraj", SwerveFollowTrajectory.SwerveGenerateTrajectoryToPoint(endpoint, this), true);
     }
 
     public void initializeLog() {
+        logger.add(field);
         logger.add(new LoggedPigeon2("Gyro", logger, gyro, "Gyro"));
 
-        logger.addDouble("x", () -> getPose().getX(), "Pose");
-        logger.addDouble("y", () -> getPose().getY(), "Pose");
-        logger.addDouble("est x", () -> getEstimatedPose().getX(), "Pose");
-        logger.addDouble("est y", () -> getEstimatedPose().getY(), "Pose");
 
         logger.addDouble("Heading", () -> getHeading().getDegrees(), "Pose");
         logger.addDouble("x velocity", () -> getCurrentVelocity().getX(), "Pose");
         logger.addDouble("y velocity", () -> getCurrentVelocity().getY(), "Pose");
 
-        for (int i = 0; i < mSwerveMods.length; i++) {
-            logger.add(new LoggedFalcon("Angle Motor: " + i, logger, mSwerveMods[i].getAngleMotor(), "Motor", true));
-            logger.add(new LoggedFalcon("Drive Motor: " + i, logger, mSwerveMods[i].getDriveMotor(), "Motor", true));
-            logger.add(new LoggedSwerveModule("Module : " + i, logger, mSwerveMods[i], "Module", true));
+        logger.add(new LoggedSwerveModule("Modules", logger, swerveMods, "Module", true));
+
+        for (int i = 0; i < swerveMods.length; i++) {
+            logger.add(new LoggedFalcon("Angle Motor: " + i, logger, swerveMods[i].getAngleMotor(), "Motor", true));
+            logger.add(new LoggedFalcon("Drive Motor: " + i, logger, swerveMods[i].getDriveMotor(), "Motor", true));
         }
-
-        logger.addDouble("Mod : 0 v", () -> mSwerveMods[0].getState().speedMetersPerSecond, "Drive");
-        logger.addDouble("Mod : 1 v", () -> mSwerveMods[1].getState().speedMetersPerSecond, "Drive");
-        logger.addDouble("Mod : 2 v", () -> mSwerveMods[2].getState().speedMetersPerSecond, "Drive");
-        logger.addDouble("Mod : 3 v", () -> mSwerveMods[3].getState().speedMetersPerSecond, "Drive");
     }
 
-    /**
-     * 
-     * Returns a new command that, when ran, will make the swerve drivebase drive
-     * along the path
-     * 
-     * @param traj        The trajectory to follow
-     * @param isFirstPath If set to true, the robot odometry will be reset
-     * @return The Command that, when ran, will make the swerve drivebase drive
-     *         along the path
-     */
-    public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
-        // This is just an example event map. It would be better to have a constant,
-        // global event map
-        // in your code that will be used by all path following commands.
-        HashMap<String, Command> eventMap = new HashMap<>();
-        eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-
-        return new SequentialCommandGroup(
-                new InstantCommand(() -> {
-                    // Reset odometry for the first path you run during auto
-                    if (isFirstPath) {
-                        this.resetOdometry(traj.getInitialHolonomicPose());
-                    }
-                }),
-                new PPSwerveControllerCommand(
-                        traj,
-                        this::getEstimatedPose, // Pose supplier
-                        KINEMATICS, // SwerveDriveKinematics
-                        new PIDController(3.2023, 0, 0), // X controller. Tune these values for your robot. Leaving them
-                                                         // 0 will only use feedforwards.
-                        new PIDController(3.2023, 0, 0), // Y controller (usually the same values as X controller)
-                        new PIDController(THETA_KP, 0, 0), // Rotation controller. Tune these values for your robot.
-                                                           // Leaving them 0 will only use feedforwards.
-                        this::setModuleStates, // Module states consumer // This argument is optional if you don't use
-                                               // event markers
-                        this // Requires this drive subsystem
-                ));
+    @Override
+    public void periodic() {
+        poseEstimation.updateOdometry(getHeading(), getPositions());
+        calculateVelocity();
     }
-
-    /**
-     * 
-     * Returns a new command that, when ran, will make the swerve drivebase drive
-     * along the path
-     * 
-     * @param traj The trajectory to follow
-     * @return The Command that, when ran, will make the swerve drivebase drive
-     *         along the path
-     */
-    public Command followTrajectoryCommand(PathPlannerTrajectory traj) {
-        return followTrajectoryCommand(traj, false);
-    }
-
-    /**
-     * 
-     * Returns a new command that, when ran, will make the swerve drivebase drive
-     * along the path until the given time is reached, where it will stop the path
-     * early
-     * 
-     * @param traj        The trajectory to follow
-     * @param isFirstPath If set to true, the robot odometry will be reset
-     * @param time        The time after which the path will be stopped
-     * @return The Command that, when ran, will make the swerve drivebase drive
-     *         along the path
-     */
-    public Command followTrajectoryCommandCancelable(PathPlannerTrajectory traj, boolean isFirstPath, double time) {
-        // This is just an example event map. It would be better to have a constant,
-        // global event map
-        // in your code that will be used by all path following commands.
-        HashMap<String, Command> eventMap = new HashMap<>();
-        eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-
-        return new SequentialCommandGroup(
-                new InstantCommand(() -> {
-                    // Reset odometry for the first path you run during auto
-                    if (isFirstPath) {
-                        this.resetOdometry(traj.getInitialHolonomicPose());
-                    }
-                }),
-                new CancelableSwerveController(
-                        time,
-                        traj,
-                        this::getPose, // Pose supplier
-                        KINEMATICS, // SwerveDriveKinematics
-                        new PIDController(3.2023, 0, 0), // X controller. Tune these values for your robot. Leaving them
-                                                         // 0 will only use feedforwards.
-                        new PIDController(3.2023, 0, 0), // Y controller (usually the same values as X controller)
-                        new PIDController(THETA_KP, 0, 0), // Rotation controller. Tune these values for your robot.
-                                                           // Leaving them 0 will only use feedforwards.
-                        this::setModuleStates, // Module states consumer // This argument is optional if you don't use
-                                               // event markers
-                        this // Requires this drive subsystem
-                ));
-    }
-
-    /**
-     * 
-     * Returns a new command that, when ran, will make the swerve drivebase drive
-     * along the path until the given time is reached, where it will stop the path
-     * early
-     * 
-     * @param traj The trajectory to follow
-     * @param time The time after which the path will be stopped
-     * @return The Command that, when ran, will make the swerve drivebase drive
-     *         along the path
-     */
-    public Command followTrajectoryCommandCancelable(PathPlannerTrajectory traj, double time) {
-        return followTrajectoryCommandCancelable(traj, false, time);
-    }
-
 }

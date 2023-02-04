@@ -6,24 +6,30 @@ package frc.lib.util.logging.loggedPrimitives;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.util.datalog.StringLogEntry;
 
 import edu.wpi.first.wpilibj.DataLogManager;
 import frc.lib.util.logging.LoggedContainer;
 import frc.lib.util.logging.Logger.LoggingLevel;
+import frc.lib.util.logging.loggedObjects.LoggedObject;
 
 /** Add your docs here. */
 public class LoggedString extends LoggedPrimitive<String> {
     private StringLogEntry logEntry;
 
-    public LoggedString(String name, LoggingLevel level, String prefix) {
-        super(name, level, prefix);
+    /**
+     * This constructor is used to create a LoggedPrimitive that is an shuffulboard only LOG
+     */
+    public LoggedString(LoggedObject<?> object, Supplier<String> supplier, GenericEntry entry) {
+        super(object, supplier, entry);
     }
-
-    public LoggedString(String name, LoggingLevel level, String prefix, Supplier<String> supplier) {
-        super(name, level, prefix, supplier);
+    /**
+     * This constructor is used to create a LoggedPrimitive that is an onboard only LOG
+     */
+    public LoggedString(LoggedObject<?> object, String name, Supplier<String> supplier) {
+        super(object, name, supplier);
     }
-
     public LoggedString(String name, LoggingLevel level, LoggedContainer subsystem) {
         super(name, level, subsystem);
     }

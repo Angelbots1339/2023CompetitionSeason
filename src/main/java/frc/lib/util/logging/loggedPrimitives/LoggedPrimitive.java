@@ -4,6 +4,7 @@
 
 package frc.lib.util.logging.loggedPrimitives;
 
+import java.lang.reflect.Field;
 import java.util.function.Supplier;
 
 import edu.wpi.first.networktables.GenericEntry;
@@ -11,6 +12,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import frc.lib.util.logging.Iloggable;
 import frc.lib.util.logging.LoggedContainer;
 import frc.lib.util.logging.Logger.LoggingLevel;
+import frc.lib.util.logging.loggedObjects.LoggedObject;
 
 /** Add your docs here. */
 public abstract class LoggedPrimitive<T> implements Iloggable {
@@ -19,9 +21,10 @@ public abstract class LoggedPrimitive<T> implements Iloggable {
 
     protected GenericEntry shuffleboardEntry;
     private Supplier<T> supplier;
+    private T previousValue;
     private boolean isSupplied;
 
-    public LoggedPrimitive(String name, LoggingLevel level, String prefix) {
+    private LoggedPrimitive(String name, LoggingLevel level, String prefix) {
         this.level = level;
         isSupplied = false;
         if (level == LoggingLevel.SHUFFLEBOARD) {
@@ -31,7 +34,7 @@ public abstract class LoggedPrimitive<T> implements Iloggable {
         }
     }
 
-    public LoggedPrimitive(String name, LoggingLevel level, String prefix, Supplier<T> supplier) {
+    private LoggedPrimitive(String name, LoggingLevel level, String prefix, Supplier<T> supplier) {
         this(name, level, prefix);
         isSupplied = true;
         this.supplier = supplier;
@@ -43,28 +46,60 @@ public abstract class LoggedPrimitive<T> implements Iloggable {
 
     public LoggedPrimitive(String name, LoggingLevel level, LoggedContainer subsystem, Supplier<T> supplier) {
         this(name, level, subsystem.getName(), supplier);
+
+    }
+
+    /**
+     * This constructor is used to create a LoggedPrimitive that is an onboard only
+     * LOG
+     */
+    // TODO find a better way to do this
+    public LoggedPrimitive(LoggedObject<?> object, String name, Supplier<T> supplier) {
+        if (LoggingLevel.ONBOARD_ONLY != object.getLevel()) {
+            throw new IllegalArgumentException(
+                    "LoggedPrimitive constructor called with an object that is not an onboard log");
+        }
+        this.level = LoggingLevel.ONBOARD_ONLY;
+        isSupplied = true;
+        this.supplier = supplier;
+        initializeOnboardLog(name, object.getName() + "/" + object.getPrefix());
+    }
+
+    /**
+     * This constructor is used to create a LoggedPrimitive that is an shuffulboard
+     * only LOG
+     */
+    // TODO and this
+    public LoggedPrimitive(LoggedObject<?> object, Supplier<T> supplier, GenericEntry entry) {
+        if (LoggingLevel.SHUFFLEBOARD != object.getLevel()) {
+            throw new IllegalArgumentException(
+                    "LoggedPrimitive constructor called with an object that is not a shuffleboard log");
+        }
+        this.level = LoggingLevel.SHUFFLEBOARD;
+        isSupplied = true;
+        this.supplier = supplier;
+        this.shuffleboardEntry = entry;
     }
 
     @Override
     public void log(long timestamp) {
         if (!isSupplied)
             return;
-        if (level == LoggingLevel.SHUFFLEBOARD) {
-            logShuffleboard(supplier.get());
-        } else if (level == LoggingLevel.ONBOARD_ONLY) {
-            logOnboard(timestamp, supplier.get());
-        }
+        log(timestamp, supplier.get());
     }
 
     public void log(long timestamp, T value) {
+        if (previousValue == value)
+            return;
         if (level == LoggingLevel.SHUFFLEBOARD) {
             logShuffleboard(value);
         } else if (level == LoggingLevel.ONBOARD_ONLY) {
-            logOnboard(0, value);
+            logOnboard(timestamp, value);
         }
+        previousValue = value;
     }
 
-    protected String getOnboardLogName(String name, String prefix){
+    protected String getOnboardLogName(String name, String prefix) {
         return prefix + "/" + name;
     }
 

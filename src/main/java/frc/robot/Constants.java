@@ -15,6 +15,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -37,7 +38,7 @@ public final class Constants {
 
     public static final class SwerveConstants {
 
-        public static final double LOOPER_DT = 0.01; // used for 254's solution to swerve skew it is loop time in sec
+        public static final double LOOPER_DT = 0.02; // used for 254's solution to swerve skew it is loop time in sec
         public static final double FUDGE_FACTOR_KP = 0.1; // used for the CD fudge factor solution to swerve skew
         public static final double FUDGE_FACTOR_SIMPLE_KP = 0.1; // used for the CD fudge factor solution to swerve skew
 
@@ -73,18 +74,25 @@ public final class Constants {
          * 6380/8.14 * 0.1 * pi / 60 = 4.103882295
          * 12 / 4.103882295 = 2.920
          */
+
         public static final double DRIVE_KS = (0.11633 / 12);
         public static final double DRIVE_KV = (2.8025 / 12);
         public static final double DRIVE_KA = (0.29671 / 12);
 
         /* Heading deadBand */
-        public static final double HEADING_DEADBAND = 0.1;
+        public static final double HEADING_DEADBAND = 0.3;
+
+       
 
         /* Swerve Profiling Values */
         /** Meters per Second */
-        public static final double MAX_SPEED = 4;// 1.5; // TODO: This must be tuned to specific robot
+        private static final double TRUE_MAX_SPEED = 6380 / 60 / DRIVE_GEAR_RATIO * WHEEL_CIRCUMFERENCE ; // 1.5;
+        public static final double MAX_SPEED = 1/ TRUE_MAX_SPEED;// 4; 
         /** Radians per Second */
-        public static final double MAX_ANGULAR_VELOCITY = 5;// 5.0; // TODO: This must be tuned to specific robot
+        private static final double TRUE_MAX_ANGULAR = MAX_SPEED / 0.7094402336; 
+        public static final double MAX_ANGULAR_VELOCITY = TRUE_MAX_ANGULAR; // 5.0; 
+        /**Meters per Second */
+        public static final double MIN_CLOSE_LOOP_SPEED = 0.2; 
 
         public static final class FalconConfigConstants {
 
@@ -107,7 +115,7 @@ public final class Constants {
             public static final double ANGLE_KF = 0.0;
 
             /* Drive Motor PID Values */
-            public static final double DRIVE_KP = 0.0; // TODO: This must be tuned to specific robot
+            public static final double DRIVE_KP = 0.1; // TODO: This must be tuned to specific robot
             public static final double DRIVE_KI = 0.0;
             public static final double DRIVE_KD = 0.0;
             public static final double DRIVE_KF = 0.0;
@@ -192,7 +200,7 @@ public final class Constants {
 
         public static final class AngularDriveConstants {
 
-            public static final double ANGLE_KP = 0.1; // radians per sec per degrees
+            public static final double ANGLE_KP = 0.05; // radians per sec per degrees
             public static final double ANGLE_KI = 0;
             public static final double ANGLE_KD = 0.0;
 
@@ -220,7 +228,7 @@ public final class Constants {
         public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0.27, 0.13, 0),
                 new Rotation3d(0, -Math.toRadians(20), 0)); // TODO OPI pos
         public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Cam1");
-        public static final PoseStrategy APRILTAG_POSE_STRATEGY = PoseStrategy.LOWEST_AMBIGUITY;
+        public static final PoseStrategy APRILTAG_POSE_STRATEGY = PoseStrategy.CLOSEST_TO_REFERENCE_POSE;
         /*
          * Standard deviations of model states. Increase these numbers to trust your
          * model's state estimates less. This matrix is in the form [x, y, theta]ᵀ, with
@@ -251,15 +259,15 @@ public final class Constants {
 
     public final static class PIDToPoseConstants {
 
-        public static final double PID_TO_POSE_X_P = 0;
+        public static final double PID_TO_POSE_X_P = 0.5;
         public static final double PID_TO_POSE_X_I = 0;
         public static final double PID_TO_POSE_X_D = 0;
 
-        public static final double PID_TO_POSE_Y_P = 0;
+        public static final double PID_TO_POSE_Y_P = 0.5;
         public static final double PID_TO_POSE_Y_I = 0;
         public static final double PID_TO_POSE_Y_D = 0;
 
-        public static final double PID_TO_POSE_TOLERANCE = 0.1;
+        public static final double PID_TO_POSE_TOLERANCE = 0.5;
 
     }
 

@@ -6,23 +6,30 @@ package frc.lib.util.logging.loggedPrimitives;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.util.datalog.BooleanLogEntry;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 import frc.lib.util.logging.LoggedContainer;
 import frc.lib.util.logging.Logger.LoggingLevel;
+import frc.lib.util.logging.loggedObjects.LoggedObject;
 
 /** Add your docs here. */
 public class LoggedBoolean extends LoggedPrimitive<Boolean>{
 
     private BooleanLogEntry logEntry;
 
-    public LoggedBoolean(String name, LoggingLevel level, String prefix) {
-        super(name, level, prefix);
+    /**
+     * This constructor is used to create a LoggedPrimitive that is an shuffleboard only LOG
+     */
+    public LoggedBoolean(LoggedObject<?> object, Supplier<Boolean> supplier, GenericEntry entry) {
+        super(object, supplier, entry);
     }
-
-    public LoggedBoolean(String name, LoggingLevel level, String prefix, Supplier<Boolean> supplier) {
-        super(name, level, prefix, supplier);
+    /**
+     * This constructor is used to create a LoggedPrimitive that is an onboard only LOG
+     */
+    public LoggedBoolean(LoggedObject<?> object, String name, Supplier<Boolean> supplier) {
+        super(object, name, supplier);
     }
 
     public LoggedBoolean(String name, LoggingLevel level, LoggedContainer subsystem) {
@@ -33,6 +40,8 @@ public class LoggedBoolean extends LoggedPrimitive<Boolean>{
         super(name, level, subsystem, supplier);
     }
 
+    
+
     @Override
     protected void initializeOnboardLog(String name, String prefix) {
         logEntry = new BooleanLogEntry(DataLogManager.getLog(), getOnboardLogName(name, prefix));
@@ -41,7 +50,6 @@ public class LoggedBoolean extends LoggedPrimitive<Boolean>{
     @Override
     protected void logOnboard(long timestamp, Boolean value) {
         logEntry.append(value, timestamp);
-        
     }
 
     @Override

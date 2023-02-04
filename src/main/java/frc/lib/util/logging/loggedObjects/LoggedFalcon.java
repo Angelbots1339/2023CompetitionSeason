@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import frc.lib.util.logging.LoggedContainer;
+import frc.lib.util.logging.loggedPrimitives.LoggedDouble;
 
 /** Add your docs here. */
 public class LoggedFalcon extends LoggedObject<TalonFX> {
@@ -30,14 +31,16 @@ public class LoggedFalcon extends LoggedObject<TalonFX> {
     @Override
     public void initializeShuffleboard() {
         ShuffleboardLayout layout = getTab().getLayout(name, BuiltInLayouts.kList);
-        layout.addNumber(name + ":Stator Current", () -> object.getStatorCurrent()).withSize(2, 2);
-        layout.addNumber(name + ":Supply Current", () -> object.getSupplyCurrent()).withSize(2, 2);
+        addDoubleToShuffleboard("Stator Current", () ->  object.getStatorCurrent(), layout);
+        addDoubleToShuffleboard("Supply Current", () ->  object.getSupplyCurrent(), layout);
+        addDoubleToShuffleboard("Bus Voltage", () ->  object.getBusVoltage(), layout);
     }
 
     @Override
     public void initializeDataLog() {
         addDoubleToOnboardLog("Stator Current", () -> object.getStatorCurrent());
         addDoubleToOnboardLog("Supply Current", () -> object.getSupplyCurrent());
+        addDoubleToOnboardLog("Bus Voltage", () -> object.getBusVoltage());
     }
 
 

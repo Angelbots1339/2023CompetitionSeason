@@ -23,7 +23,7 @@ public class LoggedContainer implements Iloggable {
     private Map<String, LoggedPrimitive<?>> loggedPrimitives = new HashMap<String, LoggedPrimitive<?>>();
 
     private final Map<String, LoggingLevel> logPriorities;
-    private static final Map<String, LoggingLevel> globalLogPriorites = LoggingConstants.GLOBAL;
+    private static final Map<String, LoggingLevel> globalLogPriorities = LoggingConstants.GLOBAL;
 
     protected final String name;
 
@@ -54,7 +54,6 @@ public class LoggedContainer implements Iloggable {
     }
 
     public void updateDouble(String name, double value, String logType) {
-
         if(!loggedPrimitives.containsKey(name)){
             loggedPrimitives.putIfAbsent(name, new LoggedDouble(name, getLoggingLevel(logType), this));
         }
@@ -99,11 +98,11 @@ public class LoggedContainer implements Iloggable {
     public LoggingLevel getLoggingLevel(String logType) {
         if (logPriorities.containsKey(logType))
             return logPriorities.get(logType);
-        if (globalLogPriorites.containsKey(logType))
-            return globalLogPriorites.get(logType);
+        if (globalLogPriorities.containsKey(logType))
+            return globalLogPriorities.get(logType);
         if (logPriorities.containsKey("Default"))
             return logPriorities.get("Default");
-        return globalLogPriorites.get("Default");
+        return globalLogPriorities.get("Default");
     }
 
     public boolean isLogging(String logType){

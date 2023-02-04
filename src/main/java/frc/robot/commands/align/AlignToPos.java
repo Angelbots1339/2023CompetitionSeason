@@ -5,6 +5,7 @@
 package frc.robot.commands.align;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.Swerve;
 
@@ -33,7 +34,9 @@ public class AlignToPos extends CommandBase {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    swerve.drive(new Translation2d(0 ,0), 0, false, false);
+  }
 
   // Returns true when the command should end.
   @Override

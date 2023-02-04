@@ -9,6 +9,7 @@ import com.pathplanner.lib.server.PathPlannerServer;
 
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.util.logging.Logger;
@@ -66,7 +67,10 @@ public class Robot extends TimedRobot {
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
-    Logger.getInstance().log(0);
+    Thread thread = new Thread(() -> {
+      Logger.getInstance().log((long)Timer.getFPGATimestamp());
+    });
+    thread.start();
   }
 
   /** This function is called once each time the robot enters Disabled mode. */

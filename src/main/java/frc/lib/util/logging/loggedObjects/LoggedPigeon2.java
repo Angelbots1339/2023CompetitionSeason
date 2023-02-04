@@ -4,11 +4,18 @@
 
 package frc.lib.util.logging.loggedObjects;
 
+import java.util.Arrays;
+
 import com.ctre.phoenix.sensors.Pigeon2;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import frc.lib.util.logging.LoggedContainer;
+import frc.lib.util.logging.loggedPrimitives.LoggedDouble;
+import frc.lib.util.logging.loggedPrimitives.LoggedDoubleArray;
 
 /** Add your docs here. */
 public class LoggedPigeon2 extends LoggedObject<Pigeon2> {
@@ -28,35 +35,29 @@ public class LoggedPigeon2 extends LoggedObject<Pigeon2> {
 
     @Override
     protected void initializeShuffleboard() {
-        ShuffleboardLayout layout = getTab().getLayout(name, BuiltInLayouts.kList);
-        layout.addDouble("Yaw", () -> object.getYaw());
-        layout.addDouble("Pitch", () -> object.getPitch());
-        layout.addDouble("Roll", () -> object.getRoll());
+        ShuffleboardLayout layout = getTab().getLayout(name, BuiltInLayouts.kList).withSize(1, 3);
+        addDoubleToShuffleboard("Yaw", () -> object.getYaw(), layout);
+        addDoubleToShuffleboard("Pitch", () -> object.getPitch(), layout);
 
-        layout.addDouble("Accel x", () -> {
+        layout.addDoubleArray(name, () -> {
             short[] accel = new short[3];
             object.getBiasedAccelerometer(accel);
-            return accel[0];
-
-        });
-        layout.addDouble("Accel y", () -> {
-            short[] accel = new short[3];
-            object.getBiasedAccelerometer(accel);
-            return accel[1];
-        });
+            return new double[]{accel[0],accel[1],accel[2]};
+        }).withWidget(BuiltInWidgets.k3AxisAccelerometer);
 
     }
 
     @Override
-    protected void initializeDataLog() {
+    protected void initializeDataLog() { 
         addDoubleToOnboardLog("Yaw", () -> object.getYaw());
         addDoubleToOnboardLog("Pitch", () -> object.getPitch());
         addDoubleToOnboardLog("Roll", () -> object.getRoll());
-        short[] accel = new short[3];
 
-        object.getBiasedAccelerometer(accel);
-        addDoubleToOnboardLog("Accel x", () -> (double) accel[0]);
-        addDoubleToOnboardLog("Accel y", () -> (double) accel[1]);
+        addDoubleArrayToOnboardLog("Accelerometer [x,y,z]", () -> {
+            short[] accel = new short[3];
+            object.getBiasedAccelerometer(accel);
+            return new double[]{accel[0],accel[1],accel[2]};
+        });
 
     }
 

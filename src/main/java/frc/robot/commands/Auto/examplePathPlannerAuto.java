@@ -9,7 +9,7 @@ import java.util.List;
 import com.pathplanner.lib.PathPlannerTrajectory;
 
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.lib.util.Auto.AutoUtils;
+import frc.lib.util.auto.AutoUtils;
 import frc.robot.subsystems.Swerve;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
@@ -23,7 +23,7 @@ public class examplePathPlannerAuto extends SequentialCommandGroup {
 
     addRequirements(swerve);
     addCommands(
-        swerve.followTrajectoryCommand(trajectories.get(0), true));
+        new SwerveFollowTrajectory(trajectories.get(0), true, swerve));
 
   }
 }

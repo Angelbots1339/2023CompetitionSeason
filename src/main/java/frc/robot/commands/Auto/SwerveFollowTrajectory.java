@@ -22,7 +22,7 @@ public class SwerveFollowTrajectory extends PPSwerveControllerCommand {
   public SwerveFollowTrajectory(PathPlannerTrajectory traj, boolean isFirstPath, Swerve swerve) {
     super(
         traj,
-        swerve::getPose,
+        swerve::getPoseOdometry,
         SwerveConstants.KINEMATICS,
         new PIDController(3.2023, 0, 0),
         new PIDController(3.2023, 0, 0),
@@ -42,14 +42,14 @@ public class SwerveFollowTrajectory extends PPSwerveControllerCommand {
 
   public static PPSwerveControllerCommand SwerveGenerateAndFollowTrajectoryToPoint(PathPoint endPoint, Swerve swerve) {
     PathPlannerTrajectory traj = PathPlanner.generatePath(new PathConstraints(2, 2),
-        new PathPoint(swerve.getPose().getTranslation(), swerve.getHeading(), swerve.getYaw(),
+        new PathPoint(swerve.getPoseOdometry().getTranslation(), swerve.getHeading(), swerve.getYaw(),
             swerve.getCurrentTotalVelocity()),
         endPoint);
     return new SwerveFollowTrajectory(traj, swerve);
   }
   public static Trajectory SwerveGenerateTrajectoryToPoint(PathPoint endPoint, Swerve swerve){
       return PathPlanner.generatePath(new PathConstraints(2, 2),
-      new PathPoint(swerve.getPose().getTranslation(), swerve.getHeading(), swerve.getYaw(),
+      new PathPoint(swerve.getPoseOdometry().getTranslation(), swerve.getHeading(), swerve.getYaw(),
           swerve.getCurrentTotalVelocity()),
       endPoint);
   }

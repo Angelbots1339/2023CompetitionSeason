@@ -12,10 +12,12 @@ import frc.robot.Constants;
 
 import static frc.robot.Constants.ElevatorConstants.*;
 
-public class Elevator extends SubsystemBase {
+public class Elevator  extends SubsystemBase implements AutoCloseable {
 
   TalonFX elevatorLeaderMotor;
   TalonFX elevatorFollowerMotor;
+
+  
 
   /** Creates a new Elevator. */
   public Elevator() {
@@ -24,13 +26,25 @@ public class Elevator extends SubsystemBase {
     configElevatorMotor();
   }
 
+
+  @Override 
+  public void simulationPeriodic() {
+      super.simulationPeriodic();
+      
+  }
   @Override
   public void periodic() {
+  
     // This method will be called once per scheduler run
   }
 
   public void configElevatorMotor(){
 
+  }
+
+  @Override
+  public void close() throws Exception {
+   
   }
 
 }
