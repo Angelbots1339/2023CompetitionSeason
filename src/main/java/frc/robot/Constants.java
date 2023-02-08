@@ -1,6 +1,10 @@
 package frc.robot;
 
 import java.util.Map;
+
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
@@ -8,8 +12,6 @@ import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.SensorTimeBase;
 import com.ctre.phoenix.sensors.SensorVelocityMeasPeriod;
 
-import org.photonvision.PhotonCamera;
-import org.photonvision.RobotPoseEstimator.PoseStrategy;
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
@@ -87,10 +89,10 @@ public final class Constants {
         /* Swerve Profiling Values */
         /** Meters per Second */
         private static final double TRUE_MAX_SPEED = 6380 / 60 / DRIVE_GEAR_RATIO * WHEEL_CIRCUMFERENCE ; // 1.5;
-        public static final double MAX_SPEED = 1/ TRUE_MAX_SPEED;// 4; 
+        public static final double MAX_SPEED = 4;// 4; 
         /** Radians per Second */
         private static final double TRUE_MAX_ANGULAR = MAX_SPEED / 0.7094402336; 
-        public static final double MAX_ANGULAR_VELOCITY = TRUE_MAX_ANGULAR; // 5.0; 
+        public static final double MAX_ANGULAR_VELOCITY = 5; // 5.0; 
         /**Meters per Second */
         public static final double MIN_CLOSE_LOOP_SPEED = 0.2; 
 
@@ -210,6 +212,10 @@ public final class Constants {
 
             public static final double TURN_TO_ANGLE_TOLERANCE = 10; // Degrees
         }
+        public static final class yawBufferConstants {
+            public static final int sampleCount = 10;
+            public static final double samplePeriod = 2;//MS
+        }
 
     }
 
@@ -225,8 +231,8 @@ public final class Constants {
     }
 
     public static final class VisionConstants {
-        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0.27, 0.13, 0),
-                new Rotation3d(0, -Math.toRadians(20), 0)); // TODO OPI pos
+        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0.27, 0, 0.24),
+                new Rotation3d(0, -Math.toRadians(10), 0)); // TODO OPI pos
         public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Cam1");
         public static final PoseStrategy APRILTAG_POSE_STRATEGY = PoseStrategy.CLOSEST_TO_REFERENCE_POSE;
         /*
@@ -239,16 +245,6 @@ public final class Constants {
                 0.10,
                 0.10,
                 0.10);
-        /*
-         * Standard deviations of the vision measurements. Increase these
-         * numbers to trust global measurements from vision less. This matrix is in the
-         * form [x, y,theta]ᵀ,
-         * with units in meters and radians.
-         */
-        public static final Matrix<N3, N1> VISION_MEASUREMENT_STD_DEVS = new MatBuilder<>(Nat.N3(), Nat.N1()).fill(
-                0.90,
-                0.90,
-                0.90);
 
     }
 

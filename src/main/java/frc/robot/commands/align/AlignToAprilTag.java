@@ -22,7 +22,7 @@ public class AlignToAprilTag extends CommandBase {
 
   private double translationKP = 0.0;
   private double strafeKP = 0.0;
-  private double KS = 0.0;
+  private double KS = 0.1;
 
   PIDController translationController = new PIDController(translationKP, 0, 0);
   PIDController strafeController = new PIDController(strafeKP, 0, 0);
@@ -57,6 +57,9 @@ public class AlignToAprilTag extends CommandBase {
 
       double strafe = strafeController.calculate(targetPose.getX(), 0) + KS * Math.signum(strafeController.getPositionError());
       double translation = translationController.calculate(targetPose.getZ(), 1) + KS * Math.signum(translationController.getPositionError());
+      
+      
+
       SmartDashboard.putNumber("strafe", strafe);
       SmartDashboard.putNumber("translation", translation);
 

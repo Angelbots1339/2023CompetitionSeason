@@ -74,10 +74,10 @@ public class SwerveModule {
                         double velocity = Conversions.MPSToFalcon(desiredState.speedMetersPerSecond,
                         Constants.SwerveConstants.WHEEL_CIRCUMFERENCE,
                         Constants.SwerveConstants.DRIVE_GEAR_RATIO);
-                        if(Math.abs(desiredState.speedMetersPerSecond) <= MIN_CLOSE_LOOP_SPEED){
-                                driveMotor.set(ControlMode.PercentOutput, feedforward.calculate(desiredState.speedMetersPerSecond));
-                                return;    
-                        }
+                        // if(Math.abs(desiredState.speedMetersPerSecond) <= MIN_CLOSE_LOOP_SPEED){
+                        //         driveMotor.set(ControlMode.PercentOutput, feedforward.calculate(desiredState.speedMetersPerSecond));
+                        //         return;    
+                        // }
                         driveMotor.set(ControlMode.Velocity, velocity, DemandType.ArbitraryFeedForward,
                                         feedforward.calculate(desiredState.speedMetersPerSecond));
                 }

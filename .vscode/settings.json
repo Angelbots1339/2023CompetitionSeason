@@ -30,6 +30,7 @@
     "APRILTAG",
     "ctre",
     "feedforward",
+    "Kalman",
     "Traj"
   ]
 }

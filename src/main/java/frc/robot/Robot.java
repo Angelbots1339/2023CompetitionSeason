@@ -71,6 +71,7 @@ public class Robot extends TimedRobot {
       Logger.getInstance().log((long)Timer.getFPGATimestamp());
     });
     thread.start();
+  
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
