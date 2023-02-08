@@ -22,9 +22,16 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.SwerveConstants.*;
+
+import java.lang.reflect.Array;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
 import static frc.robot.Constants.PIDToPoseConstants.*;
 
 public class Swerve extends SubsystemBase {
@@ -167,7 +174,6 @@ public class Swerve extends SubsystemBase {
         frc.lib.team254.geometry.Twist2d twist_vel = frc.lib.team254.geometry.Pose2d.log(robot_pose_vel);
         return new ChassisSpeeds(
                 twist_vel.dx / LOOPER_DT, twist_vel.dy / LOOPER_DT, twist_vel.dtheta / LOOPER_DT);
-        
     }
     /**
      * @param chassisSpeeds
@@ -255,8 +261,8 @@ public class Swerve extends SubsystemBase {
     public void resetOdometry(Pose2d pose) {
         poseEstimation.resetPose(getYaw(), getPositions(), pose);
     }
-    public void resetToVision() {
-        poseEstimation.resetToVisionPose(getPositions());
+    public void alignPoseNonVisionEstimator() {
+        poseEstimation.alignPoseNonVisionEstimator(getPositions());
     }
 
     public void zeroGyro() {
@@ -272,6 +278,18 @@ public class Swerve extends SubsystemBase {
     public Pose2d getEstimatedPose() {
         return poseEstimation.getPose();
     }
+
+    public Queue<Double> yawBuffer = new LinkedList<Double>();
+    public Runnable bufferGyro(){
+        return () -> {
+            yawBuffer.add(getYaw().getRadians());
+            if(yawBuffer.size() > yawBufferConstants.sampleCount)
+                yawBuffer.remove();
+        };
+    }
+
+
+    
 
 
 
@@ -382,7 +400,7 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
-        poseEstimation.updateOdometry(getHeading(), getPositions());
+        poseEstimation.updateOdometry(getYaw(), getPositions(), getEstimatedPose());
         calculateVelocity();
     }
 }

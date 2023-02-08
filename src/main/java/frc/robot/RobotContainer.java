@@ -18,6 +18,7 @@ import frc.lib.math.Conversions;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.commands.*;
 import frc.robot.commands.Auto.examplePathPlannerAuto;
+import frc.robot.commands.align.AlignToConeNode;
 import frc.robot.commands.align.AlignToPos;
 import frc.robot.subsystems.*;
 
@@ -103,8 +104,8 @@ public class RobotContainer {
         private void configureButtonBindings() {
                 /* Driver Buttons */
                 zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
-                zeroEncoders.onTrue(new InstantCommand(swerve::resetToVision));
-         switchDriveMode.whileTrue(new AlignToPos(swerve, new Pose2d(3, 3, Rotation2d.fromDegrees(180))));
+                zeroEncoders.onTrue(new InstantCommand(swerve::alignPoseNonVisionEstimator));
+         switchDriveMode.whileTrue(new AlignToConeNode(swerve));
                 testAlign.onTrue(new InstantCommand(
                                 () -> swerve.TestTrajectoryGeneration(new PathPoint(new Translation2d(2, 2),
                                                 Rotation2d.fromDegrees(180), Rotation2d.fromDegrees(180), 0))));
