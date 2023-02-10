@@ -15,12 +15,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.lib.math.Conversions;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.commands.*;
 import frc.robot.commands.Auto.examplePathPlannerAuto;
+import frc.robot.commands.align.AlignOnChargingStation;
 import frc.robot.commands.align.AlignToConeNode;
 import frc.robot.commands.align.AlignToPos;
 import frc.robot.subsystems.*;
@@ -75,7 +77,7 @@ public class RobotContainer {
                         XboxController.Button.kA.value);
         private final JoystickButton switchDriveMode = new JoystickButton(driver,
                         XboxController.Button.kRightStick.value);
-        private final JoystickButton testAlign = new JoystickButton(driver,
+        private final JoystickButton testAlignChargingStation = new JoystickButton(driver,
                         XboxController.Button.kB.value);
 
         /**
@@ -111,9 +113,8 @@ public class RobotContainer {
                 zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
                 zeroEncoders.onTrue(new InstantCommand(swerve::alignPoseNonVisionEstimator));
                 switchDriveMode.whileTrue(new AlignToConeNode(swerve));
-                testAlign.onTrue(new InstantCommand(
-                                () -> swerve.TestTrajectoryGeneration(new PathPoint(new Translation2d(2, 2),
-                                                Rotation2d.fromDegrees(180), Rotation2d.fromDegrees(180), 0))));
+                testAlignChargingStation.onTrue(new SequentialCommandGroup(new AlignOnChargingStation(swerve),
+                                new RunCommand(swerve::xPosion, swerve)));
 
         }
 

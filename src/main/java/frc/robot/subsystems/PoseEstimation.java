@@ -74,8 +74,6 @@ public class PoseEstimation {
         poseEstimatorNonVision.update(swerve.getYaw(), positions);
         poseEstimator.update(swerve.getYaw(), positions);
         poseEstimatorNonGyroAngle.update(swerve.getYaw(), positions);
-
-        SmartDashboard.putNumber("positons", positions[0].distanceMeters);
         
         PhotonPipelineResult result = APRILTAG_CAM.getLatestResult();
         if (result.hasTargets()) {

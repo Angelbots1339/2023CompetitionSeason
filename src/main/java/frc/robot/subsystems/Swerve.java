@@ -109,6 +109,16 @@ public class Swerve extends SubsystemBase {
                 true);
 
     }
+    
+    public void xPosion() {
+        setModuleStates(new SwerveModuleState[]{
+            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+            new SwerveModuleState(0, Rotation2d.fromDegrees(45))
+        });
+
+    }
 
     private PIDController angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
             AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
