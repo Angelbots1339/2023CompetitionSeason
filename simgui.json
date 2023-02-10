@@ -1,7 +1,17 @@
 {
   "HALProvider": {
     "Other Devices": {
+      "Talon FX[10]": {
+        "header": {
+          "open": true
+        }
+      },
       "Talon FX[1]": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX[20]": {
         "header": {
           "open": true
         }
@@ -11,8 +21,19 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/Swerve:PoseEstimator/Field": "Field2d",
       "/SmartDashboard/PPSwerveControllerCommand_field": "Field2d",
       "/SmartDashboard/est feild": "Field2d"
+    }
+  },
+  "NetworkTables": {
+    "transitory": {
+      "photonvision": {
+        "Cam1": {
+          "open": true
+        },
+        "open": true
+      }
     }
   }
 }

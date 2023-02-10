@@ -7,6 +7,8 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
+import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.SensorTimeBase;
@@ -132,8 +134,8 @@ public final class Constants {
             public static final double CLOSED_LOOP_RAMP = 0.0;
 
             /* Motor Inverts */
-            public static final boolean ANGLE_MOTOR_INVERT = true;
-            public static final boolean DRIVE_MOTOR_INVERT = true;
+            public static final TalonFXInvertType ANGLE_MOTOR_INVERT = TalonFXInvertType.Clockwise;
+            public static final TalonFXInvertType DRIVE_MOTOR_INVERT = TalonFXInvertType.Clockwise;
 
             /* Swerve Current Limiting */
             private static final int ANGLE_CONTINUOUS_CURRENT_LIMIT = 25;
@@ -228,8 +230,8 @@ public final class Constants {
     }
 
     public static final class ElevatorConstants {
-        public static final int ELEVATOR_FOLLOWER_MOTOR_ID = -1;// TODO
-        public static final int ELEVATOR_LEADER_MOTOR_ID = -1;// TODO
+        public static final int ELEVATOR_FOLLOWER_MOTOR_ID = 20;// TODO right motor
+        public static final int ELEVATOR_LEADER_MOTOR_ID = 10;// TODO
 
         public static double ELEVATOR_SPOOL_DIAMETER = Units.inchesToMeters(1.7); // Meters
 
@@ -241,7 +243,7 @@ public final class Constants {
         public static final SupplyCurrentLimitConfiguration ELEVATOR_CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
                 true, 35, 60, 0.1);
 
-        public static final boolean LEADER_MOTOR_INVERTED = false;
+        public static final TalonFXInvertType LEADER_MOTOR_INVERTED = TalonFXInvertType.CounterClockwise;
 
         public static final int ELEVATOR_SENSOR_VELOCITY_MEAS_WINDOW = 8;
 
@@ -250,7 +252,6 @@ public final class Constants {
 
 
         public static final double ELEVATOR_KP = 0;
-        public static final double ELEVATOR_KI = 0;
         public static final double ELEVATOR_KD = 0;
         public static final double ELEVATOR_KF = 0;
 
@@ -296,7 +297,7 @@ public final class Constants {
 
 
 
-    //TODO move to drive
+    //FIXME move to drive
     public final static class PIDToPoseConstants {
 
         public static final double PID_TO_POSE_X_P = 0.5;

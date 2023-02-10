@@ -4,12 +4,21 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
+import com.ctre.phoenix.motorcontrol.TalonFXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.math.Conversions;
 import frc.lib.team254.util.TalonFXFactory;
@@ -25,21 +34,57 @@ public class Elevator extends SubsystemBase{
   TalonFX elevatorLeaderMotor;
   TalonFX elevatorFollowerMotor;
 
+  TalonFXSimCollection elevatorLeaderMotorSim;
+  TalonFXSimCollection elevatorFollowerMotorSim;
+  
+  private Mechanism2d mech = new Mechanism2d(4, 4);
+
+  private MechanismLigament2d elevator;
+
+
+ 
+
+
+
+
   LoggedSubsystem logger;
 
   /** Creates a new Elevator. */
   public Elevator() {
-    elevatorLeaderMotor = TalonFXFactory.createDefaultTalon(ELEVATOR_LEADER_MOTOR_ID, Constants.CANIVORE);
-    elevatorFollowerMotor = TalonFXFactory.createPermanentFollowerTalon(ELEVATOR_FOLLOWER_MOTOR_ID,
-        ELEVATOR_LEADER_MOTOR_ID, Constants.CANIVORE);
+    //elevatorLeaderMotor = TalonFXFactory.createDefaultTalon(ELEVATOR_LEADER_MOTOR_ID, Constants.CANIVORE);
+    elevatorLeaderMotor = new WPI_TalonFX(ELEVATOR_LEADER_MOTOR_ID, Constants.CANIVORE);
+    elevatorLeaderMotorSim = elevatorLeaderMotor.getSimCollection();
+
+    // elevatorFollowerMotor = TalonFXFactory.createPermanentFollowerTalon(ELEVATOR_FOLLOWER_MOTOR_ID,
+    //     ELEVATOR_LEADER_MOTOR_ID, Constants.CANIVORE);
+
+    elevatorFollowerMotor = new WPI_TalonFX(ELEVATOR_FOLLOWER_MOTOR_ID, Constants.CANIVORE);
+    elevatorFollowerMotor.set(ControlMode.Follower, ELEVATOR_LEADER_MOTOR_ID);
+    elevatorFollowerMotorSim = elevatorFollowerMotor.getSimCollection();
+  
     configElevatorMotor();
 
+
     logger = new LoggedSubsystem("Elevator", LoggingConstants.ELEVATOR);
+
+
+    MechanismRoot2d root = mech.getRoot("climber", 2, 0);
+
+    elevator = root.append(new MechanismLigament2d("elevator", 2, 90));
+
+
+    
+
   }
+
+    
 
   @Override
   public void simulationPeriodic() {
     super.simulationPeriodic();
+
+    elevator.setLength(convertTicksToMeters(elevatorLeaderMotor.getSelectedSensorPosition()));
+
 
   }
 
@@ -49,6 +94,12 @@ public class Elevator extends SubsystemBase{
     // This method will be called once per scheduler run
   }
 
+  public void setPercent(double percent){
+    elevatorLeaderMotor.set(ControlMode.PercentOutput, percent);
+
+    SmartDashboard.putNumber("jpu ", percent);
+
+  }
 
   /**
    * Converts the extension of the elevator relative to the home position in meters
@@ -108,8 +159,6 @@ public class Elevator extends SubsystemBase{
         "Failed to enable reverse soft limit elevator motor");
     TalonUtil.checkError(elevatorLeaderMotor.config_kP(0, ELEVATOR_KP, Constants.CAN_TIMEOUT),
         "Failed to set elevator motor kP");
-    TalonUtil.checkError(elevatorLeaderMotor.config_kI(0, ELEVATOR_KI, Constants.CAN_TIMEOUT),
-        "Failed to set elevator motor kI");
     TalonUtil.checkError(elevatorLeaderMotor.config_kD(0, ELEVATOR_KD, Constants.CAN_TIMEOUT),
         "Failed to set elevator motor kD");
     TalonUtil.checkError(elevatorLeaderMotor.config_kF(0, ELEVATOR_KF, Constants.CAN_TIMEOUT),
@@ -140,7 +189,7 @@ public class Elevator extends SubsystemBase{
     elevatorLeaderMotor.selectProfileSlot(0, 0);
 
     elevatorLeaderMotor.setInverted(LEADER_MOTOR_INVERTED);
-    elevatorLeaderMotor.setInverted(!LEADER_MOTOR_INVERTED);
+    elevatorLeaderMotor.setInverted(TalonFXInvertType.OpposeMaster);
 
   }
 
