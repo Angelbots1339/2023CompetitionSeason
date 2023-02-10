@@ -230,7 +230,7 @@ public class SwerveModule {
         }
 
         public double getRotations() {
-                return Conversions.falconToRotaiton(driveMotor.getSelectedSensorPosition(),
+                return Conversions.falconToRotations(driveMotor.getSelectedSensorPosition(),
                                 Constants.SwerveConstants.DRIVE_GEAR_RATIO);
         }
 }

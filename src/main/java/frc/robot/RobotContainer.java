@@ -42,8 +42,6 @@ public class RobotContainer {
         /* States */
         private boolean isAngularDrive = false;
 
-        
-
         /*----Controls----*/
         /* Drive Controls */
         // Up is positive right is positive
@@ -90,7 +88,6 @@ public class RobotContainer {
                 log.addDouble("Angle", () -> angle.get().getDegrees(), "Drive values");
                 // Configure the button bindings
                 configureButtonBindings();
-                
         }
 
         /**
@@ -105,7 +102,7 @@ public class RobotContainer {
                 /* Driver Buttons */
                 zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
                 zeroEncoders.onTrue(new InstantCommand(swerve::alignPoseNonVisionEstimator));
-         switchDriveMode.whileTrue(new AlignToConeNode(swerve));
+                switchDriveMode.whileTrue(new AlignToConeNode(swerve));
                 testAlign.onTrue(new InstantCommand(
                                 () -> swerve.TestTrajectoryGeneration(new PathPoint(new Translation2d(2, 2),
                                                 Rotation2d.fromDegrees(180), Rotation2d.fromDegrees(180), 0))));
@@ -125,4 +122,9 @@ public class RobotContainer {
         public void resetToAbsloute() {
                 swerve.resetToAbsolute();
         }
+
+        public Runnable getSwerveBuffer() {
+                return swerve.bufferYaw();
+        }
+
 }

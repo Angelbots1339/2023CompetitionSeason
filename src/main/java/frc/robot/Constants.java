@@ -46,6 +46,8 @@ public final class Constants {
 
         public static final int PIGEON_ID = 21;
         public static final boolean INVERT_GYRO = false; // Always ensure Gyro is CCW+ CW-
+        public static final int YAW_BUFFER_PERIOD = 5; // 5ms
+        public static final int YAW_BUFFER_SIZE = 20; // amount of values to store in buffer
 
         /* Drivetrain Constants */
         public static final double TRACK_WIDTH = Units.inchesToMeters(19.75);
@@ -228,6 +230,41 @@ public final class Constants {
     public static final class ElevatorConstants {
         public static final int ELEVATOR_FOLLOWER_MOTOR_ID = -1;// TODO
         public static final int ELEVATOR_LEADER_MOTOR_ID = -1;// TODO
+
+        public static double ELEVATOR_SPOOL_DIAMETER = Units.inchesToMeters(1.7); // Meters
+
+        public static final double ELEVATOR_GEAR_RATIO = (5 / 1.0);
+        
+        public static final double ELEVATOR_ANGLE = 4096;
+        
+
+        public static final SupplyCurrentLimitConfiguration ELEVATOR_CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
+                true, 35, 60, 0.1);
+
+        public static final boolean LEADER_MOTOR_INVERTED = false;
+
+        public static final int ELEVATOR_SENSOR_VELOCITY_MEAS_WINDOW = 8;
+
+        public static final int ELEVATOR_FORWARD_SOFT_LIMIT = 0; // TODO
+        public static final int ELEVATOR_REVERSE_SOFT_LIMIT = 0; // TODO
+
+
+        public static final double ELEVATOR_KP = 0;
+        public static final double ELEVATOR_KI = 0;
+        public static final double ELEVATOR_KD = 0;
+        public static final double ELEVATOR_KF = 0;
+
+        public static final double ELEVATOR_KS = 0.83/12; //test this is calculated from recalc
+
+        public static final double ELEVATOR_MAX_VELOCITY = 0; // TODO
+        public static final double ELEVATOR_MAX_ACCELERATION = 0; // TODO
+
+        public static final int ELEVATOR_S_CURVE_STRENGTH = 0; // TODO
+
+        public static double ALLOWABLE_ERROR = 0; // TODO
+        
+        public static final NeutralMode ELEVATOR_NEUTRAL_MODE = NeutralMode.Brake;
+
     }
 
     public static final class VisionConstants {
@@ -252,7 +289,14 @@ public final class Constants {
         public static final byte DEFAULT_ADDRESS = 0x70;
         public static final Port DEFAULT_PORT = Port.kOnboard;
     }
+    public final static class FieldConstants {
+        public static final Translation2d RED_ORIGIN = new Translation2d(16.540988, 1.071626);
+    }
 
+
+
+
+    //TODO move to drive
     public final static class PIDToPoseConstants {
 
         public static final double PID_TO_POSE_X_P = 0.5;
@@ -262,6 +306,7 @@ public final class Constants {
         public static final double PID_TO_POSE_Y_P = 0.5;
         public static final double PID_TO_POSE_Y_I = 0;
         public static final double PID_TO_POSE_Y_D = 0;
+
 
         public static final double PID_TO_POSE_TOLERANCE = 0.5;
 

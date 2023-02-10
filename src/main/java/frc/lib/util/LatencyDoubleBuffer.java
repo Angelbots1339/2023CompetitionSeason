@@ -4,12 +4,14 @@
 
 package frc.lib.util;
 
+import edu.wpi.first.wpilibj.Timer;
+
 /** Add your docs here. */
 public class LatencyDoubleBuffer {
     // Declaring the class variables.
-    private int count, front, rear;
-    private double period;
-    private double[] queue;
+    public volatile int count, front, rear;
+    private final double period;
+    public volatile double[] queue;
 
     public LatencyDoubleBuffer(int capacity, double period) {
         queue = new double[capacity];
@@ -18,29 +20,23 @@ public class LatencyDoubleBuffer {
         count = 0;
         this.period = period;
     }
-
     public void addMeasurement(Double item) {
-        if (count == queue.length) {
-            Double i = queue[front];
-            front = (front + 1) % queue.length;
-            count--;
-            queue[rear] = item;
-            rear = (rear + 1) % queue.length;
-
-        } else {
-            queue[rear] = item;
-            rear = (rear + 1) % queue.length;
+        queue[rear] = item;
+        rear = (rear + 1) % queue.length;
+        if (count < queue.length) {
+            count++;
+            return;
         }
-        count++;
+        front = rear;
+    }
+    public double getMeasurement(double latency){
+        if(latency < 0) latency = 0;
+        if(latency > (queue.length - 1) * period) latency = (queue.length - 1) * period;
+        int i  = (front + (int)Math.round(latency / period)) % queue.length;
+        return queue[i];
     }
 
-    public boolean isEmpty() {
-        return count == 0;
+    public double getMeasurementAtSeconds(Double timeInSec){
+        return getMeasurement((Timer.getFPGATimestamp() - timeInSec) * 1000);
     }
-
-    public double getMeasurement(double Latency){
-       int i  = (rear + (int)Math.round(Latency / period)) % queue.length;
-       return queue[i];
-    }
-
 }

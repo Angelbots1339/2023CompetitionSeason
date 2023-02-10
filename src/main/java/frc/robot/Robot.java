@@ -28,6 +28,12 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
 
+
+  
+
+  public Robot() {
+  }
+
   /**
    * This function is run when the robot is first started up and should be used
    * for any
@@ -42,8 +48,10 @@ public class Robot extends TimedRobot {
     // and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    addPeriodic(m_robotContainer.getSwerveBuffer(), 0.005);
     PathPlannerServer.startServer(5811);
     m_robotContainer.resetToAbsloute();
+
   }
 
   /**
@@ -71,6 +79,8 @@ public class Robot extends TimedRobot {
       Logger.getInstance().log((long)Timer.getFPGATimestamp());
     });
     thread.start();
+
+   
   
   }
 
