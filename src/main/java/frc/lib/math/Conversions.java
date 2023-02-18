@@ -72,10 +72,10 @@ public class Conversions {
    *                       Falcon RPM)
    * @return Total Clciks of Mechanism
    */
-  public static double RotationsToFalcons(double rotations, double gearRatio) {
+  public static int RotationsToFalcons(double rotations, double gearRatio) {
     double motorR = rotations * gearRatio;
     double mechR = motorR * 2048;
-    return mechR;
+    return (int)mechR;
   }
 
 

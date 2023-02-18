@@ -6,6 +6,21 @@
           "open": true
         }
       },
+      "Talon FX[10]/Fwd Limit": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX[10]/Integrated Sensor": {
+        "header": {
+          "open": true
+        }
+      },
+      "Talon FX[10]/Rev Limit": {
+        "header": {
+          "open": true
+        }
+      },
       "Talon FX[1]": {
         "header": {
           "open": true
@@ -21,18 +36,136 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
+      "/LiveWindow/Elevator": "Subsystem",
+      "/LiveWindow/Swerve": "Subsystem",
+      "/LiveWindow/Ungrouped/PIDController[1]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[2]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[3]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[4]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[5]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[6]": "PIDController",
+      "/LiveWindow/Ungrouped/Scheduler": "Scheduler",
+      "/LiveWindow/Ungrouped/Talon FX [10]": "Motor Controller",
+      "/LiveWindow/Ungrouped/Talon FX [20]": "Motor Controller",
       "/Shuffleboard/Swerve:PoseEstimator/Field": "Field2d",
+      "/SmartDashboard/Elevator": "Mechanism2d",
       "/SmartDashboard/PPSwerveControllerCommand_field": "Field2d",
+      "/SmartDashboard/To 0": "Command",
+      "/SmartDashboard/elevator": "Mechanism2d",
       "/SmartDashboard/est feild": "Field2d"
+    },
+    "windows": {
+      "/LiveWindow/Ungrouped/Scheduler": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/To 0": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/elevator": {
+        "window": {
+          "visible": true
+        }
+      }
     }
   },
   "NetworkTables": {
     "transitory": {
-      "photonvision": {
-        "Cam1": {
+      "LiveWindow": {
+        ".status": {
+          "open": true
+        }
+      },
+      "Shuffleboard": {
+        "open": true
+      },
+      "SmartDashboard": {
+        "MotionMagic": {
+          "open": true
+        },
+        "elevator": {
+          "climber": {
+            "elevator": {
+              "open": true
+            },
+            "open": true
+          },
           "open": true
         },
         "open": true
+      },
+      "datatable": {
+        "open": true
+      },
+      "photonvision": {
+        "Cam1": {
+          "open": true
+        }
+      }
+    }
+  },
+  "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "Server": {
+      "Publishers": {
+        "open": true
+      },
+      "open": true
+    }
+  },
+  "Plot": {
+    "Plot <0>": {
+      "plots": [
+        {
+          "height": 379,
+          "name": "MotionMagic",
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/MotionMagic/error"
+            }
+          ]
+        },
+        {
+          "height": 379,
+          "name": "Pos",
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "CANMotor:Talon FX[10]-motorOutputLeadVoltage"
+            }
+          ]
+        }
+      ],
+      "window": {
+        "name": "Elevator"
+      }
+    },
+    "Plot <1>": {
+      "plots": [
+        {
+          "height": 329,
+          "name": "Motion Magic"
+        }
+      ],
+      "window": {
+        "name": "Wrist",
+        "visible": false
       }
     }
   }

@@ -3,6 +3,7 @@ package frc.lib.team254.util;
 import com.ctre.phoenix.ParamEnum;
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.SensorVelocityMeasPeriod;
 
@@ -105,8 +106,17 @@ public class TalonFXFactory {
         return createTalon(id, canBus, kDefaultConfiguration);
     }
 
+    public static WPI_TalonFX createDefaultSimulationTalon(int id, String canBus) {
+        return createSimulationTalon(id, canBus, kDefaultConfiguration);
+    }
+
     public static TalonFX createPermanentFollowerTalon(int follower_id, int leader_id, String canBus) {
         final TalonFX talon = createTalon(follower_id, canBus, kFollowerConfiguration);
+        talon.set(ControlMode.Follower, leader_id);
+        return talon;
+    }
+    public static WPI_TalonFX createPermanentSimulationFollowerTalon(int follower_id, int leader_id, String canBus) {
+        final WPI_TalonFX talon = createSimulationTalon(follower_id, canBus, kFollowerConfiguration);
         talon.set(ControlMode.Follower, leader_id);
         return talon;
     }
@@ -189,6 +199,18 @@ public class TalonFXFactory {
                 config.PULSE_WIDTH_STATUS_FRAME_RATE_MS, kTimeoutMs);
 
         talon.setControlFramePeriod(ControlFrame.Control_3_General, config.CONTROL_FRAME_PERIOD_MS);
+
+        return talon;
+    }
+    public static WPI_TalonFX createSimulationTalon(int id, String canBus, Configuration config) {
+        WPI_TalonFX talon = new WPI_TalonFX(id, canBus);
+        talon.set(ControlMode.PercentOutput, 0.0);
+
+        talon.changeMotionControlFramePeriod(config.MOTION_CONTROL_FRAME_PERIOD_MS);
+        talon.clearMotionProfileHasUnderrun(kTimeoutMs);
+        talon.clearMotionProfileTrajectories();
+
+        talon.clearStickyFaults(kTimeoutMs);
 
         return talon;
     }

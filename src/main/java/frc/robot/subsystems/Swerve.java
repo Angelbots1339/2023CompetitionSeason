@@ -4,7 +4,7 @@ import com.ctre.phoenix.sensors.Pigeon2;
 import com.pathplanner.lib.PathPoint;
 
 import frc.robot.SwerveModule;
-import frc.robot.commands.Auto.SwerveFollowTrajectory;
+import frc.robot.commands.auto.SwerveFollowTrajectory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.LatencyDoubleBuffer;
 import frc.lib.util.logging.LoggedSubsystem;
@@ -31,7 +31,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.SwerveConstants.*;
 
-import static frc.robot.Constants.PIDToPoseConstants.*;
+import static frc.robot.Constants.SwerveConstants.PIDToPoseConstants.*;
 
 public class Swerve extends SubsystemBase {
     public SwerveModule[] swerveMods;

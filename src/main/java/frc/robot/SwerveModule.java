@@ -183,8 +183,6 @@ public class SwerveModule {
                                 "failed to config current limit drive motor mod: " + moduleNumber);
                 TalonUtil.checkError(driveMotor.config_kP(0, DRIVE_KP, Constants.CAN_TIMEOUT),
                                 "failed to config kP drive motor mod: " + moduleNumber);
-                TalonUtil.checkError(driveMotor.config_kI(0, DRIVE_KI, Constants.CAN_TIMEOUT),
-                                "failed to config kI drive motor mod: " + moduleNumber);
                 TalonUtil.checkError(driveMotor.config_kD(0, DRIVE_KD, Constants.CAN_TIMEOUT),
                                 "failed to config kD drive motor mod: " + moduleNumber);
                 TalonUtil.checkError(driveMotor.config_kF(0, DRIVE_KF, Constants.CAN_TIMEOUT),
