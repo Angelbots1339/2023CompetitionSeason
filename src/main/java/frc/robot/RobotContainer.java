@@ -3,7 +3,7 @@ package frc.robot;
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.PathPoint;
-
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,9 +16,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.lib.math.Conversions;
+import frc.lib.util.NetworkTablesHelper;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.commands.*;
 import frc.robot.commands.Auto.examplePathPlannerAuto;
@@ -45,6 +45,9 @@ public class RobotContainer {
         /* Subsystems */
         private final Swerve swerve = new Swerve();
         private final Elevator elevator = new Elevator();
+
+        private static boolean isTeamRed = false;
+        private static boolean teamColorSet = false;
 
         /* States */
         private boolean isAngularDrive = false;
@@ -134,6 +137,21 @@ public class RobotContainer {
 
         public Runnable getSwerveBuffer() {
                 return swerve.bufferYaw();
+        }
+
+        public static void setTeamColor() {
+                if (!teamColorSet && NetworkTableInstance.getDefault().isConnected()) {
+                        teamColorSet = true;
+                        isTeamRed = NetworkTablesHelper.getBoolean("FMSInfo", "IsRedAlliance", false);
+                }
+        }
+
+        /**
+         * 
+         * @return True if red, false if blue
+         */
+        public static boolean getTeamColor() {
+                return isTeamRed;
         }
 
 }

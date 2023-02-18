@@ -313,4 +313,14 @@ public final class Constants {
 
     }
 
+    public final static class CandleConstants {
+
+
+        public static final int CANDLE_ID = -1;
+        public static final int TOTAL_STRIP_LENGTH = 300; // TODO Actually count this later. Should be somewhere around 240
+        public static final int OFFSET_LENGTH = 8; // LEDs to skip at the front of the strip, 8 means no lights on the CANDLE are on.
+
+        public static final double HUMAN_PLAYER_COM_BLINK_RATE = 10;
+    }
+
 }
