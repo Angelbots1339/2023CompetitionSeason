@@ -37,7 +37,8 @@ public class DistanceSensorMUXed {
 
     }
 
-    public double getRange() {
+    
+    public double getRangeMillimeter() {
         double range = -1;
         if (Multiplexer.getInstance().setDevice(port) && enabled) {
             if (VL53L0XJNI.GetMeasurementDataReady(i2cPort, addr))
@@ -48,6 +49,15 @@ public class DistanceSensorMUXed {
         else
             return -1;
     }
+
+    /**
+     * @return meters
+     */
+    public double getRange() {
+        return getRangeMillimeter() / 1000.0;
+    }
+
+
 
     public boolean getEnabled() {
         return enabled;

@@ -16,7 +16,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import frc.lib.math.FeedforwardUtil;
 import frc.robot.Constants.FieldConstants;
-import frc.robot.Constants.PIDToPoseConstants;
+import static frc.robot.Constants.SwerveConstants.PIDToPoseConstants.*;
+
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.Swerve;
 
@@ -31,7 +32,7 @@ public class AlignOnChargingStation extends PIDCommand {
   public AlignOnChargingStation(Swerve swerve) {
     super(
         // The controller that the command will use
-        new PIDController(PIDToPoseConstants.PID_TO_POSE_X_P, 0, 0),
+        new PIDController(PID_TO_POSE_X_P, 0, 0),
         // This should return the measurement
         () -> swerve.getEstimatedPose().getX(),
         // This should return the setpoint (can also be a constant)
@@ -48,7 +49,7 @@ public class AlignOnChargingStation extends PIDCommand {
 
     addRequirements(swerve);
     this.swerve = swerve;
-    getController().setTolerance(PIDToPoseConstants.PID_TO_POSE_TOLERANCE);
+    getController().setTolerance(PID_TO_POSE_TOLERANCE);
     // Use addRequirements() here to declare subsystem dependencies.
     // Configure additional PID options by calling `getController` here.
   }

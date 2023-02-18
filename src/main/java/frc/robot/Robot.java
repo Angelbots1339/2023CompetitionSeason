@@ -10,6 +10,7 @@ import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.util.logging.Logger;
@@ -32,6 +33,9 @@ public class Robot extends TimedRobot {
   
 
   public Robot() {
+    //TODO sim only
+    LiveWindow.setEnabled(true);
+    LiveWindow.enableAllTelemetry();
   }
 
   /**
@@ -48,7 +52,7 @@ public class Robot extends TimedRobot {
     // and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    addPeriodic(m_robotContainer.getSwerveBuffer(), 0.005);
+    //addPeriodic(m_robotContainer.getSwerveBuffer(), 0.005);
     PathPlannerServer.startServer(5811);
     m_robotContainer.resetToAbsloute();
 
