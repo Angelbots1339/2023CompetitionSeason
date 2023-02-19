@@ -165,46 +165,46 @@ public final class Constants {
         }
 
         /* Module Specific Constants */
-        /** Front Left Module - Module 0 */
+        /** Back Left Module - Module 0 */
         public static final class Mod0 {
-            public static final int ANGLE_MOTOR_ID = 1;
-            public static final int CANCODER_ID = 2;
-            public static final int DRIVE_MOTOR_ID = 3;
+            public static final int DRIVE_MOTOR_ID = 4;
+            public static final int CANCODER_ID = 5;
+            public static final int ANGLE_MOTOR_ID = 6;
             public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(280.37109375);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
 
-        /** Front Right Module - Module 1 */
+        /** Front Left Module - Module 1 */
         public static final class Mod1 {
-            public static final int ANGLE_MOTOR_ID = 4;
-            public static final int CANCODER_ID = 5;
-            public static final int DRIVE_MOTOR_ID = 6;
+            public static final int DRIVE_MOTOR_ID = 1;
+            public static final int CANCODER_ID = 2;
+            public static final int ANGLE_MOTOR_ID = 3;
             public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(223.330078125);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
 
-        /** Back Right Module - Module 3 */
-        public static final class Mod3 {
-            public static final int ANGLE_MOTOR_ID = 7;
-            public static final int CANCODER_ID = 8;
+        
+        /** Back Right Module - Module 2 */
+        public static final class Mod2 {
             public static final int DRIVE_MOTOR_ID = 9;
+            public static final int CANCODER_ID = 10;
+            public static final int ANGLE_MOTOR_ID = 11;
+            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(227.900390625);
+            public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
+            ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
+        }
+        
+        /** front Right Module - Module 3 */
+        public static final class Mod3 {
+            public static final int DRIVE_MOTOR_ID = 12;
+            public static final int CANCODER_ID = 13;
+            public static final int ANGLE_MOTOR_ID = 14;
             public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(197.138671875);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
-
-        /** Back Left Module - Module 2 */
-        public static final class Mod2 {
-            public static final int ANGLE_MOTOR_ID = 10;
-            public static final int CANCODER_ID = 11;
-            public static final int DRIVE_MOTOR_ID = 12;
-            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(227.900390625);
-            public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
-                    ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
-        }
-
         public static final class AngularDriveConstants {
 
             public static final double ANGLE_KP = 0.05; // radians per sec per degrees
@@ -246,10 +246,10 @@ public final class Constants {
 
     public static final class ElevatorConstants {
         // Calculated maxs
-        private static final double MAX_ELEVATOR_VELOCITY = 2.57; // Meters per second
+        private static final double MAX_ELEVATOR_VELOCITY = 14.905; //Clicks per sec 
 
-        public static final int FOLLOWER_MOTOR_ID = 20;// TODO right motor
-        public static final int LEADER_MOTOR_ID = 10;// TODO
+        public static final int FOLLOWER_MOTOR_ID = 7;// TODO right motor
+        public static final int LEADER_MOTOR_ID = 8;// TODO
 
         public static double SPOOL_DIAMETER = Units.inchesToMeters(1.7); // Meters
 
@@ -264,7 +264,7 @@ public final class Constants {
 
         public static final int SENSOR_VELOCITY_MEAS_WINDOW = 8;
 
-        public static final int FORWARD_SOFT_LIMIT = 55603; // TODO
+        public static final int FORWARD_SOFT_LIMIT = 49220; // TODO
         public static final int REVERSE_SOFT_LIMIT = 0; // TODO
 
         public static final double KP = 0.2; // 0.0731;
@@ -275,18 +275,18 @@ public final class Constants {
 
 
         // Resonable value 0.1079
-        //  Feed-forward gain so that 75% motor output is calculated when the requested speed is 7112 native units per 100ms.
-        // F-gain = (0.75 X 1023) / 7112 F-gain = 0.1079
-        public static final double KF = cP100msToMPS(4.16 * 1023 / 12);
+        //  Feed-forward gain so that 20% motor output is calculated when the requested speed is 2981 native units per 100ms.
+        // F-gain = (0.2 X 1023) / 2981 F-gain = 0.06863
+        public static final double KF =0.06863; //cP100msToMPS(4.16 * 1023 / 12);
 
-        public static final double KS = 0.83 / 12; // test this is calculated from recalc
+        public static final double KS = 0.08; // test this is calculated from recalc
 
-        public static final double MAX_VELOCITY = mPSToCP100ms(MAX_ELEVATOR_VELOCITY); // TODO
-        public static final double MAX_ACCELERATION = mPSToCP100ms(MAX_ELEVATOR_VELOCITY); // TODO
+        public static final double MAX_VELOCITY = 2981 * 3; // TODO
+        public static final double MAX_ACCELERATION = 2981 *2; // TODO
 
-        public static final int S_CURVE_STRENGTH = 8; // TODO
+        public static final int S_CURVE_STRENGTH = 4; // TODO
 
-        public static final double MOTION_MAGIC_ERROR_THRESHOLD = 0.005; // Meters
+        public static final double MOTION_MAGIC_ERROR_THRESHOLD = 0.05; // Meters
         public static final double TIME_TO_SETTLE = 0.5;//seconds 
 
 
@@ -336,7 +336,7 @@ public final class Constants {
 
 
     public static final class WristConstants{
-        public static final int MOTOR_ID = 30;// TODO
+        public static final int MOTOR_ID = 16;// TODO
 
         public static final SupplyCurrentLimitConfiguration CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
                 true, 35, 60, 0.1);
@@ -345,22 +345,23 @@ public final class Constants {
     
         public static final int SENSOR_VELOCITY_MEAS_WINDOW = 8;
 
-        public static final int CLICKS_AT_HORIZONTAL = 0; // TODO
+        public static final int CLICKS_AT_HORIZONTAL = 18159; 
 
-        public static final int FORWARD_SOFT_LIMIT = 0; // TODO
+        public static final int FORWARD_SOFT_LIMIT = 35128; // TODO
         public static final int REVERSE_SOFT_LIMIT = 0; // TODO
 
         public static final double MAX_PLANETARY = (5 / 1.0);//TODO
-        public static final double CHAIN_SPROCKET = (5 / 1.0);//TODO
+        public static final double CHAIN_SPROCKET = (3 / 1.0);//TODO
 
-        public static final double KP = 0; // 0.0731;
+       // public static final double KP = 0.01; // 0.0731;
+        public static final double KP = 0.07; // 0.0731;
         public static final double KD = 0;
         // Resonable value 0.1079
         //  Feed-forward gain so that 75% motor output is calculated when the requested speed is 7112 native units per 100ms.
-        // F-gain = (0.75 X 1023) / 7112 F-gain = 0.1079
-        public static final double KF = 0;//TODO
+        // F-gain = (0.1 X 1023) / 1718 F-gain = 0.1079
+        public static final double KF = 0.1131;
         //at horizontal
-        public static final double KS = 0; //TODO
+        public static final double KS =  -0.1; //TODO
         
         public static final double MAX_VELOCITY = 0; // TODO
         public static final double MAX_ACCELERATION = 0; // TODO
@@ -393,8 +394,8 @@ public final class Constants {
 
     public static final class IntakeConstants {
 
-        public static final int INTAKE_MOTOR_ID = 40;// TODO
-        public static final int SHOOT_MOTOR_ID = 40;// TODO
+        public static final int INTAKE_MOTOR_ID = 15;// TODO
+        public static final int SHOOT_MOTOR_ID = 17;// TODO
 
         public static final SupplyCurrentLimitConfiguration CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
                 true, 35, 60, 0.1);
@@ -441,7 +442,7 @@ public final class Constants {
 
     public final static class MultiplexerConstants {
         public static final byte DEFAULT_ADDRESS = 0x70;
-        public static final Port DEFAULT_PORT = Port.kOnboard;
+        public static final Port DEFAULT_PORT = Port.kMXP;
     }
 
     public final static class FieldConstants {

@@ -24,17 +24,17 @@ public class IntakeAndShooter extends SubsystemBase {
   TalonFX intakeMotor = TalonFXFactory.createDefaultTalon(INTAKE_MOTOR_ID, Constants.CANIVORE);;
   TalonFX shootMotor = TalonFXFactory.createDefaultTalon(SHOOT_MOTOR_ID, Constants.CANIVORE);;
 
-  DistanceSensorMUXed uprightConeSensor;
-  DistanceSensorMUXed fallenConeSensor;
-  DistanceSensorMUXed cubeSensor;
+  //DistanceSensorMUXed uprightConeSensor;
+  //DistanceSensorMUXed fallenConeSensor;
+  //DistanceSensorMUXed cubeSensor;
 
   /** Creates a new IntakeAndShooter. */
   public IntakeAndShooter() {
     configFalcons();
     if (Robot.isReal()) {
-      cubeSensor = new DistanceSensorMUXed(CUBE, DISTANCE_SENSOR_PROFILE);
-      uprightConeSensor = new DistanceSensorMUXed(UPRIGHT_CONE, DISTANCE_SENSOR_PROFILE);
-      fallenConeSensor = new DistanceSensorMUXed(FALLEN_CONE, DISTANCE_SENSOR_PROFILE);
+      //cubeSensor = new DistanceSensorMUXed(CUBE, DISTANCE_SENSOR_PROFILE);
+      //uprightConeSensor = new DistanceSensorMUXed(UPRIGHT_CONE, DISTANCE_SENSOR_PROFILE);
+      //fallenConeSensor = new DistanceSensorMUXed(FALLEN_CONE, DISTANCE_SENSOR_PROFILE);
 
     }
   }
@@ -43,24 +43,27 @@ public class IntakeAndShooter extends SubsystemBase {
   public void periodic() {
 
     if (Robot.isReal()) {
-      SmartDashboard.putNumber("cube", cubeSensor.getRange());
-      SmartDashboard.putNumber("upright cone", uprightConeSensor.getRange());
-      SmartDashboard.putNumber("fallen cone", fallenConeSensor.getRange());
+      //SmartDashboard.putNumber("cube", cubeSensor.getRange());
+      //SmartDashboard.putNumber("upright cone", uprightConeSensor.getRange());
+      //SmartDashboard.putNumber("fallen cone", fallenConeSensor.getRange());
     }
 
     // This method will be called once per scheduler run
   }
 
   public boolean UprightConeInRange() {
-    return uprightConeSensor.getRange() >= CONE_SENSOR_THRESHOLD;
+    //return uprightConeSensor.getRange() >= CONE_SENSOR_THRESHOLD;
+    return false;
   }
 
   public boolean FallenConeInRange() {
-    return fallenConeSensor.getRange() >= CONE_SENSOR_THRESHOLD;
+    // return fallenConeSensor.getRange() >= CONE_SENSOR_THRESHOLD;
+    return false;
   }
 
   public boolean CubeInRange() {
-    return cubeSensor.getRange() >= CUBE_SENSOR_THRESHOLD;
+    // return cubeSensor.getRange() >= CUBE_SENSOR_THRESHOLD;
+    return false;
   }
 
   public void runConeIntakeAtCurrent(double amps) {
@@ -73,11 +76,12 @@ public class IntakeAndShooter extends SubsystemBase {
   }
 
   public void runConeIntakeAtPercent(double percent) {
+    shootMotor.set(ControlMode.PercentOutput, -percent);
     intakeMotor.set(ControlMode.PercentOutput, percent);
   }
-
   public void runCubeIntakeAtPercent(double percent) {
-    intakeMotor.set(ControlMode.PercentOutput, percent);
+    shootMotor.set(ControlMode.PercentOutput, percent);
+    intakeMotor.set(ControlMode.PercentOutput, -percent);
   }
 
   public void runShootAtPercent(double percent) {

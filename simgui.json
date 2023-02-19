@@ -25,11 +25,6 @@
         "header": {
           "open": true
         }
-      },
-      "Talon FX[20]": {
-        "header": {
-          "open": true
-        }
       }
     }
   },
@@ -47,10 +42,12 @@
       "/LiveWindow/Ungrouped/Scheduler": "Scheduler",
       "/LiveWindow/Ungrouped/Talon FX [10]": "Motor Controller",
       "/LiveWindow/Ungrouped/Talon FX [20]": "Motor Controller",
+      "/LiveWindow/Ungrouped/Talon FX [30]": "Motor Controller",
       "/Shuffleboard/Swerve:PoseEstimator/Field": "Field2d",
       "/SmartDashboard/Elevator": "Mechanism2d",
       "/SmartDashboard/PPSwerveControllerCommand_field": "Field2d",
       "/SmartDashboard/To 0": "Command",
+      "/SmartDashboard/To set angle": "Command",
       "/SmartDashboard/elevator": "Mechanism2d",
       "/SmartDashboard/est feild": "Field2d"
     },

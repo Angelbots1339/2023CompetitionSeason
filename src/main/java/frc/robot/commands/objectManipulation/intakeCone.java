@@ -23,12 +23,14 @@ public class intakeCone extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    intakeAndShooter.runConeIntakeAtCurrent(0);
+    intakeAndShooter.runConeIntakeAtPercent(0.3);
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    intakeAndShooter.runConeIntakeAtPercent(0);
+  }
 
   // Returns true when the command should end.
   @Override

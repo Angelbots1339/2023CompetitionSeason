@@ -29,11 +29,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.lib.math.Conversions;
 import frc.lib.util.logging.LoggedSubsystem;
+import frc.robot.Constants.WristConstants;
 import frc.robot.commands.*;
 import frc.robot.commands.align.AlignOnChargingStation;
 import frc.robot.commands.align.AlignToConeNode;
 import frc.robot.commands.align.AlignToPos;
 import frc.robot.commands.auto.examplePathPlannerAuto;
+import frc.robot.commands.objectManipulation.intakeCone;
+import frc.robot.commands.objectManipulation.intakeCube;
 import frc.robot.commands.superStructre.elevatorToHeight;
 import frc.robot.commands.superStructre.wristToRotation;
 import frc.robot.subsystems.*;
@@ -98,6 +101,10 @@ public class RobotContainer {
                         XboxController.Button.kX.value);
         private final JoystickButton elevatorTest = new JoystickButton(driver,
                         XboxController.Button.kB.value);
+        private final JoystickButton intakeConeToggle = new JoystickButton(driver,
+                        XboxController.Button.kRightBumper.value);
+        private final JoystickButton intakeCubeToggle = new JoystickButton(driver,
+                        XboxController.Button.kLeftBumper.value);
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -118,16 +125,18 @@ public class RobotContainer {
                 configureButtonBindings();
 
                 if(Robot.isSimulation()){
-                        SmartDashboard.putData("To 0", new elevatorToHeight(elevator, () -> 0));
+                       // SmartDashboard.putData("To 0", new elevatorToHeight(elevator, () -> 0));
 
-                        elevator.setDefaultCommand(new RunCommand(() -> {
-                                elevator.setPercent(test.getRawAxis(0));
-                        }, elevator));
+                        // elevator.setDefaultCommand(new RunCommand(() -> {
+                        //         elevator.setPercent(test.getRawAxis(0));
+                        // }, elevator));
                 }
 
 
+
+                //wrist.setDefaultCommand(new RunCommand(() -> wrist.setPid(3555), wrist));
                 // SmartDashboard.putData("To set distance", new elevatorToHeight(elevator, () -> elevatorDistance.get()));
-                SmartDashboard.putData("To set angle", new wristToRotation(wrist, () -> Rotation2d.fromDegrees(wristAngle.get())));
+              //  SmartDashboard.putData("To set angle", new wristToRotation(wrist, () -> Rotation2d.fromDegrees(wristAngle.get())));
 
                 NetworkTable testing =  NetworkTableInstance.getDefault().getTable("Testing");
 
@@ -138,6 +147,8 @@ public class RobotContainer {
                 elevatorPercent = testing.getDoubleTopic("elevator Percent").getEntry(0);
 
                 wristPercent = testing.getDoubleTopic("wrist percent").getEntry(0);
+                SmartDashboard.putNumber("goal", WristConstants.radiansToClicks(Math.toRadians(elevatorDistance.get())));
+                
 
                 elevatorDistance.set(0);
                 wristAngle.set(0);
@@ -160,9 +171,14 @@ public class RobotContainer {
                 zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
                 zeroEncoders.onTrue(new InstantCommand(swerve::alignPoseNonVisionEstimator));
 
+                intakeConeToggle.whileTrue(new intakeCone(intakeAndShooter));
 
-                wristTest.whileTrue(new StartEndCommand(() -> wrist.setPercent(elevatorPercent.get()), () -> wrist.disable(), wrist));
-                elevatorTest.whileTrue(new StartEndCommand(() -> elevator.setPercent(elevatorPercent.get()), () -> elevator.disable(), elevator));
+                intakeCubeToggle.whileTrue(new intakeCube(intakeAndShooter));
+
+               //wristTest.whileTrue(new StartEndCommand(() -> wrist.setPercent(elevatorPercent.get()), () -> wrist.disable(), wrist));
+               wristTest.whileTrue(new wristToRotation(wrist, () -> Rotation2d.fromDegrees(elevatorDistance.get())));
+              //  elevatorTest.whileTrue(new StartEndCommand(() -> elevator.setPercent(elevatorPercent.get()), () -> elevator.disable(), elevator));
+               // elevatorTest.onTrue(new elevatorToHeight(elevator, () -> elevatorDistance.get()));
                 // switchDriveMode.whileTrue(new AlignToConeNode(swerve));
                 // testAlignChargingStation.onTrue(new SequentialCommandGroup(new AlignOnChargingStation(swerve),
                 //                 new RunCommand(swerve::xPosion, swerve)));

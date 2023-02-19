@@ -55,7 +55,11 @@ public class elevatorToHeight extends CommandBase {
     else if(inThreshold){
       timeInTolerance.stop();
       timeInTolerance.reset();
+      inThreshold = false;
     }
+
+    SmartDashboard.putNumber("true Error", elevator.getPositionMeters() - getClampedHeight());
+    SmartDashboard.putBoolean("in threshold", inThreshold);
     
   }
 

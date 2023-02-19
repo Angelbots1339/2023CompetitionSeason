@@ -39,12 +39,22 @@ public class Wrist extends SubsystemBase {
   }
 
   public void setPercent(double percent){
-    wristMotor.set(ControlMode.PercentOutput, percent);
+    double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
+    wristMotor.set(ControlMode.PercentOutput, percent, DemandType.ArbitraryFeedForward, cosineScaler * KS);
   }
   public void setMotionMagic(double clicks){
     double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
     wristMotor.set(ControlMode.MotionMagic, clicks, DemandType.ArbitraryFeedForward, cosineScaler * KS);
   }
+  public void setPid(double clicks){
+    double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
+
+ 
+    wristMotor.set(ControlMode.Position, clicks, DemandType.ArbitraryFeedForward, cosineScaler * KS);
+  }
+
+
+
   /**
    * @param position in falcon clicks
    */
@@ -74,6 +84,7 @@ public class Wrist extends SubsystemBase {
 
   public void disable(){
     wristMotor.set(ControlMode.PercentOutput, 0);
+
   }
 
 
@@ -81,6 +92,12 @@ public class Wrist extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("Velocity", getVelocityClicks());
+    SmartDashboard.putNumber("Positon", getAngle().getDegrees());
+    
+    double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
+    SmartDashboard.putNumber("Angle", getAngleFromHorizontal().getDegrees());
+    SmartDashboard.putNumber("ks", cosineScaler * KS);
+    
     // This method will be called once per scheduler run
   }
 

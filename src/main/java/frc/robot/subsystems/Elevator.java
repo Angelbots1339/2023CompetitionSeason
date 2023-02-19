@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
@@ -55,8 +56,15 @@ public class Elevator extends SubsystemBase {
 
     if (Robot.isReal()) {
       elevatorLeaderMotor = TalonFXFactory.createDefaultTalon(LEADER_MOTOR_ID, Constants.CANIVORE);
-      TalonFXFactory.createPermanentFollowerTalon(FOLLOWER_MOTOR_ID,
+      TalonFX elevatorFollowerMotor= TalonFXFactory.createPermanentFollowerTalon(FOLLOWER_MOTOR_ID,
           LEADER_MOTOR_ID, Constants.CANIVORE);
+
+        elevatorFollowerMotor.setInverted(TalonFXInvertType.OpposeMaster);
+        elevatorFollowerMotor.setNeutralMode(NeutralMode.Brake);
+
+
+
+
 
     } else if (Robot.isSimulation()) {
       elevatorLeaderMotor = TalonFXFactory.createDefaultSimulationTalon(LEADER_MOTOR_ID, Constants.CANIVORE);
@@ -99,7 +107,11 @@ public class Elevator extends SubsystemBase {
   @Override
   public void periodic() {
 
-    SmartDashboard.putNumber("Velocity", getVelocityMetersPerSecond());
+    //SmartDashboard.putNumber("EVelocity", elevatorLeaderMotor.getSelectedSensorVelocity());
+    SmartDashboard.putNumber("EVelocity", getPositionMeters());
+
+    SmartDashboard.putNumber("forward", elevatorLeaderMotor.isFwdLimitSwitchClosed());
+    SmartDashboard.putNumber("reverse", elevatorLeaderMotor.isFwdLimitSwitchClosed());
 
     // This method will be called once per scheduler run
   }
@@ -185,6 +197,8 @@ public class Elevator extends SubsystemBase {
         elevatorLeaderMotor.configVelocityMeasurementWindow(SENSOR_VELOCITY_MEAS_WINDOW,
             Constants.CAN_TIMEOUT),
         "Failed to set elevator leader motor velocity measurement window");
+
+
     elevatorLeaderMotor.enableVoltageCompensation(true);
     elevatorLeaderMotor.overrideLimitSwitchesEnable(true);
     elevatorLeaderMotor.overrideSoftLimitsEnable(true);

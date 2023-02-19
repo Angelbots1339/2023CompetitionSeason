@@ -5,10 +5,14 @@
 package frc.robot.commands.objectManipulation;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.subsystems.IntakeAndShooter;
 
 public class intakeCube extends CommandBase {
   /** Creates a new intakeCube. */
-  public intakeCube() {
+  private IntakeAndShooter intakeAndShooter;
+  public intakeCube(IntakeAndShooter  intakeAndShooter) {
+     this.intakeAndShooter = intakeAndShooter;
+    addRequirements(intakeAndShooter);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -18,11 +22,15 @@ public class intakeCube extends CommandBase {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    intakeAndShooter.runCubeIntakeAtPercent(0.3);
+  }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    intakeAndShooter.runCubeIntakeAtPercent(0);
+  }
 
   // Returns true when the command should end.
   @Override
