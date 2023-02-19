@@ -4,7 +4,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.PathPoint;
-
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,7 +13,6 @@ import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.DoubleTopic;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
@@ -28,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.lib.math.Conversions;
+import frc.lib.util.NetworkTablesHelper;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.Constants.WristConstants;
 import frc.robot.commands.*;
@@ -61,6 +61,9 @@ public class RobotContainer {
         private final Elevator elevator = new Elevator();
         private final Wrist wrist = new Wrist();
         private final IntakeAndShooter intakeAndShooter = new IntakeAndShooter();
+
+        private static boolean isTeamRed = false;
+        private static boolean teamColorSet = false;
 
         /* States */
         private boolean isAngularDrive = false;
@@ -201,6 +204,21 @@ public class RobotContainer {
 
         public Runnable getSwerveBuffer() {
                 return swerve.bufferYaw();
+        }
+
+        public static void setTeamColor() {
+                if (!teamColorSet && NetworkTableInstance.getDefault().isConnected()) {
+                        teamColorSet = true;
+                        isTeamRed = NetworkTablesHelper.getBoolean("FMSInfo", "IsRedAlliance", false);
+                }
+        }
+
+        /**
+         * 
+         * @return True if red, false if blue
+         */
+        public static boolean getTeamColor() {
+                return isTeamRed;
         }
 
 }
