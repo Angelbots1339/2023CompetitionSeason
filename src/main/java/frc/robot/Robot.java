@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.lib.util.Candle;
+import frc.lib.util.Candle.LEDState;
 import frc.lib.util.logging.Logger;
 
 /**
@@ -56,6 +58,7 @@ public class Robot extends TimedRobot {
     PathPlannerServer.startServer(5811);
     m_robotContainer.resetToAbsloute();
 
+    Candle.getInstance().changeLedState(LEDState.PreMatch);
   }
 
   /**
@@ -91,6 +94,7 @@ public class Robot extends TimedRobot {
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
+    Candle.getInstance().changeLedState(LEDState.Disabled);
   }
 
   @Override
@@ -126,6 +130,8 @@ public class Robot extends TimedRobot {
       m_autonomousCommand.cancel();
     }
 
+    Candle.getInstance().changeLedState(LEDState.Idle);
+
   }
 
   /** This function is called periodically during operator control. */
@@ -138,6 +144,8 @@ public class Robot extends TimedRobot {
   public void testInit() {
     // Cancels all running commands at the start of test mode.
     CommandScheduler.getInstance().cancelAll();
+    Candle.getInstance().changeLedState(LEDState.TestMode);
+
   }
 
   /** This function is called periodically during test mode. */

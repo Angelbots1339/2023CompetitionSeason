@@ -8,11 +8,13 @@ import com.ctre.phoenix.led.CANdle;
 import com.ctre.phoenix.led.CANdleConfiguration;
 import com.ctre.phoenix.led.ColorFlowAnimation;
 import com.ctre.phoenix.led.FireAnimation;
+import com.ctre.phoenix.led.LarsonAnimation;
 import com.ctre.phoenix.led.SingleFadeAnimation;
 import com.ctre.phoenix.led.TwinkleAnimation;
 import com.ctre.phoenix.led.CANdle.LEDStripType;
 import com.ctre.phoenix.led.CANdle.VBatOutputMode;
 import com.ctre.phoenix.led.ColorFlowAnimation.Direction;
+import com.ctre.phoenix.led.LarsonAnimation.BounceMode;
 import com.ctre.phoenix.led.TwinkleAnimation.TwinklePercent;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -24,7 +26,7 @@ import static frc.robot.Constants.CandleConstants.*;
 public class Candle {
     private static Candle CANDLE = null;
 
-    private CANdle candle = new CANdle(CANDLE_ID);
+    private CANdle candle = new CANdle(CANDLE_ID, "rio");
 
     // The first dimension is for individual zones.
     // Within the second dimension, the first number is the start idx for the zone,
@@ -34,12 +36,15 @@ public class Candle {
     public enum HumanPlayerCommStates {
         LeftCube,
         RightCube,
+        SingleCube,
 
         LeftCone,
         RightCone,
+        SingleCone,
+
     }
 
-    private HumanPlayerCommStates comState = HumanPlayerCommStates.LeftCone;
+    private HumanPlayerCommStates currentComState = HumanPlayerCommStates.LeftCone;
     private double humanPlayerBlinkLastTime;
 
     public enum LEDState {
@@ -80,13 +85,13 @@ public class Candle {
         ledZones[2][1] = 180;
 
         ledZones[3][0] = 180;
-        ledZones[3][1] = 240;
+        ledZones[3][1] = 247;
 
         humanPlayerBlinkLastTime = Timer.getFPGATimestamp();
     }
 
     public void changeHumanPlayerComState(HumanPlayerCommStates state) {
-        comState = state;
+        currentComState = state;
     }
 
     public void changeLedState(LEDState state) {
@@ -97,14 +102,15 @@ public class Candle {
         candle.setLEDs(0, 0, 0, 0, OFFSET_LENGTH, 128);
         switch (state) {
             case Idle:
-                candle.animate(new TwinkleAnimation(255, 255, 255, 0, 0.4, TOTAL_STRIP_LENGTH, TwinklePercent.Percent30,
-                        OFFSET_LENGTH), 1);
+                candle.animate(new TwinkleAnimation(255, 255, 255, 0, 0.4, ledZones[2][1], TwinklePercent.Percent30,
+                        OFFSET_LENGTH + ledZones[1][0]), 1);
 
                 currentState = LEDState.Idle;
 
                 break;
             case Disabled:
-
+                candle.animate(new LarsonAnimation(255, 255, 255, 0, 0.5, TOTAL_STRIP_LENGTH, BounceMode.Front, 3,
+                        OFFSET_LENGTH));
                 currentState = LEDState.Disabled;
                 break;
 
@@ -162,39 +168,79 @@ public class Candle {
 
             case HumanPlayerCommunication:
 
+                candle.animate(new TwinkleAnimation(255, 255, 255, 0, 0.4, ledZones[2][1], TwinklePercent.Percent30,
+                OFFSET_LENGTH + ledZones[1][0]), 2);
+
                 currentState = LEDState.HumanPlayerCommunication;
                 break;
         }
     }
 
+    private void humanPlayerComPeriodic(boolean off) {
+
+        switch (currentComState) {
+
+            // Cubes
+            case LeftCube:
+                candle.setLEDs(off ? 0 : 162, 0, off ? 0 : 255, 0,
+                        OFFSET_LENGTH + ledZones[0][0],
+                        ledZones[0][1]);
+                break;
+
+            case RightCube:
+                candle.setLEDs(off ? 0 : 162, 0, off ? 0 : 255, 0,
+                        OFFSET_LENGTH + ledZones[3][0],
+                        ledZones[3][1]);
+                break;
+
+            case SingleCube:
+                candle.setLEDs(off ? 0 : 162, 0, off ? 0 : 255, 0,
+                        OFFSET_LENGTH + ledZones[0][0],
+                        ledZones[0][1]);
+
+                candle.setLEDs(off ? 0 : 162, 0, off ? 0 : 255, 0,
+                        OFFSET_LENGTH + ledZones[3][0],
+                        ledZones[3][1]);
+                break;
+
+            // Cones
+            case LeftCone:
+                candle.setLEDs(off ? 0 : 255, off ? 0 : 255, 0, 0,
+                        OFFSET_LENGTH + ledZones[0][0],
+                        ledZones[0][1]);
+                break;
+
+            case RightCone:
+                candle.setLEDs(off ? 0 : 255, off ? 0 : 255, 0, 0,
+                        OFFSET_LENGTH + ledZones[3][0],
+                        ledZones[3][1]);
+                break;
+
+            case SingleCone:
+                candle.setLEDs(off ? 0 : 255, off ? 0 : 255, 0, 0,
+                        OFFSET_LENGTH + ledZones[0][0],
+                        ledZones[0][1]);
+
+                candle.setLEDs(off ? 0 : 255, off ? 0 : 255, 0, 0,
+                        OFFSET_LENGTH + ledZones[3][0],
+                        ledZones[3][1]);
+                break;
+        }
+
+    }
+
     public void periodic() {
 
-        // Handle the blinking of human player lights
-        if (Timer.getFPGATimestamp() - humanPlayerBlinkLastTime > HUMAN_PLAYER_COM_BLINK_RATE * 2) {
-            humanPlayerBlinkLastTime = Timer.getFPGATimestamp();
-        } else if (Timer.getFPGATimestamp() - humanPlayerBlinkLastTime > HUMAN_PLAYER_COM_BLINK_RATE) {
-            if (currentState == LEDState.HumanPlayerCommunication) {
-                if (comState == HumanPlayerCommStates.LeftCone || comState == HumanPlayerCommStates.RightCone) {
-                    candle.setLEDs(0, 0, 0, 0,
-                            OFFSET_LENGTH + ledZones[comState == HumanPlayerCommStates.LeftCone ? 0 : 3][0],
-                            ledZones[comState == HumanPlayerCommStates.LeftCone ? 0 : 3][1]);
-                } else {
-                    candle.setLEDs(0, 0, 0, 0,
-                            OFFSET_LENGTH + ledZones[comState == HumanPlayerCommStates.LeftCone ? 0 : 3][0],
-                            ledZones[comState == HumanPlayerCommStates.LeftCone ? 0 : 3][1]);
-                }
+        if (currentState == LEDState.HumanPlayerCommunication) {
+
+            if (Timer.getFPGATimestamp() - humanPlayerBlinkLastTime > HUMAN_PLAYER_COM_BLINK_RATE) {
+                humanPlayerComPeriodic(true); // Turn lights off
+            } else {
+                humanPlayerComPeriodic(false); // Turn lights on
             }
-        } else {
-            if (currentState == LEDState.HumanPlayerCommunication) {
-                if (comState == HumanPlayerCommStates.LeftCone || comState == HumanPlayerCommStates.RightCone) {
-                    candle.setLEDs(255, 255, 0, 0,
-                            OFFSET_LENGTH + ledZones[comState == HumanPlayerCommStates.LeftCone ? 0 : 3][0],
-                            ledZones[comState == HumanPlayerCommStates.LeftCone ? 0 : 3][1]);
-                } else {
-                    candle.setLEDs(162, 0, 255, 0,
-                            OFFSET_LENGTH + ledZones[comState == HumanPlayerCommStates.LeftCone ? 0 : 3][0],
-                            ledZones[comState == HumanPlayerCommStates.LeftCone ? 0 : 3][1]);
-                }
+
+            if (Timer.getFPGATimestamp() - humanPlayerBlinkLastTime > HUMAN_PLAYER_COM_BLINK_RATE * 2) {
+                humanPlayerBlinkLastTime = Timer.getFPGATimestamp(); // Reset time
             }
         }
 
