@@ -57,8 +57,9 @@ public class Robot extends TimedRobot {
     //addPeriodic(m_robotContainer.getSwerveBuffer(), 0.005);
     PathPlannerServer.startServer(5811);
     m_robotContainer.resetToAbsloute();
+    Candle.getInstance().setAllToColor(255, 255, 255);
 
-    Candle.getInstance().changeLedState(LEDState.PreMatch);
+   //Candle.getInstance().changeLedState(LEDState.PreMatch);
   }
 
   /**
@@ -87,14 +88,14 @@ public class Robot extends TimedRobot {
     });
     thread.start();
 
-   
+   Candle.getInstance().periodic();
   
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
-    Candle.getInstance().changeLedState(LEDState.Disabled);
+   Candle.getInstance().changeLedState(LEDState.Disabled);
   }
 
   @Override

@@ -15,9 +15,9 @@ import frc.robot.subsystems.Swerve;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class examplePathPlannerAuto extends SequentialCommandGroup {
+public class ExamplePathPlannerAuto extends SequentialCommandGroup {
   /** Creates a new examplePathPlannerAuto. */
-  public examplePathPlannerAuto(Swerve swerve) {
+  public ExamplePathPlannerAuto(Swerve swerve) {
     List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("TestPath");
     //PathPlannerTrajectory trajectory = PathPlanner.loadPath("TestPath", PathPlanner.getConstraintsFromPath("TestPath"));
 

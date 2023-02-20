@@ -26,11 +26,11 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.Mech2dManger;
 import frc.lib.math.Conversions;
 import frc.lib.team254.util.SimulationUtils;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
+import frc.lib.util.Mech2dManger;
 import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.Constants;
 import frc.robot.LoggingConstants;
@@ -61,6 +61,7 @@ public class Elevator extends SubsystemBase {
 
         elevatorFollowerMotor.setInverted(TalonFXInvertType.OpposeMaster);
         elevatorFollowerMotor.setNeutralMode(NeutralMode.Brake);
+        elevatorFollowerMotor.configStatorCurrentLimit(STATOR_CURRENT_LIMIT, Constants.CAN_TIMEOUT);
 
 
 
@@ -76,6 +77,7 @@ public class Elevator extends SubsystemBase {
       elevatorFollowerMotor.setInverted(TalonFXInvertType.OpposeMaster);
       elevatorSim = new ElevatorSim(DCMotor.getFalcon500(2), GEAR_RATIO, 19.0509,
         SPOOL_DIAMETER, 0, 1.4732, false);
+        
     }
 
     configElevatorMotor();
@@ -108,7 +110,7 @@ public class Elevator extends SubsystemBase {
   public void periodic() {
 
     //SmartDashboard.putNumber("EVelocity", elevatorLeaderMotor.getSelectedSensorVelocity());
-    SmartDashboard.putNumber("EVelocity", getPositionMeters());
+    SmartDashboard.putNumber("Height", getHeight());
 
     SmartDashboard.putNumber("forward", elevatorLeaderMotor.isFwdLimitSwitchClosed());
     SmartDashboard.putNumber("reverse", elevatorLeaderMotor.isFwdLimitSwitchClosed());
@@ -128,17 +130,17 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setMotionMagicClicks(double position) {
-    if(Robot.isReal())
-      elevatorLeaderMotor.set(ControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, KS);
+    if(Robot.isSimulation() || position == 0)
+      elevatorLeaderMotor.set(ControlMode.MotionMagic, position); 
     else
-    elevatorLeaderMotor.set(ControlMode.MotionMagic, position);
+      elevatorLeaderMotor.set(ControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, KS);
   }
 
   public void disable(){
     elevatorLeaderMotor.set(ControlMode.PercentOutput, 0);
   }
 
-  public double getPositionMeters() {
+  public double getHeight() {
     return clicksToMeters(elevatorLeaderMotor.getSelectedSensorPosition());
   }
 
@@ -178,6 +180,10 @@ public class Elevator extends SubsystemBase {
         "Failed to set elevator motor kD");
     TalonUtil.checkError(elevatorLeaderMotor.config_kF(0, KF, Constants.CAN_TIMEOUT),
         "Failed to set elevator motor kF");
+    TalonUtil.checkError(elevatorLeaderMotor.configSupplyCurrentLimit(CURRENT_LIMIT, Constants.CAN_TIMEOUT),
+        "Failed to set elevator motor current limit");
+    TalonUtil.checkError(elevatorLeaderMotor.configStatorCurrentLimit(STATOR_CURRENT_LIMIT, Constants.CAN_TIMEOUT),
+        "Failed to set elevator motor stator current limit");
     TalonUtil.checkError(elevatorLeaderMotor.configSupplyCurrentLimit(CURRENT_LIMIT, Constants.CAN_TIMEOUT),
         "Failed to set elevator motor current limit");
     TalonUtil.checkError(elevatorLeaderMotor.configMotionAcceleration(MAX_ACCELERATION, Constants.CAN_TIMEOUT),

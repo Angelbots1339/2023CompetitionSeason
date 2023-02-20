@@ -14,9 +14,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
-import frc.lib.math.FeedforwardUtil;
+import frc.lib.math.ClosedLoopUtil;
 import frc.robot.Constants.FieldConstants;
-import static frc.robot.Constants.SwerveConstants.PIDToPoseConstants.*;
+import static frc.robot.Constants.SwerveConstants.DrivePidConstants.*;
 
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.Swerve;
@@ -32,9 +32,9 @@ public class AlignOnChargingStation extends PIDCommand {
   public AlignOnChargingStation(Swerve swerve) {
     super(
         // The controller that the command will use
-        new PIDController(PID_TO_POSE_X_P, 0, 0),
+        new PIDController(TRANSLATION_P, 0, 0),
         // This should return the measurement
-        () -> swerve.getEstimatedPose().getX(),
+        () -> swerve.getPose().getX(),
         // This should return the setpoint (can also be a constant)
         DriverStation.getAlliance() == Alliance.Red ? FieldConstants.RED_ORIGIN.getX() - 1.524508 : 1.524508, // Offset
                                                                                                               // from
@@ -42,14 +42,14 @@ public class AlignOnChargingStation extends PIDCommand {
         // This uses the output
         output -> {
           swerve.drive(new Translation2d(
-              MathUtil.clamp(output + FeedforwardUtil.positionFeedForward(output, SwerveConstants.DRIVE_KS), -1, 1), 0),
+              MathUtil.clamp(output + ClosedLoopUtil.positionFeedForward(output, SwerveConstants.DRIVE_KS), -1, 1), 0),
               0, true, false);
           // Use the output here
         });
 
     addRequirements(swerve);
     this.swerve = swerve;
-    getController().setTolerance(PID_TO_POSE_TOLERANCE);
+    getController().setTolerance(TRANSLATION_PID_TOLERANCE);
     // Use addRequirements() here to declare subsystem dependencies.
     // Configure additional PID options by calling `getController` here.
   }

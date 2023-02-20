@@ -6,6 +6,7 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
@@ -31,6 +32,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import frc.lib.math.Conversions;
+import frc.lib.util.ElevatorWristState;
 import frc.lib.util.SwerveModuleConstants;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Wrist;
@@ -59,6 +61,7 @@ public final class Constants {
         public static final double TRACK_WIDTH = Units.inchesToMeters(19.75);
         public static final double WHEEL_BASE = Units.inchesToMeters(19.75);
         public static final double WHEEL_CIRCUMFERENCE = 0.1 * Math.PI;
+        public static final double ALIGN_OFFSET = TRACK_WIDTH + 0.2; //distance from center of robot to edge of bumper track width + bumper width
 
         /* Module Gear Ratios */
         /** SDS MK4i l2 - 6.75 : 1 */
@@ -205,35 +208,29 @@ public final class Constants {
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
-        public static final class AngularDriveConstants {
+        public static final class DrivePidConstants {
 
             public static final double ANGLE_KP = 0.05; // radians per sec per degrees
-            public static final double ANGLE_KI = 0;
             public static final double ANGLE_KD = 0.0;
+            public static final double ANGLE_KV = 0.0;
+
+            public static final double TRANSLATION_P = 0.5; // meters per sec per meter
+            public static final double TRANSLATION_D = 0;
 
             // Feedfowards
-            public static final double ANGLE_KV = 0.0;
             public static final double ANGLE_KS = 0.7; // radians per sec
+            public static final double ANGLE_TOLERANCE = 10; // Degrees
+        
+            public static final double TRANSLATION_PID_TOLERANCE = 0.5;
 
-            public static final double TURN_TO_ANGLE_TOLERANCE = 10; // Degrees
         }
 
         public static final class yawBufferConstants {
             public static final int sampleCount = 10;
             public static final double samplePeriod = 2;// MS
         }
-        public final static class PIDToPoseConstants {
-
-            public static final double PID_TO_POSE_X_P = 0.5;
-            public static final double PID_TO_POSE_X_I = 0;
-            public static final double PID_TO_POSE_X_D = 0;
-    
-            public static final double PID_TO_POSE_Y_P = 0.5;
-            public static final double PID_TO_POSE_Y_I = 0;
-            public static final double PID_TO_POSE_Y_D = 0;
-    
-            public static final double PID_TO_POSE_TOLERANCE = 0.5;
-    
+        public final static class AlignConstants {
+            public static final double CONE_NODE_X_OFFSET = 0.5; //meters from target to to algin before rasing elevator    
         }
 
     }
@@ -260,6 +257,9 @@ public final class Constants {
         public static final SupplyCurrentLimitConfiguration CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
                 true, 35, 60, 0.1);
 
+         public static final StatorCurrentLimitConfiguration STATOR_CURRENT_LIMIT = new StatorCurrentLimitConfiguration(
+                    false, 1000, 1000, 1);
+
         public static final TalonFXInvertType MOTOR_INVERTED = TalonFXInvertType.CounterClockwise;
 
         public static final int SENSOR_VELOCITY_MEAS_WINDOW = 8;
@@ -281,8 +281,8 @@ public final class Constants {
 
         public static final double KS = 0.08; // test this is calculated from recalc
 
-        public static final double MAX_VELOCITY = 2981 * 3; // TODO
-        public static final double MAX_ACCELERATION = 2981 *2; // TODO
+        public static final double MAX_VELOCITY = 2981 * 4; // TODO
+        public static final double MAX_ACCELERATION = 2981 *3; // TODO
 
         public static final int S_CURVE_STRENGTH = 4; // TODO
 
@@ -336,25 +336,34 @@ public final class Constants {
 
 
     public static final class WristConstants{
-        public static final int MOTOR_ID = 16;// TODO
+        public static final int MOTOR_ID = 16;
+
+        public static final double WRIST_HOME_ANGLE = 10;//TODO
 
         public static final SupplyCurrentLimitConfiguration CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
                 true, 35, 60, 0.1);
+        public static final StatorCurrentLimitConfiguration STATOR_CURRENT_LIMIT = new StatorCurrentLimitConfiguration(
+                true, 70, 90, 0.1);
 
         public static final TalonFXInvertType MOTOR_INVERTED = TalonFXInvertType.CounterClockwise;
     
         public static final int SENSOR_VELOCITY_MEAS_WINDOW = 8;
 
         public static final int CLICKS_AT_HORIZONTAL = 18159; 
+    
+        public static final int FORWARD_SOFT_LIMIT = radiansToClicks(Math.toRadians(204.462891)); 
+        public static final int REVERSE_SOFT_LIMIT = radiansToClicks(Math.toRadians(13));
 
-        public static final int FORWARD_SOFT_LIMIT = 35128; // TODO
-        public static final int REVERSE_SOFT_LIMIT = 0; // TODO
+        public static final double MAX_PLANETARY = (5 / 1.0);
+        public static final double GEARS = (60 / 30);//TODO
+        public static final double CHAIN_SPROCKET = (48 / 16);
 
-        public static final double MAX_PLANETARY = (5 / 1.0);//TODO
-        public static final double CHAIN_SPROCKET = (3 / 1.0);//TODO
+        //angle when intake is against wrist 
+        public static final double angleOffset = 109.242639;
+        public static final double TimeBeforeReset = 0.2;//sec b/c through bore initializes with 0;
 
        // public static final double KP = 0.01; // 0.0731;
-        public static final double KP = 0.07; // 0.0731;
+        public static final double KP = 0.2; // 0.0731;
         public static final double KD = 0;
         // Resonable value 0.1079
         //  Feed-forward gain so that 75% motor output is calculated when the requested speed is 7112 native units per 100ms.
@@ -363,45 +372,63 @@ public final class Constants {
         //at horizontal
         public static final double KS =  -0.1; //TODO
         
-        public static final double MAX_VELOCITY = 0; // TODO
-        public static final double MAX_ACCELERATION = 0; // TODO
+        public static final double MAX_VELOCITY = 1718 * 16; 
+        public static final double MAX_ACCELERATION = 1718 *8; 
 
-        public static final int S_CURVE_STRENGTH = 8; // TODO
-
-        public static final double MOTION_MAGIC_ERROR_THRESHOLD = 0.005; // Degrees
+        public static final int S_CURVE_STRENGTH = 4; // TODO
+        public static final double MOTION_MAGIC_ERROR_THRESHOLD = 3; // Degrees
         public static final double TIME_TO_SETTLE = 0.5;//seconds 
 
         public static double ALLOWABLE_Velocity_ERROR = 0;
 
         public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 
-        public static double radiansToClicks(double radians) {
+        public static int radiansToClicks(double radians) {
             double rotations = radians / (2 * Math.PI);
-            return Conversions.RotationsToFalcons(rotations, MAX_PLANETARY * CHAIN_SPROCKET);
+            return Conversions.RotationsToFalcons(rotations, MAX_PLANETARY * CHAIN_SPROCKET * GEARS);
         }
         public static double clicksToRadians(double clicks) {
-            double rotations = Conversions.falconToRotations(clicks, MAX_PLANETARY * CHAIN_SPROCKET);
+            double rotations = Conversions.falconToRotations(clicks, MAX_PLANETARY * CHAIN_SPROCKET * GEARS);
             return rotations * 2 * Math.PI;
         }
-        public static double radiansPerSecToClicksPer100ms(double radiansPerSec) {
+        public static int radiansPerSecToClicksPer100ms(double radiansPerSec) {
             return radiansToClicks(radiansPerSec) / 10;// to convert from 1s loops
         }
         public static double clicksPer100msToRadiansPerSec(double clicksPer100ms) {
             return clicksToRadians(clicksPer100ms * 10);// to convert from 100ms loops
         }
+        public static Rotation2d throughBoreToAngle(double rots) {
+            double endRots = rots / CHAIN_SPROCKET;
+            return Rotation2d.fromRotations(endRots);
+        }
+
+    }
+    
+    public static final class ElevatorWristStateConstants{
+        public static final double IGNORE_CRUSH_ANGLE_HEIGHT = 0.4; //Height at witch crush angle protection is ignored
+        public static final Rotation2d CRUSH_ANGLE = Rotation2d.fromDegrees(130); // angle at which the intake would be crushed if the elevator was lowered
+        public static final Rotation2d SAFE_LIMELIGHT_ANGLE = Rotation2d.fromDegrees(16);//angle at which the lime light can not be hit
+        public static final double LIMELIGHT_CRUSH_HEIGHT_LOW = 0.35;//height at witch the limelight could be hit that assure the intake is at safe angle before passing
+        public static final double LIMELIGHT_CRUSH_HEIGHT_HIGH = 0.5;//height at witch the limelight could be hit that assure the intake is at safe angle before passing
+
+        public static final ElevatorWristState HOME = new ElevatorWristState(13, 0);
+
+        public static final double ANGLE_TOLERANCE = 0.5;//degrees
+        public static final double HEIGHT_TOLERANCE = 0.05;//meters
+
+        public static final double TIME_TO_SETTLE = 0.5;//seconds
 
     }
 
     public static final class IntakeConstants {
-
-        public static final int INTAKE_MOTOR_ID = 15;// TODO
-        public static final int SHOOT_MOTOR_ID = 17;// TODO
+        public static final int INTAKE_MOTOR_ID = 17;// TODO
+        public static final int SHOOT_MOTOR_ID = 15;// TODO
 
         public static final SupplyCurrentLimitConfiguration CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
                 true, 35, 60, 0.1);
 
-        public static final TalonFXInvertType INTAKE_MOTOR_INVERTED = TalonFXInvertType.Clockwise;
-        public static final TalonFXInvertType SHOOT_MOTOR_INVERTED = TalonFXInvertType.Clockwise;
+        public static final TalonFXInvertType INTAKE_MOTOR_INVERTED = TalonFXInvertType.CounterClockwise;
+        public static final TalonFXInvertType SHOOT_MOTOR_INVERTED = TalonFXInvertType.CounterClockwise;
 
         //For Current Closed loop falcon units 1023 from miliampers
         public static final double KP = 0; 
@@ -410,15 +437,26 @@ public final class Constants {
 
         //Distance sensor ports
         public static final int FALLEN_CONE = 0;
-        public static final int UPRIGHT_CONE = 0;
-        public static final int CUBE = 0;
+        public static final int UPRIGHT_CONE = 2;
+        public static final int CUBE = 1;
+
+        public static final double INTAKE_CONE_PERCENT = 0.4;
+        public static final double INTAKE_CONE_SHOOT_PERCENT = 0.5;
+
+        public static final double INTAKE_CUBE_PERCENT = 0.4;
+        public static final double INTAKE_CUBE_SHOOT_PERCENT = 0.5;
+
+        public static final double CENTER_TIME = 0.5;
 
         public static final RangeProfile DISTANCE_SENSOR_PROFILE = RangeProfile.kHighAccuracy;
+
+        public static final int DISTANCE_SENSOR_EMPTY_THRESHOLD = 0; //TODO cm
 
         public static final int CONE_SENSOR_THRESHOLD = 0; //TODO cm
         public static final int CUBE_SENSOR_THRESHOLD = 0; //TODO cm
 
     }
+
 
 
 
@@ -438,6 +476,10 @@ public final class Constants {
                 0.10,
                 0.10);
 
+
+        public static final double LIMELIGHT_HIGH_CONE_NODE_HORIZONTAL_OFFSET = 0.0;//TODO
+        public static final double LIMELIGHT_MID_CONE_NODE_HORIZONTAL_OFFSET = 0.0;
+
     }
 
     public final static class MultiplexerConstants {
@@ -451,8 +493,6 @@ public final class Constants {
     
 
     public final static class CandleConstants {
-
-
         public static final int CANDLE_ID = 6;
         public static final int TOTAL_STRIP_LENGTH = 247; 
         public static final int OFFSET_LENGTH = 8; // LEDs to skip at the front of the strip, 8 means no lights on the CANDLE are on.

@@ -4,8 +4,10 @@
 
 package frc.lib.math;
 
+import edu.wpi.first.math.MathUtil;
+
 /** Add your docs here. */
-public class FeedforwardUtil {
+public class ClosedLoopUtil {
 
     /**
      * Simple only ks feed for position loops
@@ -15,6 +17,23 @@ public class FeedforwardUtil {
      */
     public static double positionFeedForward(double error, double Ks){
         return Math.signum(error) * Math.abs(Ks);
+    }
+
+    
+    public static double clampMaxEffort(double output, double max){
+        return MathUtil.clamp(output, -max, max);
+    }
+
+    public static double stopAtSetPoint(double output, double error, double tolerance){
+        if(Math.abs(error) < tolerance){
+            return 0;
+        }else{
+            return error;
+        }
+    }
+
+    public static boolean inSetPoint(double error, double tolerance){
+        return Math.abs(error) < tolerance;
     }
 
 }

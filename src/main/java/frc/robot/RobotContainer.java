@@ -1,10 +1,11 @@
 package frc.robot;
 
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.PathPoint;
-import edu.wpi.first.networktables.NetworkTableInstance;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,12 +13,17 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.DoubleTopic;
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.WidgetType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -26,19 +32,21 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.math.Conversions;
-import frc.lib.util.NetworkTablesHelper;
+import frc.lib.util.ElevatorWristState;
 import frc.lib.util.logging.LoggedSubsystem;
+import static frc.robot.Constants.ElevatorWristStateConstants.*;
+
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.WristConstants;
 import frc.robot.commands.*;
 import frc.robot.commands.align.AlignOnChargingStation;
-import frc.robot.commands.align.AlignToConeNode;
+import frc.robot.commands.align.AlignToConeNodeLimelightOnly;
 import frc.robot.commands.align.AlignToPos;
-import frc.robot.commands.auto.examplePathPlannerAuto;
-import frc.robot.commands.objectManipulation.intakeCone;
-import frc.robot.commands.objectManipulation.intakeCube;
-import frc.robot.commands.superStructre.elevatorToHeight;
-import frc.robot.commands.superStructre.wristToRotation;
+import frc.robot.commands.auto.ExamplePathPlannerAuto;
+import frc.robot.commands.objectManipulation.intake.IntakeCommandFactory;
+import frc.robot.commands.superStructre.IntakeToPosition;
 import frc.robot.subsystems.*;
 
 /**
@@ -62,17 +70,16 @@ public class RobotContainer {
         private final Wrist wrist = new Wrist();
         private final IntakeAndShooter intakeAndShooter = new IntakeAndShooter();
 
-        private static boolean isTeamRed = false;
-        private static boolean teamColorSet = false;
-
         /* States */
         private boolean isAngularDrive = false;
+        private boolean isFieldCentric = false;
 
         /* Subscribers */
-        private DoubleEntry elevatorDistance;
-        private DoubleEntry elevatorPercent;
-        private DoubleEntry wristAngle;
-        private DoubleEntry wristPercent;
+        private GenericEntry PoseFinderElevator;
+        private GenericEntry PoseFinderWrist;
+
+        private GenericEntry shootPercent;
+        private GenericEntry intakePercent;
 
         /*----Controls----*/
         /* Drive Controls */
@@ -104,60 +111,48 @@ public class RobotContainer {
                         XboxController.Button.kX.value);
         private final JoystickButton elevatorTest = new JoystickButton(driver,
                         XboxController.Button.kB.value);
-        private final JoystickButton intakeConeToggle = new JoystickButton(driver,
+
+
+        private final JoystickButton intakeUprightCone = new JoystickButton(driver,
                         XboxController.Button.kRightBumper.value);
-        private final JoystickButton intakeCubeToggle = new JoystickButton(driver,
+        private final JoystickButton intakeCube = new JoystickButton(driver,
                         XboxController.Button.kLeftBumper.value);
+        private final Trigger intakeFallenCone = intakeCube.and(intakeUprightCone);
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
          */
         public RobotContainer() {
-                swerve.setDefaultCommand(
-                                new TeleopSwerve(swerve, translation, strafe, rotation, angle, () -> false,
-                                                true // Is field relative
-                                ));
+                // swerve.setDefaultCommand(
+                //                 new TeleopSwerve(swerve, translation, strafe, rotation, angle, () -> false,
+                //                                 true // Is field relative
+                //                 ));
 
                 log.addDouble("Translation", (Supplier<Double>) translation, "Drive values");
                 log.addDouble("Strafe", (Supplier<Double>) strafe, "Drive values");
                 log.addDouble("Rotation", (Supplier<Double>) rotation, "Drive values");
                 log.addDouble("Angle", () -> angle.get().getDegrees(), "Drive values");
-
                 
                 // Configure the button bindings
-                configureButtonBindings();
-
-                if(Robot.isSimulation()){
-                       // SmartDashboard.putData("To 0", new elevatorToHeight(elevator, () -> 0));
-
-                        // elevator.setDefaultCommand(new RunCommand(() -> {
-                        //         elevator.setPercent(test.getRawAxis(0));
-                        // }, elevator));
-                }
-
-
-
-                //wrist.setDefaultCommand(new RunCommand(() -> wrist.setPid(3555), wrist));
-                // SmartDashboard.putData("To set distance", new elevatorToHeight(elevator, () -> elevatorDistance.get()));
-              //  SmartDashboard.putData("To set angle", new wristToRotation(wrist, () -> Rotation2d.fromDegrees(wristAngle.get())));
-
+                
+                
+                elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
+                
                 NetworkTable testing =  NetworkTableInstance.getDefault().getTable("Testing");
 
-                elevatorDistance = testing.getDoubleTopic("elevator To Dist").getEntry(0);
-
-                wristAngle = testing.getDoubleTopic("wrist to angle").getEntry(0);
-
-                elevatorPercent = testing.getDoubleTopic("elevator Percent").getEntry(0);
-
-                wristPercent = testing.getDoubleTopic("wrist percent").getEntry(0);
-                SmartDashboard.putNumber("goal", WristConstants.radiansToClicks(Math.toRadians(elevatorDistance.get())));
+                ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
                 
+                
+                PoseFinderElevator = poseFinder.add("height", 0).withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", 0, "max", 1.304079773806718)).getEntry();
+                PoseFinderWrist = poseFinder.add("angle", 13).withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", 13, "max", 204.462891)).getEntry();
 
-                elevatorDistance.set(0);
-                wristAngle.set(0);
-                elevatorPercent.set(0);
-                elevatorPercent.set(0);
-
+                shootPercent = poseFinder.add("shoot", 0).withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -1, "max", 1)).getEntry();
+               
+                intakePercent = poseFinder.add("intake", 0).withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -1, "max", 1)).getEntry();
+              
+                SmartDashboard.putNumber("testtt", ElevatorConstants.clicksToMeters(49220));
+                
+                configureButtonBindings();
         
         }
 
@@ -174,17 +169,12 @@ public class RobotContainer {
                 zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
                 zeroEncoders.onTrue(new InstantCommand(swerve::alignPoseNonVisionEstimator));
 
-                intakeConeToggle.whileTrue(new intakeCone(intakeAndShooter));
+                //intakeCube.whileTrue(IntakeCommandFactory.intakeCube(wrist, elevator, intakeAndShooter));
+                //intakeUprightCone.whileTrue(IntakeCommandFactory.intakeUprightCone(wrist, elevator, intakeAndShooter));
+                //intakeFallenCone.whileTrue(IntakeCommandFactory.intakeFallenCone(wrist, elevator, intakeAndShooter));
 
-                intakeCubeToggle.whileTrue(new intakeCube(intakeAndShooter));
-
-               //wristTest.whileTrue(new StartEndCommand(() -> wrist.setPercent(elevatorPercent.get()), () -> wrist.disable(), wrist));
-               wristTest.whileTrue(new wristToRotation(wrist, () -> Rotation2d.fromDegrees(elevatorDistance.get())));
-              //  elevatorTest.whileTrue(new StartEndCommand(() -> elevator.setPercent(elevatorPercent.get()), () -> elevator.disable(), elevator));
-               // elevatorTest.onTrue(new elevatorToHeight(elevator, () -> elevatorDistance.get()));
-                // switchDriveMode.whileTrue(new AlignToConeNode(swerve));
-                // testAlignChargingStation.onTrue(new SequentialCommandGroup(new AlignOnChargingStation(swerve),
-                //                 new RunCommand(swerve::xPosion, swerve)));
+                elevatorTest.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
+                wristTest.whileTrue(new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(shootPercent.getDouble(0), intakePercent.getDouble(0)), () -> intakeAndShooter.disable(), intakeAndShooter));
 
         }
 
@@ -195,7 +185,7 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
                 // An ExampleCommand will run in autonomous
-                return new examplePathPlannerAuto(swerve);
+                return new ExamplePathPlannerAuto(swerve);
         }
 
         public void resetToAbsloute() {
@@ -205,20 +195,6 @@ public class RobotContainer {
         public Runnable getSwerveBuffer() {
                 return swerve.bufferYaw();
         }
-
-        public static void setTeamColor() {
-                if (!teamColorSet && NetworkTableInstance.getDefault().isConnected()) {
-                        teamColorSet = true;
-                        isTeamRed = NetworkTablesHelper.getBoolean("FMSInfo", "IsRedAlliance", false);
-                }
-        }
-
-        /**
-         * 
-         * @return True if red, false if blue
-         */
-        public static boolean getTeamColor() {
-                return isTeamRed;
-        }
+ 
 
 }

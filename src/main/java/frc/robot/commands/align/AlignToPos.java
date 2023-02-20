@@ -29,7 +29,7 @@ public class AlignToPos extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    atSetpoints = swerve.PIDToPose(target);
+    atSetpoints = swerve.pidToPose(target);
   }
 
   // Called once the command ends or is interrupted.

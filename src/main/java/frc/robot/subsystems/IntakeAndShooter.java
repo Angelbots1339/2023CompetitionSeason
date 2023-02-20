@@ -7,12 +7,14 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.revrobotics.Rev2mDistanceSensor;
+import com.revrobotics.Rev2mDistanceSensor.Port;
 import com.revrobotics.Rev2mDistanceSensor.RangeProfile;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
+import frc.lib.util.multiplexer.ColorSensorMUXed;
 import frc.lib.util.multiplexer.DistanceSensorMUXed;
 import frc.robot.Constants;
 import frc.robot.Robot;
@@ -25,16 +27,20 @@ public class IntakeAndShooter extends SubsystemBase {
   TalonFX shootMotor = TalonFXFactory.createDefaultTalon(SHOOT_MOTOR_ID, Constants.CANIVORE);;
 
   //DistanceSensorMUXed uprightConeSensor;
-  //DistanceSensorMUXed fallenConeSensor;
-  //DistanceSensorMUXed cubeSensor;
+  //DistanceSensorMUXed fallenConeSensor;\
+  DistanceSensorMUXed cubeSensor = new DistanceSensorMUXed(1, RangeProfile.kHighAccuracy);
+  DistanceSensorMUXed uprightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
+  DistanceSensorMUXed fallenConeSensor = new DistanceSensorMUXed(0, RangeProfile.kHighAccuracy);
 
   /** Creates a new IntakeAndShooter. */
   public IntakeAndShooter() {
     configFalcons();
     if (Robot.isReal()) {
-      //cubeSensor = new DistanceSensorMUXed(CUBE, DISTANCE_SENSOR_PROFILE);
-      //uprightConeSensor = new DistanceSensorMUXed(UPRIGHT_CONE, DISTANCE_SENSOR_PROFILE);
-      //fallenConeSensor = new DistanceSensorMUXed(FALLEN_CONE, DISTANCE_SENSOR_PROFILE);
+
+
+     //cubeSensor = new DistanceSensorMUXed(CUBE, DISTANCE_SENSOR_PROFILE);
+    // uprightConeSensor = new DistanceSensorMUXed(UPRIGHT_CONE, DISTANCE_SENSOR_PROFILE);
+    //  fallenConeSensor = new DistanceSensorMUXed(FALLEN_CONE, DISTANCE_SENSOR_PROFILE);
 
     }
   }
@@ -43,27 +49,50 @@ public class IntakeAndShooter extends SubsystemBase {
   public void periodic() {
 
     if (Robot.isReal()) {
-      //SmartDashboard.putNumber("cube", cubeSensor.getRange());
-      //SmartDashboard.putNumber("upright cone", uprightConeSensor.getRange());
-      //SmartDashboard.putNumber("fallen cone", fallenConeSensor.getRange());
+
+    //    SmartDashboard.putNumber("upright cone", uprightConeSensor.getRange());
+    //    SmartDashboard.putNumber("cube", cubeSensor.getRange());
+    //  SmartDashboard.putNumber("fallen cone", fallenConeSensor.getRange());
     }
 
     // This method will be called once per scheduler run
   }
 
-  public boolean UprightConeInRange() {
-    //return uprightConeSensor.getRange() >= CONE_SENSOR_THRESHOLD;
-    return false;
+
+  public void disable(){
+    intakeMotor.set(ControlMode.PercentOutput, 0);
+    shootMotor.set(ControlMode.PercentOutput, 0);
   }
 
-  public boolean FallenConeInRange() {
-    // return fallenConeSensor.getRange() >= CONE_SENSOR_THRESHOLD;
-    return false;
+
+
+  public boolean uprightConeInRange() {
+    return uprightConeSensor.getRange() <= CONE_SENSOR_THRESHOLD;
+  }
+  public boolean isUprightConeInIntake() {
+    return uprightConeSensor.getRange() <= DISTANCE_SENSOR_EMPTY_THRESHOLD;
   }
 
-  public boolean CubeInRange() {
-    // return cubeSensor.getRange() >= CUBE_SENSOR_THRESHOLD;
-    return false;
+  public boolean fallenConeInRange() {
+     return fallenConeSensor.getRange() <= CONE_SENSOR_THRESHOLD;
+  }
+  public boolean isFallenConeInIntake() {
+    return fallenConeSensor.getRange() <= DISTANCE_SENSOR_EMPTY_THRESHOLD;
+  }
+
+  public boolean isConeInIntake(){
+    return isUprightConeInIntake() || isFallenConeInIntake();
+  }
+  
+
+  public boolean cubeInRange() {
+    return cubeSensor.getRange() <= CUBE_SENSOR_THRESHOLD;
+  }
+  public boolean cubeEmpty() {
+    return cubeSensor.getRange() <= DISTANCE_SENSOR_EMPTY_THRESHOLD;
+  }
+  public boolean isCubeInIntake() {
+    return cubeSensor.getRange() <= DISTANCE_SENSOR_EMPTY_THRESHOLD;
   }
 
   public void runConeIntakeAtCurrent(double amps) {
@@ -75,14 +104,11 @@ public class IntakeAndShooter extends SubsystemBase {
     shootMotor.set(ControlMode.Current, amps);
   }
 
-  public void runConeIntakeAtPercent(double percent) {
-    shootMotor.set(ControlMode.PercentOutput, -percent);
-    intakeMotor.set(ControlMode.PercentOutput, percent);
+  public void runIntakeAtPercent(double shootPercent, double conePercent) {
+    shootMotor.set(ControlMode.PercentOutput, shootPercent);
+    intakeMotor.set(ControlMode.PercentOutput, conePercent);
   }
-  public void runCubeIntakeAtPercent(double percent) {
-    shootMotor.set(ControlMode.PercentOutput, percent);
-    intakeMotor.set(ControlMode.PercentOutput, -percent);
-  }
+  
 
   public void runShootAtPercent(double percent) {
     shootMotor.set(ControlMode.PercentOutput, percent);

@@ -4,7 +4,9 @@ import com.ctre.phoenix.sensors.Pigeon2;
 import com.pathplanner.lib.PathPoint;
 
 import frc.robot.SwerveModule;
+import frc.robot.Constants.SwerveConstants;
 import frc.robot.commands.auto.SwerveFollowTrajectory;
+import frc.lib.math.ClosedLoopUtil;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.LatencyDoubleBuffer;
 import frc.lib.util.logging.LoggedSubsystem;
@@ -30,8 +32,9 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.SwerveConstants.*;
+import static frc.robot.Constants.SwerveConstants.DrivePidConstants.*;
 
-import static frc.robot.Constants.SwerveConstants.PIDToPoseConstants.*;
+import static frc.robot.Constants.SwerveConstants.AlignConstants.*;
 
 public class Swerve extends SubsystemBase {
     public SwerveModule[] swerveMods;
@@ -103,29 +106,29 @@ public class Swerve extends SubsystemBase {
         setModuleStates(swerveModuleStates, isOpenLoop);
     }
 
-    public void zeroModules() {
+    public void disable() {
         setModuleStates(KINEMATICS.toSwerveModuleStates(
                 new ChassisSpeeds(0, 0, 0)),
                 true);
 
     }
-    
+
     public void xPosion() {
-        setModuleStates(new SwerveModuleState[]{
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45))
+        setModuleStates(new SwerveModuleState[] {
+                new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(45))
         });
 
     }
 
-    private PIDController angularDrivePID = new PIDController(AngularDriveConstants.ANGLE_KP,
-            AngularDriveConstants.ANGLE_KI, AngularDriveConstants.ANGLE_KD);
+    private PIDController angularDrivePID = new PIDController(ANGLE_KP,
+            0, ANGLE_KD);
 
     private void configPidAngularDrive() {
         angularDrivePID.enableContinuousInput(0, 360);
-        angularDrivePID.setTolerance(AngularDriveConstants.TURN_TO_ANGLE_TOLERANCE);
+        angularDrivePID.setTolerance(ANGLE_TOLERANCE);
     }
 
     /**
@@ -153,13 +156,14 @@ public class Swerve extends SubsystemBase {
                 "AngularDrive");
         logger.updateDouble("currentHeading", yaw, "AngularDrive");
         double pid = angularDrivePID.calculate(yaw, desiredDegrees.getDegrees());
+
         if (Math.abs(angularDrivePID.getPositionError()) >= 2) {
-            rotation = MathUtil.clamp(pid + (-desiredAngularVelocity.getRadians() * AngularDriveConstants.ANGLE_KV) + // Kv
-                                                                                                                      // //
-                                                                                                                      // Velocity
+            rotation = MathUtil.clamp(pid + (-desiredAngularVelocity.getRadians() * ANGLE_KV) + // Kv
+                                                                                                // //
+                                                                                                // Velocity
             // Feedfoward
                     ((Math.signum(angularDrivePID.getPositionError())
-                            * AngularDriveConstants.ANGLE_KS)) // Ks Static Friction Feedforward
+                            * ANGLE_KS)) // Ks Static Friction Feedforward
                     , -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
 
         }
@@ -291,7 +295,7 @@ public class Swerve extends SubsystemBase {
         return poseEstimation.getPoseNonVision();
     }
 
-    public Pose2d getEstimatedPose() {
+    public Pose2d getPose() {
         return poseEstimation.getPose();
     }
 
@@ -322,8 +326,8 @@ public class Swerve extends SubsystemBase {
 
     public void calculateVelocity() {
         double deltaTime = Timer.getFPGATimestamp() - lastTimePeriodic;
-        currentVel = getEstimatedPose().minus(lastPose).getTranslation().div(deltaTime);
-        lastPose = getEstimatedPose();
+        currentVel = getPose().minus(lastPose).getTranslation().div(deltaTime);
+        lastPose = getPose();
         lastTimePeriodic = Timer.getFPGATimestamp();
     }
 
@@ -356,16 +360,24 @@ public class Swerve extends SubsystemBase {
     public Rotation2d getYaw() {
         return (INVERT_GYRO) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
-    public Rotation3d getGyro() {
-        return new Rotation3d(Math.toRadians(gyro.getRoll()), Math.toRadians(gyro.getPitch()), Math.toRadians(gyro.getYaw()));
+
+    public Rotation2d getAdjustedYaw() {
+        return DriverStation.getAlliance() == Alliance.Red ? getYaw()
+                : getYaw().plus(new Rotation2d(Math.PI));
     }
 
-    private PIDController pidToPoseXController = new PIDController(PID_TO_POSE_X_P, PID_TO_POSE_X_I, PID_TO_POSE_X_D);;
-    private PIDController pidToPoseYController = new PIDController(PID_TO_POSE_Y_P, PID_TO_POSE_Y_I, PID_TO_POSE_Y_D);;
+    public Rotation3d getGyro() {
+        return new Rotation3d(Math.toRadians(gyro.getRoll()), Math.toRadians(gyro.getPitch()),
+                Math.toRadians(gyro.getYaw()));
+    }
+
+    // DRIVE PID
+    private PIDController pidToPoseXController = new PIDController(TRANSLATION_P, 0, TRANSLATION_D);
+    private PIDController pidToPoseYController = new PIDController(TRANSLATION_P, 0, TRANSLATION_D);
 
     private void configPIDtoPoseControllers() {
-        pidToPoseXController.setTolerance(PID_TO_POSE_TOLERANCE);
-        pidToPoseYController.setTolerance(PID_TO_POSE_TOLERANCE);
+        pidToPoseXController.setTolerance(TRANSLATION_PID_TOLERANCE);
+        pidToPoseYController.setTolerance(TRANSLATION_PID_TOLERANCE);
     }
 
     /**
@@ -376,21 +388,39 @@ public class Swerve extends SubsystemBase {
      * @return Whether or not the robot has gotten to within tolerance on both
      *         translation and rotation
      */
-    public boolean PIDToPose(Pose2d target) {
-
-        logger.updateDouble("set x", target.getX(), "PidPose");
-        logger.updateDouble("set y", target.getY(), "PidPose");
+    public boolean pidToPose(Pose2d target) {
 
         Translation2d calculatedValues = new Translation2d(
-                pidToPoseXController.calculate(getEstimatedPose().getTranslation().getX(), target.getX()),
-                pidToPoseYController.calculate(getEstimatedPose().getTranslation().getY(), target.getY()));
+                pidToPoseXController.calculate(getPose().getTranslation().getX(), target.getX()),
+                pidToPoseYController.calculate(getPose().getTranslation().getY(), target.getY()));
 
         angularDrive(calculatedValues, target.getRotation(), true, false);
 
         logger.updateDouble("out x", calculatedValues.getX(), "PidPose");
-        logger.updateDouble("out y", calculatedValues.getY(), "PidPose");
 
         return pidToPoseXController.atSetpoint() && pidToPoseYController.atSetpoint() && angularDrivePID.atSetpoint();
+    }
+
+    public double pidToX(double target) {
+        double output =  pidToPoseXController.calculate(getPose().getTranslation().getX(), target)
+                + ClosedLoopUtil.positionFeedForward(pidToPoseXController.getPositionError(), SwerveConstants.DRIVE_KS);
+        output = ClosedLoopUtil.stopAtSetPoint(output, pidToPoseXController.getPositionError(), TRANSLATION_PID_TOLERANCE);
+        return ClosedLoopUtil.clampMaxEffort(output, MAX_SPEED);
+
+    }
+    public boolean pidToXAtSetPoint(double target) {
+        return Math.abs(pidToPoseXController.getPositionError()) <= TRANSLATION_PID_TOLERANCE;
+    }
+
+    public double pidToY(double target) {
+        double output = pidToPoseYController.calculate(getPose().getTranslation().getY(), target) + ClosedLoopUtil
+                .positionFeedForward(pidToPoseYController.getPositionError(), SwerveConstants.DRIVE_KS);
+        output = ClosedLoopUtil.stopAtSetPoint(output, pidToPoseYController.getPositionError(), TRANSLATION_PID_TOLERANCE);
+        return ClosedLoopUtil.clampMaxEffort(output, MAX_SPEED);
+    }
+
+    public boolean pidToYAtSetPoint(double target) {
+        return Math.abs(pidToPoseYController.getPositionError()) <= TRANSLATION_PID_TOLERANCE;
     }
 
     public void TestTrajectoryGeneration(PathPoint endpoint) {
@@ -415,7 +445,7 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
-        poseEstimation.updateOdometry(this, getPositions(), getEstimatedPose());
+        poseEstimation.updateOdometry(this, getPositions(), getPose());
 
         SmartDashboard.putNumber("yaw", getYaw().getDegrees());
         SmartDashboard.putNumber("bufferdYaw", Math.toDegrees(yawBuffer.getMeasurement(100)));

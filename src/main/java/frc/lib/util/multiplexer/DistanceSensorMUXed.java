@@ -5,6 +5,8 @@
 package frc.lib.util.multiplexer;
 
 import static frc.robot.Constants.MultiplexerConstants.*;
+
+import com.revrobotics.Rev2mDistanceSensor;
 import com.revrobotics.Rev2mDistanceSensor.RangeProfile;
 import com.revrobotics.jni.VL53L0XJNI;
 
@@ -18,6 +20,7 @@ public class DistanceSensorMUXed {
     private RangeProfile profile = RangeProfile.kDefault;
     private final int addr = 0x53;
     private boolean enabled;
+    private Rev2mDistanceSensor rev2mDistanceSensor;
 
     public DistanceSensorMUXed(int port, RangeProfile rangeProfile) {
         this.port = port;

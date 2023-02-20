@@ -31,7 +31,7 @@ public class Candle {
     // The first dimension is for individual zones.
     // Within the second dimension, the first number is the start idx for the zone,
     // and the second is the # of leds in that zone
-    private int[][] ledZones = new int[2][4];
+    private int[][] ledZones = new int[4][2];
 
     public enum HumanPlayerCommStates {
         LeftCube,
@@ -247,9 +247,9 @@ public class Candle {
         if (currentState == LEDState.PreMatch) {
 
             if (NetworkTableInstance.getDefault().isConnected()) {
-                RobotContainer.setTeamColor();
+              
 
-                if (RobotContainer.getTeamColor()) {
+                if (false) {
                     // Red team
 
                     candle.animate(new SingleFadeAnimation(255, 0, 0, 0, 0.1, TOTAL_STRIP_LENGTH, OFFSET_LENGTH), 1);
@@ -301,7 +301,7 @@ public class Candle {
 
     public void setAllToColor(int r, int g, int b) {
 
-        candle.setLEDs(r, g, b, 255, OFFSET_LENGTH, TOTAL_STRIP_LENGTH);
+        candle.setLEDs(r, g, b, 255, 0, TOTAL_STRIP_LENGTH);
 
     }
 

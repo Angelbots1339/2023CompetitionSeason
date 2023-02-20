@@ -28,7 +28,8 @@
       "photonvision": {
         "Cam1": {
           "open": true
-        }
+        },
+        "open": true
       }
     },
     "types": {
@@ -36,6 +37,7 @@
       "/LiveWindow/Elevator": "Subsystem",
       "/LiveWindow/IntakeAndShooter": "Subsystem",
       "/LiveWindow/Swerve": "Subsystem",
+      "/LiveWindow/Ungrouped/DigitalInput[23]": "Digital Input",
       "/LiveWindow/Ungrouped/PIDController[1]": "PIDController",
       "/LiveWindow/Ungrouped/PIDController[2]": "PIDController",
       "/LiveWindow/Ungrouped/PIDController[3]": "PIDController",
