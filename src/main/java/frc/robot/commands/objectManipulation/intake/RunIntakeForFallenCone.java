@@ -27,7 +27,7 @@ public class RunIntakeForFallenCone extends CommandBase {
   private Timer centerTimer = new Timer();
   @Override
   public void execute() {
-    intakeAndShooter.runIntakeAtPercent(0, IntakeConstants.INTAKE_CONE_PERCENT);
+    intakeAndShooter.runIntakeAtPercent(IntakeConstants.INTAKE_CONE_PERCENT);
     if(intakeAndShooter.fallenConeInRange())
       centerTimer.start();
       else{

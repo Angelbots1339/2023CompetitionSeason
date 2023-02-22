@@ -42,7 +42,7 @@ public class IntakeCommandFactory {
     }
 
     public static Command runIntakeForCube(IntakeAndShooter intakeAndShooter) {
-        return new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(IntakeConstants.INTAKE_CONE_SHOOT_PERCENT,
+        return new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(
                 IntakeConstants.INTAKE_CUBE_PERCENT), () -> intakeAndShooter.disable(), intakeAndShooter)
                 .until(intakeAndShooter::cubeInRange);
     }

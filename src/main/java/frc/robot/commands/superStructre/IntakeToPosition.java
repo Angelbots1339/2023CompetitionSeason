@@ -9,7 +9,10 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.lib.util.Candle;
 import frc.lib.util.ElevatorWristState;
+import frc.lib.util.Candle.LEDState;
+
 import static frc.robot.Constants.ElevatorWristStateConstants.*;
 
 import frc.robot.Constants.ElevatorConstants;

@@ -5,6 +5,7 @@
 package frc.robot.commands.align;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -45,28 +46,33 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   public void execute() {
     if (LimeLight.hasTargets()) {
 
-      SmartDashboard.putNumber("targetPoseHorizontalOffset", LimeLight.getHorizontalOffset());
-      SmartDashboard.putNumber("targetArea", LimeLight.getTargetArea());
 
       double horizontalOffset = LimeLight.getHorizontalOffset();
 
-      xOffset = Math.abs(swerve.getPose().getX() - FelidUtil.getConeNodeMidX(DriverStation.getAlliance()));
+      
+      xOffset = FelidUtil.getGridAlignX(DriverStation.getAlliance()) - swerve.getPose().getX();
+      double xOffsetTarget = FelidUtil.getConeNodeMidX(DriverStation.getAlliance()) - swerve.getPose().getX();
+
       double yOffset = Math.tan(swerve.getAdjustedYaw().getRadians() + Math.toRadians(horizontalOffset))
-          * xOffset;
+          * xOffsetTarget;
 
       double Y = yController.calculate(yOffset, 0)
           + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), SwerveConstants.DRIVE_KS);
       Y = ClosedLoopUtil.stopAtSetPoint(Y, yController.getPositionError(), DrivePidConstants.TRANSLATION_PID_TOLERANCE);
 
       double X = swerve.pidToX(FelidUtil.getGridAlignX(DriverStation.getAlliance()));
-      double rotation = anglController.calculate(horizontalOffset, 0)
-          + ClosedLoopUtil.positionFeedForward(anglController.getPositionError(), DrivePidConstants.ANGLE_KS);
-
-      rotation = ClosedLoopUtil.stopAtSetPoint(rotation, anglController.getPositionError(), DrivePidConstants.ANGLE_TOLERANCE);
+   
+    //  rotation = ClosedLoopUtil.stopAtSetPoint(rotation, anglController.getPositionError(), DrivePidConstants.ANGLE_TOLERANCE);
       X = Math.abs(xOffset - AlignConstants.CONE_NODE_X_OFFSET) >= DrivePidConstants.TRANSLATION_PID_TOLERANCE ? X : 0;
 
-      swerve.drive(new Translation2d(X, Y), rotation, true, false);
-      swerve.drive(new Translation2d(0, Y), rotation, true, false);
+      SmartDashboard.putNumber("X", X);
+      SmartDashboard.putNumber("Y", Y);
+      SmartDashboard.putNumber("yOffset", yOffset);
+      SmartDashboard.putNumber("xOffset", xOffset);
+      SmartDashboard.putNumber("x true", swerve.getPose().getX());
+
+      swerve.angularDrive(new Translation2d(-X,-Y), Rotation2d.fromDegrees(180), isFinished(), isFinished());
+//swerve.drive(new Translation2d(0, Y), rotation, true, false);
 
     } else {
       swerve.disable();

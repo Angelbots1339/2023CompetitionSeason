@@ -10,11 +10,11 @@ import frc.robot.Constants.SwerveConstants;
 /** Add your docs here. */
 public class FelidUtil {
 
-    public static final double blueGridAlignX = 0;
+    public static final double blueGridAlignX = 0.82423;
     public static final double redGridAlignX = 0;
 
 
-    public static final double coneNodeBlueMidX = 0; //A mid point between the two nodes used for estimation of y offset when heigh of node is unknown
+    public static final double coneNodeBlueMidX = 0.58928; //A mid point between the two nodes used for estimation of y offset when heigh of node is unknown
     public static final double coneNodeRedMidX = 0;
 
 
@@ -23,7 +23,7 @@ public class FelidUtil {
         if(alliance == Alliance.Red){
             return redGridAlignX - SwerveConstants.ALIGN_OFFSET;
         }else {
-            return blueGridAlignX + SwerveConstants.ALIGN_OFFSET;
+            return 1.775240;
         }
     }
 

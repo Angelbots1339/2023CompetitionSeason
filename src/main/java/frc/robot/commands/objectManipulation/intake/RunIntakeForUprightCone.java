@@ -27,7 +27,7 @@ public class RunIntakeForUprightCone extends CommandBase {
   private Timer centerTimer = new Timer();
   @Override
   public void execute() {
-    intakeAndShooter.runIntakeAtPercent(-IntakeConstants.INTAKE_CONE_SHOOT_PERCENT, IntakeConstants.INTAKE_CONE_PERCENT);
+    intakeAndShooter.runIntakeAtPercent( IntakeConstants.INTAKE_CONE_PERCENT);
     if(intakeAndShooter.uprightConeInRange())
       centerTimer.start();
       else{

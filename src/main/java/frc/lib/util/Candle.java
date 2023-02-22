@@ -10,6 +10,7 @@ import com.ctre.phoenix.led.ColorFlowAnimation;
 import com.ctre.phoenix.led.FireAnimation;
 import com.ctre.phoenix.led.LarsonAnimation;
 import com.ctre.phoenix.led.SingleFadeAnimation;
+import com.ctre.phoenix.led.StrobeAnimation;
 import com.ctre.phoenix.led.TwinkleAnimation;
 import com.ctre.phoenix.led.CANdle.LEDStripType;
 import com.ctre.phoenix.led.CANdle.VBatOutputMode;
@@ -45,7 +46,6 @@ public class Candle {
     }
 
     private HumanPlayerCommStates currentComState = HumanPlayerCommStates.LeftCone;
-    private double humanPlayerBlinkLastTime;
 
     public enum LEDState {
         Idle,
@@ -76,18 +76,17 @@ public class Candle {
         candle.configLOSBehavior(true);
 
         ledZones[0][0] = 0;
-        ledZones[0][1] = 60;
+        ledZones[0][1] = 62;
 
-        ledZones[1][0] = 60;
-        ledZones[1][1] = 120;
+        ledZones[1][0] = 62;
+        ledZones[1][1] = 62;
 
-        ledZones[2][0] = 120;
-        ledZones[2][1] = 180;
+        ledZones[2][0] = 122;
+        ledZones[2][1] = 62;
 
-        ledZones[3][0] = 180;
-        ledZones[3][1] = 247;
+        ledZones[3][0] = 184;
+        ledZones[3][1] = 63;
 
-        humanPlayerBlinkLastTime = Timer.getFPGATimestamp();
     }
 
     public void changeHumanPlayerComState(HumanPlayerCommStates state) {
@@ -102,15 +101,20 @@ public class Candle {
         candle.setLEDs(0, 0, 0, 0, OFFSET_LENGTH, 128);
         switch (state) {
             case Idle:
-                candle.animate(new TwinkleAnimation(255, 255, 255, 0, 0.4, ledZones[2][1], TwinklePercent.Percent30,
-                        OFFSET_LENGTH + ledZones[1][0]), 1);
+            // candle.animate(new LarsonAnimation(255, 255, 255, 0, 1, TOTAL_STRIP_LENGTH, BounceMode.Front, 7,
+            //         OFFSET_LENGTH));
 
-                currentState = LEDState.Idle;
+            candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[0][1] + ledZones[1][1], Direction.Backward, OFFSET_LENGTH + ledZones[0][0]), 1);
+            candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 2, Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
+        
 
-                break;
+            currentState = LEDState.Idle;
+            
+            break;
             case Disabled:
-                candle.animate(new LarsonAnimation(255, 255, 255, 0, 0.5, TOTAL_STRIP_LENGTH, BounceMode.Front, 3,
-                        OFFSET_LENGTH));
+            candle.animate(new TwinkleAnimation(255, 255, 255, 0, 0.4,TOTAL_STRIP_LENGTH, TwinklePercent.Percent30,
+                    OFFSET_LENGTH + ledZones[0][0]), 1);
+
                 currentState = LEDState.Disabled;
                 break;
 
@@ -120,6 +124,8 @@ public class Candle {
 
             case TestMode:
                 candle.animate(new SingleFadeAnimation(200, 70, 0, 0, 0.1, TOTAL_STRIP_LENGTH, OFFSET_LENGTH), 1);
+
+            
 
                 currentState = LEDState.TestMode;
                 break;
@@ -135,13 +141,13 @@ public class Candle {
             // *************** Robot-Specific Animations ***************** //
             case Fire: // TODO Tune the reverse directions
                 candle.animate(
-                        new FireAnimation(1, 0.7, ledZones[0][1], 0.8, 0.4, false, OFFSET_LENGTH + ledZones[0][0]), 1);
+                        new FireAnimation(1, 0.7, ledZones[0][1], 0.8, 0.25, false, OFFSET_LENGTH + ledZones[0][0]), 1);
                 candle.animate(
-                        new FireAnimation(1, 0.7, ledZones[1][1], 0.8, 0.4, true, OFFSET_LENGTH + ledZones[1][0]), 2);
+                        new FireAnimation(1, 0.7, ledZones[1][1], 0.8, 0.25, true, OFFSET_LENGTH + ledZones[1][0]), 2);
                 candle.animate(
-                        new FireAnimation(1, 0.7, ledZones[2][1], 0.8, 0.6, false, OFFSET_LENGTH + ledZones[2][0]), 3);
+                        new FireAnimation(1, 0.7, ledZones[2][1], 0.8, 0.25, false, OFFSET_LENGTH + ledZones[2][0] + 1), 5);
                 candle.animate(
-                        new FireAnimation(1, 0.7, ledZones[3][1], 0.8, 0.3, true, OFFSET_LENGTH + ledZones[3][0]), 4);
+                        new FireAnimation(1, 0.7, ledZones[3][1], 0.8, 0.25, true, OFFSET_LENGTH + ledZones[3][0]), 4);
                 currentState = LEDState.Fire;
                 // candle.animate(new TwinkleAnimation(255, 18, 213, 0, .1, 120 + 8 - 58,
                 // TwinklePercent.Percent30, 58), 3);
@@ -168,81 +174,58 @@ public class Candle {
 
             case HumanPlayerCommunication:
 
-                candle.animate(new TwinkleAnimation(255, 255, 255, 0, 0.4, ledZones[2][1], TwinklePercent.Percent30,
-                OFFSET_LENGTH + ledZones[1][0]), 2);
+                 candle.animate(new LarsonAnimation(255, 255, 255, 0, 0.5, ledZones[2][1], BounceMode.Front, 3,
+                    OFFSET_LENGTH + ledZones[1][0]), 4);
+
+                humanPlayerCom();
 
                 currentState = LEDState.HumanPlayerCommunication;
                 break;
         }
     }
 
-    private void humanPlayerComPeriodic(boolean off) {
+    private void humanPlayerCom() {
 
         switch (currentComState) {
 
             // Cubes
             case LeftCube:
-                candle.setLEDs(off ? 0 : 162, 0, off ? 0 : 255, 0,
-                        OFFSET_LENGTH + ledZones[0][0],
-                        ledZones[0][1]);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+
                 break;
 
             case RightCube:
-                candle.setLEDs(off ? 0 : 162, 0, off ? 0 : 255, 0,
-                        OFFSET_LENGTH + ledZones[3][0],
-                        ledZones[3][1]);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+
                 break;
 
             case SingleCube:
-                candle.setLEDs(off ? 0 : 162, 0, off ? 0 : 255, 0,
-                        OFFSET_LENGTH + ledZones[0][0],
-                        ledZones[0][1]);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[3][0], OFFSET_LENGTH + ledZones[3][1]), 2);
 
-                candle.setLEDs(off ? 0 : 162, 0, off ? 0 : 255, 0,
-                        OFFSET_LENGTH + ledZones[3][0],
-                        ledZones[3][1]);
                 break;
 
             // Cones
             case LeftCone:
-                candle.setLEDs(off ? 0 : 255, off ? 0 : 255, 0, 0,
-                        OFFSET_LENGTH + ledZones[0][0],
-                        ledZones[0][1]);
-                break;
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+
+            break;
 
             case RightCone:
-                candle.setLEDs(off ? 0 : 255, off ? 0 : 255, 0, 0,
-                        OFFSET_LENGTH + ledZones[3][0],
-                        ledZones[3][1]);
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+
                 break;
 
             case SingleCone:
-                candle.setLEDs(off ? 0 : 255, off ? 0 : 255, 0, 0,
-                        OFFSET_LENGTH + ledZones[0][0],
-                        ledZones[0][1]);
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[3][0], OFFSET_LENGTH + ledZones[3][1]), 2);
 
-                candle.setLEDs(off ? 0 : 255, off ? 0 : 255, 0, 0,
-                        OFFSET_LENGTH + ledZones[3][0],
-                        ledZones[3][1]);
                 break;
         }
 
     }
 
     public void periodic() {
-
-        if (currentState == LEDState.HumanPlayerCommunication) {
-
-            if (Timer.getFPGATimestamp() - humanPlayerBlinkLastTime > HUMAN_PLAYER_COM_BLINK_RATE) {
-                humanPlayerComPeriodic(true); // Turn lights off
-            } else {
-                humanPlayerComPeriodic(false); // Turn lights on
-            }
-
-            if (Timer.getFPGATimestamp() - humanPlayerBlinkLastTime > HUMAN_PLAYER_COM_BLINK_RATE * 2) {
-                humanPlayerBlinkLastTime = Timer.getFPGATimestamp(); // Reset time
-            }
-        }
 
         if (currentState == LEDState.PreMatch) {
 

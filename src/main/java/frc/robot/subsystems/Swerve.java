@@ -81,7 +81,7 @@ public class Swerve extends SubsystemBase {
      */
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
 
-        Rotation2d adjustedYaw = DriverStation.getAlliance() == Alliance.Red ? getYaw()
+        Rotation2d adjustedYaw = DriverStation.getAlliance() == Alliance.Blue ? getYaw()
                 : getYaw().plus(new Rotation2d(Math.PI));
         ChassisSpeeds chassisSpeeds;
         if (fieldRelative) {
@@ -362,7 +362,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public Rotation2d getAdjustedYaw() {
-        return DriverStation.getAlliance() == Alliance.Red ? getYaw()
+        return DriverStation.getAlliance() == Alliance.Blue ? getYaw()
                 : getYaw().plus(new Rotation2d(Math.PI));
     }
 

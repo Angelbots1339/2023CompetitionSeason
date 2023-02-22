@@ -24,10 +24,7 @@ import static frc.robot.Constants.IntakeConstants.*;
 public class IntakeAndShooter extends SubsystemBase {
 
   TalonFX intakeMotor = TalonFXFactory.createDefaultTalon(INTAKE_MOTOR_ID, Constants.CANIVORE);;
-  TalonFX shootMotor = TalonFXFactory.createDefaultTalon(SHOOT_MOTOR_ID, Constants.CANIVORE);;
-
-  //DistanceSensorMUXed uprightConeSensor;
-  //DistanceSensorMUXed fallenConeSensor;\
+ 
   DistanceSensorMUXed cubeSensor = new DistanceSensorMUXed(1, RangeProfile.kHighAccuracy);
   DistanceSensorMUXed uprightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
   DistanceSensorMUXed fallenConeSensor = new DistanceSensorMUXed(0, RangeProfile.kHighAccuracy);
@@ -61,7 +58,6 @@ public class IntakeAndShooter extends SubsystemBase {
 
   public void disable(){
     intakeMotor.set(ControlMode.PercentOutput, 0);
-    shootMotor.set(ControlMode.PercentOutput, 0);
   }
 
 
@@ -95,24 +91,16 @@ public class IntakeAndShooter extends SubsystemBase {
     return cubeSensor.getRange() <= DISTANCE_SENSOR_EMPTY_THRESHOLD;
   }
 
-  public void runConeIntakeAtCurrent(double amps) {
-    intakeMotor.set(ControlMode.Current, amps);
-  }
 
-  public void runCubeIntakeAtCurrent(double amps) {
-    intakeMotor.set(ControlMode.Current, amps);
-    shootMotor.set(ControlMode.Current, amps);
-  }
 
-  public void runIntakeAtPercent(double shootPercent, double conePercent) {
-    shootMotor.set(ControlMode.PercentOutput, shootPercent);
+  public void runIntakeAtPercent(double conePercent) {
     intakeMotor.set(ControlMode.PercentOutput, conePercent);
   }
   
 
-  public void runShootAtPercent(double percent) {
-    shootMotor.set(ControlMode.PercentOutput, percent);
-  }
+  // public void runShootAtPercent(double percent) {
+  //   shootMotor.set(ControlMode.PercentOutput, percent);
+  // }
 
   private void configFalcons() {
     TalonUtil.checkError(intakeMotor.configVoltageCompSaturation(Constants.MAX_VOLTAGE, Constants.CAN_TIMEOUT),
@@ -127,16 +115,16 @@ public class IntakeAndShooter extends SubsystemBase {
     intakeMotor.setInverted(INTAKE_MOTOR_INVERTED);
     intakeMotor.enableVoltageCompensation(true);
 
-    TalonUtil.checkError(shootMotor.configVoltageCompSaturation(Constants.MAX_VOLTAGE, Constants.CAN_TIMEOUT),
-        "Failed to config Shoot Motor Voltage Compensation");
-    TalonUtil.checkError(shootMotor.configSupplyCurrentLimit(CURRENT_LIMIT, Constants.CAN_TIMEOUT),
-        "Failed to config Shoot Motor Current Limit");
-    TalonUtil.checkError(shootMotor.config_kP(0, KP, Constants.CAN_TIMEOUT), "Failed to config Shoot Motor KP");
-    TalonUtil.checkError(shootMotor.config_kD(0, KD, Constants.CAN_TIMEOUT), "Failed to config Shoot Motor KD");
-    TalonUtil.checkError(shootMotor.config_kF(0, KF, Constants.CAN_TIMEOUT), "Failed to config Shoot Motor KF");
+    // TalonUtil.checkError(shootMotor.configVoltageCompSaturation(Constants.MAX_VOLTAGE, Constants.CAN_TIMEOUT),
+    //     "Failed to config Shoot Motor Voltage Compensation");
+    // TalonUtil.checkError(shootMotor.configSupplyCurrentLimit(CURRENT_LIMIT, Constants.CAN_TIMEOUT),
+    //     "Failed to config Shoot Motor Current Limit");
+    // TalonUtil.checkError(shootMotor.config_kP(0, KP, Constants.CAN_TIMEOUT), "Failed to config Shoot Motor KP");
+    // TalonUtil.checkError(shootMotor.config_kD(0, KD, Constants.CAN_TIMEOUT), "Failed to config Shoot Motor KD");
+    // TalonUtil.checkError(shootMotor.config_kF(0, KF, Constants.CAN_TIMEOUT), "Failed to config Shoot Motor KF");
 
-    shootMotor.selectProfileSlot(0, 0);
-    shootMotor.setInverted(SHOOT_MOTOR_INVERTED);
-    shootMotor.enableVoltageCompensation(true);
+    // shootMotor.selectProfileSlot(0, 0);
+    // shootMotor.setInverted(SHOOT_MOTOR_INVERTED);
+    // shootMotor.enableVoltageCompensation(true);
   }
 }

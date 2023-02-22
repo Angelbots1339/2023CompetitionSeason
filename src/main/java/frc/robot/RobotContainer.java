@@ -34,7 +34,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.math.Conversions;
+import frc.lib.util.Candle;
 import frc.lib.util.ElevatorWristState;
+import frc.lib.util.Candle.HumanPlayerCommStates;
+import frc.lib.util.Candle.LEDState;
 import frc.lib.util.logging.LoggedSubsystem;
 import static frc.robot.Constants.ElevatorWristStateConstants.*;
 
@@ -105,28 +108,32 @@ public class RobotContainer {
         /* Buttons */
         private final JoystickButton zeroGyro = new JoystickButton(driver,
                         XboxController.Button.kY.value);
-        private final JoystickButton zeroEncoders = new JoystickButton(driver,
+        private final JoystickButton aButton = new JoystickButton(driver,
                         XboxController.Button.kA.value);
-        private final JoystickButton wristTest = new JoystickButton(driver,
+        private final JoystickButton xButton = new JoystickButton(driver,
                         XboxController.Button.kX.value);
-        private final JoystickButton elevatorTest = new JoystickButton(driver,
+        private final JoystickButton bButton = new JoystickButton(driver,
                         XboxController.Button.kB.value);
 
 
-        private final JoystickButton intakeUprightCone = new JoystickButton(driver,
+        private final JoystickButton rightBumper = new JoystickButton(driver,
                         XboxController.Button.kRightBumper.value);
-        private final JoystickButton intakeCube = new JoystickButton(driver,
+        private final JoystickButton leftBumper = new JoystickButton(driver,
                         XboxController.Button.kLeftBumper.value);
-        private final Trigger intakeFallenCone = intakeCube.and(intakeUprightCone);
+        private final Trigger intakeFallenCone = leftBumper.and(rightBumper);
+
+       private final Trigger leftTrigger = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
+       private final Trigger rightTrigger = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
+
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
          */
         public RobotContainer() {
-                // swerve.setDefaultCommand(
-                //                 new TeleopSwerve(swerve, translation, strafe, rotation, angle, () -> false,
-                //                                 true // Is field relative
-                //                 ));
+                swerve.setDefaultCommand(
+                                new TeleopSwerve(swerve, translation, strafe, rotation, angle, () -> false,
+                                                true // Is field relative
+                                ));
 
                 log.addDouble("Translation", (Supplier<Double>) translation, "Drive values");
                 log.addDouble("Strafe", (Supplier<Double>) strafe, "Drive values");
@@ -167,17 +174,44 @@ public class RobotContainer {
         private void configureButtonBindings() {
                 /* Driver Buttons */
                 zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
-                zeroEncoders.onTrue(new InstantCommand(swerve::alignPoseNonVisionEstimator));
+                // zeroEncoders.onTrue(new InstantCommand(swerve::alignPoseNonVisionEstimator));
 
                 //intakeCube.whileTrue(IntakeCommandFactory.intakeCube(wrist, elevator, intakeAndShooter));
-                //intakeUprightCone.whileTrue(IntakeCommandFactory.intakeUprightCone(wrist, elevator, intakeAndShooter));
-                //intakeFallenCone.whileTrue(IntakeCommandFactory.intakeFallenCone(wrist, elevator, intakeAndShooter));
+                // rightBumper.whileTrue(IntakeCommandFactory.intakeUprightCone(wrist, elevator, intakeAndShooter));
+                // intakeFallenCone.whileTrue(IntakeCommandFactory.intakeFallenCone(wrist, elevator, intakeAndShooter));
 
-                elevatorTest.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
-                wristTest.whileTrue(new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(shootPercent.getDouble(0), intakePercent.getDouble(0)), () -> intakeAndShooter.disable(), intakeAndShooter));
+             //   bButton.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
+                xButton.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(115, 0.02)));
+
+
+                leftTrigger.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
+                rightTrigger.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(115, 0.02)));
+
+                
+
+                aButton.whileTrue(new TeleopSwerve(swerve, translation, strafe, rotation, () -> Rotation2d.fromDegrees(0), () -> true,
+                true // Is field relative
+                ));
+
+                
+
+
+
+        //elevatorTest.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
+                bButton.whileTrue(new AlignToConeNodeLimelightOnly(swerve).alongWith(new InstantCommand(() -> Candle.getInstance().changeLedState(LEDState.Fire))).andThen(new InstantCommand(() -> Candle.getInstance().changeLedState(LEDState.Idle))));
+
+                // Left Bumper:
+                leftBumper.whileTrue(new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(intakePercent.getDouble(0)), () -> intakeAndShooter.disable(), intakeAndShooter));
+                rightBumper.whileTrue(new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(-intakePercent.getDouble(0)), () -> intakeAndShooter.disable(), intakeAndShooter));
+                // intakeUprightCone.whileTrue(new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(0.3, -0.3), () -> intakeAndShooter.disable(), intakeAndShooter));
+
+                // xButton.onTrue( 
+                //         new InstantCommand( () -> Candle.getInstance().changeLedState(LEDState.HumanPlayerCommunication))
+                //         .andThen(new InstantCommand( () -> Candle.getInstance().changeLedState(LEDState.Idle))
+                // ));
+
 
         }
-
         /**
          * Use this to pass the autonomous command to the main {@link Robot} class.
          *

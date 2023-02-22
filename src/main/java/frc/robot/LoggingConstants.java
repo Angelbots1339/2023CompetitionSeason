@@ -12,14 +12,14 @@ import frc.lib.util.logging.Logger.LoggingLevel;
 public final class LoggingConstants {
         public static final Map<String, LoggingLevel> SWERVE = Map.of(
                         "Motor", LoggingLevel.NONE,
-                        "Gyro", LoggingLevel.NONE,
+                        "Gyro", LoggingLevel.SHUFFLEBOARD,
                         "Module", LoggingLevel.NONE,
                         "Pose", LoggingLevel.NONE,
                         "AngularDrive", LoggingLevel.NONE,
                         "Drive", LoggingLevel.NONE,
                         "Default", LoggingLevel.NONE,
                         "PidPose", LoggingLevel.NONE,
-                        "PoseEstimator", LoggingLevel.NONE);
+                        "PoseEstimator", LoggingLevel.SHUFFLEBOARD);
 
         public static final Map<String, LoggingLevel> ROBOT_CONTAINER = Map.of(
                         "Drive values", LoggingLevel.NONE,

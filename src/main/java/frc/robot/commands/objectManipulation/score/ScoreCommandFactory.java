@@ -20,14 +20,14 @@ import frc.robot.subsystems.Wrist;
 /** Add your docs here. */
 public class ScoreCommandFactory {
 
-    public static Command ScoreConeNodeLimelight(Swerve swerve, Wrist wrist, Elevator elevator,
+    public static Command scoreConeNodeLimelight(Swerve swerve, Wrist wrist, Elevator elevator,
             IntakeAndShooter intakeAndShooter) {
         return new AlignToConeNodeLimelightOnly(swerve).asProxy().andThen(
                 new ApproachConeNode(swerve).alongWith(alignOpenCone(wrist, elevator, intakeAndShooter, swerve)))
                 .andThen(outtakeConeGeneral(intakeAndShooter));
     }
 
-    
+
 
 
     public static Command alignOpenCone(Wrist wrist, Elevator elevator, IntakeAndShooter intakeAndShooter,
@@ -77,12 +77,12 @@ public class ScoreCommandFactory {
     }
 
     public static Command outtakeConeGeneral(IntakeAndShooter intakeAndShooter) {
-        return new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(1, -1), () -> intakeAndShooter.disable(),
+        return new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(1), () -> intakeAndShooter.disable(),
                 intakeAndShooter).until(intakeAndShooter::isConeInIntake).withName("Outtake Cone General");
     }
 
     public static Command outtakeCubeGeneral(IntakeAndShooter intakeAndShooter) {
-        return new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(-1, 1), () -> intakeAndShooter.disable(),
+        return new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(-1), () -> intakeAndShooter.disable(),
                 intakeAndShooter).until(intakeAndShooter::isCubeInIntake).withName("Outtake Cube General");
     }
 

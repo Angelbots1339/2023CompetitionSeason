@@ -61,7 +61,7 @@ public final class Constants {
         public static final double TRACK_WIDTH = Units.inchesToMeters(19.75);
         public static final double WHEEL_BASE = Units.inchesToMeters(19.75);
         public static final double WHEEL_CIRCUMFERENCE = 0.1 * Math.PI;
-        public static final double ALIGN_OFFSET = TRACK_WIDTH + 0.2; //distance from center of robot to edge of bumper track width + bumper width
+        public static final double ALIGN_OFFSET= Units.inchesToMeters(15.75); //distance from center of robot to edge of bumper track width + bumper width
 
         /* Module Gear Ratios */
         /** SDS MK4i l2 - 6.75 : 1 */
@@ -210,7 +210,7 @@ public final class Constants {
         }
         public static final class DrivePidConstants {
 
-            public static final double ANGLE_KP = 0.05; // radians per sec per degrees
+            public static final double ANGLE_KP = 0.025;  //0.05// radians per sec per degrees
             public static final double ANGLE_KD = 0.0;
             public static final double ANGLE_KV = 0.0;
 
@@ -221,7 +221,7 @@ public final class Constants {
             public static final double ANGLE_KS = 0.7; // radians per sec
             public static final double ANGLE_TOLERANCE = 10; // Degrees
         
-            public static final double TRANSLATION_PID_TOLERANCE = 0.5;
+            public static final double TRANSLATION_PID_TOLERANCE = 0;
 
         }
 
@@ -281,8 +281,8 @@ public final class Constants {
 
         public static final double KS = 0.08; // test this is calculated from recalc
 
-        public static final double MAX_VELOCITY = 2981 * 4; // TODO
-        public static final double MAX_ACCELERATION = 2981 *3; // TODO
+        public static final double MAX_VELOCITY = 2981 * 6; // TODO
+        public static final double MAX_ACCELERATION = 2981 *4; // TODO
 
         public static final int S_CURVE_STRENGTH = 4; // TODO
 
@@ -359,8 +359,8 @@ public final class Constants {
         public static final double CHAIN_SPROCKET = (48 / 16);
 
         //angle when intake is against wrist 
-        public static final double angleOffset = 109.242639;
-        public static final double TimeBeforeReset = 0.2;//sec b/c through bore initializes with 0;
+        public static final double angleOffset = 81.963692;
+        public static final double TimeBeforeReset = 1.5;//sec b/c through bore initializes with 0;
 
        // public static final double KP = 0.01; // 0.0731;
         public static final double KP = 0.2; // 0.0731;
@@ -461,8 +461,8 @@ public final class Constants {
 
 
     public static final class VisionConstants {
-        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0.27, 0, 0.24),
-                new Rotation3d(0, -Math.toRadians(10), 0)); // TODO OPI pos
+        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(-0.24345, 0.25397, 0.56859),
+                new Rotation3d(0, -0, 0)); // TODO OPI pos
         public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Cam1");
         public static final PoseStrategy APRILTAG_POSE_STRATEGY = PoseStrategy.CLOSEST_TO_REFERENCE_POSE;
         /*

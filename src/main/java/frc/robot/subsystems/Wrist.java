@@ -111,6 +111,7 @@ public class Wrist extends SubsystemBase {
     // SmartDashboard.putNumber("Positon", getAngle().getDegrees());
 
     SmartDashboard.putNumber("angle", getAngleDeg());
+    SmartDashboard.putNumber("through bore", throughBoreToAngle(dutyCycleEncoder.get()).getDegrees());
     
     double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
     // SmartDashboard.putNumber("ks", cosineScaler * KS);
