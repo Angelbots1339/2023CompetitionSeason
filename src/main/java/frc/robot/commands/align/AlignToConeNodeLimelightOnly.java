@@ -16,8 +16,8 @@ import frc.robot.FieldDependentConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.SwerveConstants.DrivePidConstants;
 import frc.robot.subsystems.Swerve;
-import frc.robot.vison.RetroReflectiveTargeter;
-import frc.robot.vison.RetroReflectiveTargeter.targetingStatus;
+import frc.robot.vision.RetroReflectiveTargeter;
+import frc.robot.vision.RetroReflectiveTargeter.targetingStatus;
 
 /** Add your docs here. */
 public class AlignToConeNodeLimelightOnly extends CommandBase {
@@ -79,7 +79,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
        Y = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(), FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
        Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
-      swerve.angularDrive(new Translation2d(X,-Y), FieldUtil.getTwoardsDriverStation(), true, true);
+      swerve.angularDrive(new Translation2d(X,-Y), FieldUtil.getTowardsDriverStation(), true, true);
  
     } else {
       swerve.disable();

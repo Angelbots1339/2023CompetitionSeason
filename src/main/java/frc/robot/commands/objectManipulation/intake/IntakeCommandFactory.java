@@ -26,7 +26,6 @@ public class IntakeCommandFactory {
         return alignToSingleSubstation(swerve).andThen(new StartEndCommand(() -> intake.runIntakeAtPercent(0.5), () ->intake.disable(), intake)).until(intake::objectInIntake);
     }
 
-
     public static Command intakeFallenCone(Wrist wrist, Elevator elevator, Intake intake) {
         return new RunIntakeForCone(intake, FieldDependentConstants.CurrentField.INTAKE_FALLEN_CONE).deadlineWith(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist));
     }
