@@ -8,6 +8,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.Constants;
+import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.SwerveConstants;
 
 /** Add your docs here. */
@@ -28,16 +30,13 @@ public class FieldUtil {
     public static final double coneNodeBlueMidX = 0.80143; 
     public static final double coneNodeBlueHighX = 0.36943 ; 
 
-    public static final double coneNodeRedMidX = 0;
-    public static final double coneNodeRedHighX = 0;
-
     public static final double coneNodeMidZ = 0.6127750000000001; 
     public static final double coneNodeHighZ = 1.114425; 
 
 
     public static final double getConeNodeMidX(){
         if(DriverStation.getAlliance() == Alliance.Red){
-            return coneNodeRedMidX;
+            return FieldConstants.RED_ORIGIN.getX() - coneNodeBlueMidX;
         }else {
             return coneNodeBlueMidX;
         }
@@ -45,7 +44,7 @@ public class FieldUtil {
 
     public static final double getConeNodeHighX(){
         if(DriverStation.getAlliance() == Alliance.Red){
-            return coneNodeRedHighX;
+            return FieldConstants.RED_ORIGIN.getX() - coneNodeBlueHighX;
         }else {
             return coneNodeBlueHighX;
         }
