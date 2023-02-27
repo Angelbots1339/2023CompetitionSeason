@@ -1,5 +1,13 @@
 {
   "NetworkTables": {
+    "Persistent Values": {
+      "open": false
+    },
+    "retained": {
+      "SmartDashboard": {
+        "open": true
+      }
+    },
     "transitory": {
       "Shuffleboard": {
         ".metadata": {
@@ -8,17 +16,36 @@
         "Swerve": {
           "Gyro": {
             "open": true
+          }
+        },
+        "Swerve:Module": {
+          "Module:0": {
+            "open": true
+          },
+          "Module:1": {
+            "open": true
+          },
+          "Module:2": {
+            "open": true
+          },
+          "Module:3": {
+            "open": true
           },
           "open": true
         },
         "Swerve:PoseEstimator": {
           "Field": {
             "open": true
-          },
-          "open": true
+          }
         }
       },
       "SmartDashboard": {
+        "open": true
+      },
+      "Swerve": {
+        "Modules": {
+          "open": true
+        },
         "open": true
       },
       "Testing": {
@@ -34,6 +61,7 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/LiveWindow/Elevator": "Subsystem",
+      "/LiveWindow/Intake": "Subsystem",
       "/LiveWindow/IntakeAndShooter": "Subsystem",
       "/LiveWindow/Swerve": "Subsystem",
       "/LiveWindow/Ungrouped/DigitalInput[23]": "Digital Input",
@@ -42,8 +70,14 @@
       "/LiveWindow/Ungrouped/PIDController[3]": "PIDController",
       "/LiveWindow/Ungrouped/PIDController[4]": "PIDController",
       "/LiveWindow/Ungrouped/PIDController[5]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[6]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[7]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[8]": "PIDController",
       "/LiveWindow/Ungrouped/Scheduler": "Scheduler",
       "/LiveWindow/Wrist": "Subsystem",
+      "/Shuffleboard/DriveSubsystem/Field": "Field2d",
+      "/Shuffleboard/DriveSubsystem/ResetOdometry": "Command",
+      "/Shuffleboard/DriveTuning/KeepHeadingPid": "PIDController",
       "/Shuffleboard/Swerve:PoseEstimator/Field": "Field2d",
       "/SmartDashboard/elevator": "Mechanism2d"
     },

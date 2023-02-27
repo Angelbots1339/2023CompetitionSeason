@@ -8,22 +8,22 @@ import java.util.List;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
 
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.lib.util.auto.AutoUtils;
 import frc.robot.subsystems.Swerve;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class ExamplePathPlannerAuto extends SequentialCommandGroup {
+public class TestAutoFactory {
   /** Creates a new examplePathPlannerAuto. */
-  public ExamplePathPlannerAuto(Swerve swerve) {
-    List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("TestPath");
-    //PathPlannerTrajectory trajectory = PathPlanner.loadPath("TestPath", PathPlanner.getConstraintsFromPath("TestPath"));
+  public static Command vision2mTest(Swerve swerve) {
+    List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("2mTest");
+    return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, true);
+  }
 
-    addRequirements(swerve);
-    addCommands(
-        new SwerveFollowTrajectory(trajectories.get(0), true, swerve));
-
+  public static Command nonVision2mTest(Swerve swerve) {
+    List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("2mTest");
+    return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, false);
   }
 }

@@ -6,16 +6,18 @@ package frc.robot.commands.objectManipulation.intake;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.subsystems.IntakeAndShooter;
+import frc.robot.FieldDependentConstants;
+import frc.robot.subsystems.Intake;
 
-public class RunIntakeForUprightCone extends CommandBase {
-  /** Creates a new RunIntakeForStandingCone. */
-  IntakeAndShooter intakeAndShooter;
-  /** Creates a new RunIntakeForStandingCone. */
-  public RunIntakeForUprightCone(IntakeAndShooter intakeAndShooter) {
-    this.intakeAndShooter = intakeAndShooter;
-    // Use addRequirements() here to declare subsystem dependencies.
+public class RunIntakeForCone extends CommandBase {
+
+  private final Intake intakeAndShooter;
+  private final double percent;
+  /** Creates a new runIntakeForFallenCone. */
+  public RunIntakeForCone(Intake intake, double percent) {
+    this.intakeAndShooter = intake;
+    this.percent = percent;
+    addRequirements(intake);
   }
 
   // Called when the command is initially scheduled.
@@ -27,8 +29,8 @@ public class RunIntakeForUprightCone extends CommandBase {
   private Timer centerTimer = new Timer();
   @Override
   public void execute() {
-    intakeAndShooter.runIntakeAtPercent( IntakeConstants.INTAKE_CONE_PERCENT);
-    if(intakeAndShooter.uprightConeInRange())
+    intakeAndShooter.runIntakeAtPercent(percent);
+    if(intakeAndShooter.coneInIntake())
       centerTimer.start();
       else{
       centerTimer.stop();
@@ -46,6 +48,6 @@ public class RunIntakeForUprightCone extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() { 
-    return centerTimer.get() >= IntakeConstants.CENTER_TIME;
+    return centerTimer.get() >= FieldDependentConstants.CurrentField.CONE_SETTLE_TIME;
   }
 }

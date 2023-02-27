@@ -4,76 +4,83 @@
 
 package frc.robot.commands.align;
 
+import java.util.function.DoubleSupplier;
+
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.lib.math.ClosedLoopUtil;
-import frc.lib.util.FelidUtil;
+import frc.lib.util.FieldUtil;
 import frc.lib.util.LimeLight;
-import frc.robot.Constants.SwerveConstants;
-import frc.robot.Constants.SwerveConstants.AlignConstants;
+import frc.robot.FieldDependentConstants;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.SwerveConstants.DrivePidConstants;
 import frc.robot.subsystems.Swerve;
+import frc.robot.vison.RetroReflectiveTargeter;
+import frc.robot.vison.RetroReflectiveTargeter.targetingStatus;
 
 /** Add your docs here. */
 public class AlignToConeNodeLimelightOnly extends CommandBase {
   /** Creates a new SimpleAlignToTarget. */
-  Swerve swerve;
+  private final Swerve swerve;
 
-  private double strafeKP = 0.05;
 
-  PIDController anglController = new PIDController(DrivePidConstants.ANGLE_KP, 0, 0);
+  private final DoubleSupplier coneOffset;
+  private final boolean favorHigh;
 
-  PIDController yController = new PIDController(DrivePidConstants.TRANSLATION_P, 0, 0);
 
-  public AlignToConeNodeLimelightOnly(Swerve swerve) {
+  PIDController yController = new PIDController(0.5, 0, 0);
+  PIDController xController = new PIDController(1.5, 0, 0);
+
+  
+
+  public AlignToConeNodeLimelightOnly(Swerve swerve, DoubleSupplier coneOffset, boolean favorHigh) {
+    this.coneOffset = coneOffset;
     this.swerve = swerve;
+    this.favorHigh = favorHigh;
     addRequirements(swerve);
   }
+
+
+ 
+
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
   }
 
-  private double xOffset;
-
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    RetroReflectiveTargeter.update(swerve.getPose(), favorHigh);
     if (LimeLight.hasTargets()) {
+      double yOffset = RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), coneOffset.getAsDouble());
+      double xOffset = RetroReflectiveTargeter.getXOffsetFromPlacePos();
 
+      double xSetPoint = 0;
 
-      double horizontalOffset = LimeLight.getHorizontalOffset();
-
+      if(Math.abs(yOffset) > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE){
+        if(RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH){
+          xSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET;
+        } else {
+          xSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET;
+        }
+      } 
       
-      xOffset = FelidUtil.getGridAlignX(DriverStation.getAlliance()) - swerve.getPose().getX();
-      double xOffsetTarget = FelidUtil.getConeNodeMidX(DriverStation.getAlliance()) - swerve.getPose().getX();
 
-      double yOffset = Math.tan(swerve.getAdjustedYaw().getRadians() + Math.toRadians(horizontalOffset))
-          * xOffsetTarget;
+    double X = xController.calculate(xOffset, xSetPoint) 
+       + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KV);
+      X = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(), FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_X_TOLERANCE);
+      X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
-      double Y = yController.calculate(yOffset, 0)
-          + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), SwerveConstants.DRIVE_KS);
-      Y = ClosedLoopUtil.stopAtSetPoint(Y, yController.getPositionError(), DrivePidConstants.TRANSLATION_PID_TOLERANCE);
+    double Y = yController.calculate(yOffset, 0) 
+       + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KV);
+       Y = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(), FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
+       Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
-      double X = swerve.pidToX(FelidUtil.getGridAlignX(DriverStation.getAlliance()));
-   
-    //  rotation = ClosedLoopUtil.stopAtSetPoint(rotation, anglController.getPositionError(), DrivePidConstants.ANGLE_TOLERANCE);
-      X = Math.abs(xOffset - AlignConstants.CONE_NODE_X_OFFSET) >= DrivePidConstants.TRANSLATION_PID_TOLERANCE ? X : 0;
-
-      SmartDashboard.putNumber("X", X);
-      SmartDashboard.putNumber("Y", Y);
-      SmartDashboard.putNumber("yOffset", yOffset);
-      SmartDashboard.putNumber("xOffset", xOffset);
-      SmartDashboard.putNumber("x true", swerve.getPose().getX());
-
-      swerve.angularDrive(new Translation2d(-X,-Y), Rotation2d.fromDegrees(180), isFinished(), isFinished());
-//swerve.drive(new Translation2d(0, Y), rotation, true, false);
-
+      swerve.angularDrive(new Translation2d(X,-Y), FieldUtil.getTwoardsDriverStation(), true, true);
+ 
     } else {
       swerve.disable();
     }
@@ -82,15 +89,16 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    swerve.disable();
+    LimeLight.setLedMode(1);
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Math.abs(xOffset - AlignConstants.CONE_NODE_X_OFFSET) <= DrivePidConstants.TRANSLATION_PID_TOLERANCE
-        && ClosedLoopUtil.inSetPoint(anglController.getPositionError(), DrivePidConstants.ANGLE_TOLERANCE)
-        && ClosedLoopUtil.inSetPoint(yController.getPositionError(), DrivePidConstants.TRANSLATION_PID_TOLERANCE);
+
+    return Math.abs(yController.getPositionError()) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE
+        && Math.abs(xController.getPositionError()) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_X_TOLERANCE
+        && LimeLight.hasTargets();
   }
 
 }

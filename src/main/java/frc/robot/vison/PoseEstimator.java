@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.vison;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,22 +28,20 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.lib.util.LatencyDoubleBuffer;
 import frc.lib.util.logging.loggedObjects.LoggedField;
 import static frc.robot.Constants.VisionConstants.*;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.regressions.KalmanVisionRegression;;
+import frc.robot.regressions.KalmanVisionRegression;
+import frc.robot.subsystems.Swerve;;
 
 /** Add your docs here. */
-public class PoseEstimation {
+public class PoseEstimator {
 
     private SwerveDrivePoseEstimator poseEstimator;
     public SwerveDrivePoseEstimator poseEstimatorNonVision;
-    public SwerveDrivePoseEstimator poseEstimatorNonGyroAngle;
     private AprilTagFieldLayout layout;
 
-    public PoseEstimation(LoggedField logger, Rotation2d gyroAngle, SwerveModulePosition[] positions) {
+    public PoseEstimator(LoggedField logger, Rotation2d gyroAngle, SwerveModulePosition[] positions) {
 
         // Pose Estimator
         try {
@@ -58,26 +56,20 @@ public class PoseEstimation {
         poseEstimator = new SwerveDrivePoseEstimator(SwerveConstants.KINEMATICS, gyroAngle, positions, new Pose2d(),
                 STATE_STD_DEVS, VecBuilder.fill(0, 0, 0));
 
-        poseEstimatorNonGyroAngle = new SwerveDrivePoseEstimator(SwerveConstants.KINEMATICS, gyroAngle, positions,
-                new Pose2d(),
-                STATE_STD_DEVS, VecBuilder.fill(0, 0, 0));
 
         List<Pair<PhotonCamera, Transform3d>> camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
         camList.add(new Pair<PhotonCamera, Transform3d>(APRILTAG_CAM, APRILTAG_CAM_POS));
 
         logger.addPose2d("Robot", () -> poseEstimator.getEstimatedPosition(), true);
         logger.addPose2d("NonVisionPoseEstimation", () -> poseEstimatorNonVision.getEstimatedPosition(), false);
-        logger.addPose2d("NonGyroAnglePoseEstimation", () -> poseEstimatorNonGyroAngle.getEstimatedPosition(), false);
     }
 
-    public void updateOdometry(Swerve swerve, SwerveModulePosition[] positions, Pose2d referencePose) {
-        poseEstimatorNonVision.update(swerve.getYaw(), positions);
-        poseEstimator.update(swerve.getYaw(), positions);
-        poseEstimatorNonGyroAngle.update(swerve.getYaw(), positions);
 
+    public void updateOdometry(Swerve swerve, Pose2d referencePose) {
+        poseEstimatorNonVision.update(swerve.getYaw(), swerve.getPositions());
+        poseEstimator.update(swerve.getYaw(), swerve.getPositions());
         PhotonPipelineResult result = APRILTAG_CAM.getLatestResult();
         if (result.hasTargets()) {
-
             double smallestPoseDelta = 10e9;
             EstimatedRobotPose lowestDeltaPose = null;
             Translation2d robotToTarget = null;
@@ -86,28 +78,25 @@ public class PoseEstimation {
                 int id = target.getFiducialId();
                 if (id > 8 || id < 1)
                     continue;
-                Pose3d targetPostiton = layout.getTagPose(target.getFiducialId()).get();
+                Pose3d targetPosition = layout.getTagPose(target.getFiducialId()).get();
 
                 // TODO check sign of pitch and maybe add pitch from gyro
                 Rotation3d gyroCalculatedAngle;
                 double yaw = swerve.getYaw().getRadians();
 
-                if (id > 4) {
+                if (id > 4) 
                     gyroCalculatedAngle = new Rotation3d(0,
                             -APRILTAG_CAM_POS.getRotation().getY() + swerve.getGyro().getY(),
                             -yaw);
-                }
 
                 else
                     gyroCalculatedAngle = new Rotation3d(0,
                             -APRILTAG_CAM_POS.getRotation().getY() + swerve.getGyro().getY(),
                             (yaw > 0 ? 1 : -1) * Math.PI - yaw);
-
-
                 Translation3d transformToTarget = target.getBestCameraToTarget().getTranslation();
 
                 Pose3d estimatedPose = PhotonUtils.estimateFieldToRobotAprilTag(
-                        new Transform3d(transformToTarget, gyroCalculatedAngle), targetPostiton, APRILTAG_CAM_POS);
+                        new Transform3d(transformToTarget, gyroCalculatedAngle), targetPosition, APRILTAG_CAM_POS);
 
                 double poseDelta = referencePose.getTranslation()
                         .getDistance(estimatedPose.getTranslation().toTranslation2d());
@@ -126,15 +115,6 @@ public class PoseEstimation {
 
             poseEstimator.addVisionMeasurement(lowestDeltaPose.estimatedPose.toPose2d(),
                     lowestDeltaPose.timestampSeconds, VecBuilder.fill(xyStdDev, xyStdDev, 0));
-            Optional<Pair<EstimatedRobotPose, Translation2d>> poseOnlyVision = getPoseOnlyVision(referencePose);
-
-            if (poseOnlyVision.isPresent()) {
-                tagDistance = poseOnlyVision.get().getSecond().getNorm();
-                xyStdDev = KalmanVisionRegression.xyStdDevReg.predict(tagDistance);
-                poseEstimatorNonGyroAngle.addVisionMeasurement(poseOnlyVision.get().getFirst().estimatedPose.toPose2d(),
-                        poseOnlyVision.get().getFirst().timestampSeconds, VecBuilder.fill(xyStdDev, xyStdDev, 0));
-            }
-
         }
     }
 
@@ -182,8 +162,23 @@ public class PoseEstimation {
         poseEstimatorNonVision.resetPosition(gyroAngle, swerveModulePositions, pose);
     }
 
+
+    public double getXOffset() {
+        if(APRILTAG_CAM.getLatestResult().hasTargets()){
+            PhotonTrackedTarget target = APRILTAG_CAM.getLatestResult().getBestTarget();
+            int id = target.getFiducialId();
+            if (id > 8 || id < 1)
+                return 0;
+            Pose3d targetPosition = layout.getTagPose(target.getFiducialId()).get();
+            return getPose().getTranslation().getX() - targetPosition.getTranslation().getX();
+        }
+        return 0;
+    }
     public void alignPoseNonVisionEstimator(SwerveModulePosition[] swerveModulePositions) {
         poseEstimatorNonVision.resetPosition(getPose().getRotation(), swerveModulePositions, getPose());
+    }
+    public AprilTagFieldLayout getField(){
+        return layout;
     }
 
 }

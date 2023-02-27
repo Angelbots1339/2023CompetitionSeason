@@ -10,7 +10,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 /** Add your docs here. */
 public class LimeLight {
     private static final NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-
+    public static String lastTarget = "";
 
     //Getters
     /**
@@ -86,6 +86,13 @@ public class LimeLight {
     public static double getPipeline() {
         return table.getEntry("getpipe").getDouble(0.0);
     }
+
+
+
+    public static String getLastTarget() {
+        return lastTarget;
+    }
+  
 
     /**
      * @return
@@ -225,6 +232,12 @@ public class LimeLight {
     public static void setSnapshotMode(boolean snapshotMode) {
         table.getEntry("snapshot").setBoolean(snapshotMode);
     }
+
+    public static void setLastTarget(String value) {
+        lastTarget = value;
+    }
+
+  
 
     
 

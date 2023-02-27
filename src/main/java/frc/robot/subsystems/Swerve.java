@@ -3,9 +3,10 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.pathplanner.lib.PathPoint;
 
-import frc.robot.SwerveModule;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.commands.auto.SwerveFollowTrajectory;
+import frc.robot.vison.PoseEstimator;
+import frc.robot.vison.RetroReflectiveTargeter;
 import frc.lib.math.ClosedLoopUtil;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.LatencyDoubleBuffer;
@@ -18,6 +19,7 @@ import frc.robot.LoggingConstants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -34,18 +36,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.SwerveConstants.*;
 import static frc.robot.Constants.SwerveConstants.DrivePidConstants.*;
 
-import static frc.robot.Constants.SwerveConstants.AlignConstants.*;
-
 public class Swerve extends SubsystemBase {
-    public SwerveModule[] swerveMods;
-    public Pigeon2 gyro;
-    public LoggedSubsystem logger;
+    private final SwerveModule[] swerveMods;
+    private final Pigeon2 gyro;
+    private final LoggedSubsystem logger;
 
-    private Translation2d currentVel = new Translation2d();
-    private Pose2d lastPose = new Pose2d();
-
-    private PoseEstimation poseEstimation;
-    private LoggedField field;
+    private final PoseEstimator poseEstimation;
+    private final LoggedField field;
 
     public Swerve() {
         configPIDtoPoseControllers();
@@ -66,7 +63,7 @@ public class Swerve extends SubsystemBase {
         logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
 
         field = new LoggedField("PoseEstimator", logger, "PoseEstimator", true);
-        poseEstimation = new PoseEstimation(field, getYaw(), getPositions());
+        poseEstimation = new PoseEstimator(field, getYaw(), getPositions());
 
         initializeLog();
     }
@@ -96,7 +93,7 @@ public class Swerve extends SubsystemBase {
                     translation.getY(),
                     rotation);
         }
-        chassisSpeeds = reduceSkewFromChassisSpeeds254(chassisSpeeds);
+        chassisSpeeds = reduceSkewFromLogTwist2d(chassisSpeeds);
         logger.updateDouble("x", chassisSpeeds.vxMetersPerSecond, "Drive");
         logger.updateDouble("y", chassisSpeeds.vyMetersPerSecond, "Drive");
         logger.updateDouble("rot", chassisSpeeds.omegaRadiansPerSecond, "Drive");
@@ -113,13 +110,13 @@ public class Swerve extends SubsystemBase {
 
     }
 
-    public void xPosion() {
+    public void xPos() {
         setModuleStates(new SwerveModuleState[] {
                 new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
                 new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
                 new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
                 new SwerveModuleState(0, Rotation2d.fromDegrees(45))
-        });
+        }, false);
 
     }
 
@@ -176,8 +173,7 @@ public class Swerve extends SubsystemBase {
     }
     /*-----Possible Solutions for Swerve Drive Skew------ */
 
-    private double previousDriveTime;
-
+    
     /**
      * @param chassisSpeeds
      * @return adjusted chassisSpeeds
@@ -200,7 +196,10 @@ public class Swerve extends SubsystemBase {
      *         See
      *         {@link https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/11?u=ethan1}
      */
-    public ChassisSpeeds reduceSkewFromLogTwist2d(ChassisSpeeds chassisSpeeds) {
+    
+     private double previousDriveTime;
+
+     public ChassisSpeeds reduceSkewFromLogTwist2d(ChassisSpeeds chassisSpeeds) {
         double timerDt = (Timer.getFPGATimestamp() - previousDriveTime);
         Pose2d robot_pose_vel = new Pose2d(chassisSpeeds.vxMetersPerSecond * timerDt,
                 chassisSpeeds.vyMetersPerSecond * timerDt,
@@ -252,16 +251,12 @@ public class Swerve extends SubsystemBase {
     }
 
     /*-----Setters----- */
-    /* Used by SwerveControllerCommand in Auto */
-    public void setModuleStates(SwerveModuleState[] desiredStates) {
-        setModuleStates(desiredStates, false);
-    }
 
     /* Used by SwerveControllerCommand in Auto */
     public void setChassisSpeeds(ChassisSpeeds chassisSpeeds) {
-        SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
-
-        setModuleStates(swerveModuleStates, true);
+        ChassisSpeeds adjustedChassisSpeeds = reduceSkewFromLogTwist2d(chassisSpeeds);
+        SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(adjustedChassisSpeeds);
+        setModuleStates(swerveModuleStates, false);
     }
 
     public void setModuleStates(SwerveModuleState[] desiredStates, Boolean isOpenLoop) {
@@ -277,7 +272,12 @@ public class Swerve extends SubsystemBase {
         }
     }
 
+    public AprilTagFieldLayout getField(){
+        return poseEstimation.getField();
+    }
+
     public void resetOdometry(Pose2d pose) {
+        gyro.setYaw(pose.getRotation().getDegrees());
         poseEstimation.resetPose(getYaw(), getPositions(), pose);
     }
 
@@ -285,8 +285,17 @@ public class Swerve extends SubsystemBase {
         poseEstimation.alignPoseNonVisionEstimator(getPositions());
     }
 
+    public void resetEncoders(){
+        for (SwerveModule mod : swerveMods) {
+            mod.resetDriveEncoder();
+        }
+        
+    }
     public void zeroGyro() {
         gyro.setYaw(0);
+    }
+    public void zeroGyro(double deg) {
+        gyro.setYaw(deg);
     }
 
     /*-----Getters----- */
@@ -311,9 +320,14 @@ public class Swerve extends SubsystemBase {
         return yawBuffer.getMeasurement(latencyMs);
     }
 
+   
+
     private double lastTimePeriodic;
     private double lastTimeDrive;
     private double lastDesiredDegrees;
+    private Translation2d currentVel = new Translation2d();
+    private Pose2d lastPose = new Pose2d();
+
 
     /**
      * Get the current velocity of the robot
@@ -340,6 +354,7 @@ public class Swerve extends SubsystemBase {
                 MathUtil.applyDeadband(currentVel.getX(), HEADING_DEADBAND)));
 
     }
+    
 
     public SwerveModuleState[] getStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
@@ -372,8 +387,8 @@ public class Swerve extends SubsystemBase {
     }
 
     // DRIVE PID
-    private PIDController pidToPoseXController = new PIDController(TRANSLATION_P, 0, TRANSLATION_D);
-    private PIDController pidToPoseYController = new PIDController(TRANSLATION_P, 0, TRANSLATION_D);
+    private PIDController pidToPoseXController = new PIDController(TRANSLATION_KP, 0, 0);
+    private PIDController pidToPoseYController = new PIDController(TRANSLATION_KP, 0, 0);
 
     private void configPIDtoPoseControllers() {
         pidToPoseXController.setTolerance(TRANSLATION_PID_TOLERANCE);
@@ -445,11 +460,12 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
-        poseEstimation.updateOdometry(this, getPositions(), getPose());
-
+        poseEstimation.updateOdometry(this, getPose());
         SmartDashboard.putNumber("yaw", getYaw().getDegrees());
-        SmartDashboard.putNumber("bufferdYaw", Math.toDegrees(yawBuffer.getMeasurement(100)));
-
         calculateVelocity();
+
+        RetroReflectiveTargeter.update(getPose(), true);
+        SmartDashboard.putNumber("Xoffset", RetroReflectiveTargeter.getXOffset());
+        SmartDashboard.putNumber("Yoffset", RetroReflectiveTargeter.getYOffset());
     }
 }

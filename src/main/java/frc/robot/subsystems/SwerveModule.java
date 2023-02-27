@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.subsystems;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -9,14 +9,13 @@ import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.CTREModuleState;
 import frc.lib.util.SwerveModuleConstants;
+import frc.robot.Constants;
+
 import static frc.robot.Constants.SwerveConstants.FalconConfigConstants.*;
-import static frc.robot.Constants.SwerveConstants.*;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
-import com.ctre.phoenix.motorcontrol.TalonFXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.sensors.CANCoder;
 
 public class SwerveModule {
@@ -112,6 +111,9 @@ public class SwerveModule {
         public TalonFX getDriveMotor() {
                 return angleMotor;
         }
+        public void resetDriveEncoder(){
+        driveMotor.setSelectedSensorPosition(0);
+        }
 
         public double getEncoderInMeters() {
                 return Conversions.falconToMeters(driveMotor.getSelectedSensorPosition(),
@@ -204,6 +206,8 @@ public class SwerveModule {
                 TalonUtil.checkError(driveMotor.configClosedloopRamp(CLOSED_LOOP_RAMP),
                                 "failed to config closed loop ramp drive motor mod: " + moduleNumber);
 
+
+                driveMotor.setSelectedSensorPosition(0);
                 driveMotor.selectProfileSlot(0, 0);
                 driveMotor.enableVoltageCompensation(true);
                 driveMotor.setInverted(DRIVE_MOTOR_INVERT);

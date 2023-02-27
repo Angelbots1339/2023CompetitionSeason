@@ -3,6 +3,8 @@ package frc.lib.util.multiplexer;
 import static frc.robot.Constants.MultiplexerConstants.*;
 import com.revrobotics.ColorSensorV3;
 
+import edu.wpi.first.wpilibj.util.Color;
+
 /**
  * Wrapper class for ColorSensorV3 to use {@link Multiplexer}
  */
@@ -41,5 +43,10 @@ public class ColorSensorMUXed {
                 enabled = true;
             }
         }
+    }
+
+    public double xyzColorDifference(Color color){
+        Color matchedColor =  get().getColor();
+        return Math.sqrt(Math.pow(matchedColor.red - color.red, 2) + Math.pow(matchedColor.green - color.green, 2) + Math.pow(matchedColor.blue - color.blue, 20));     
     }
 }

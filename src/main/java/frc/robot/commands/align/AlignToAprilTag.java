@@ -4,77 +4,78 @@
 
 package frc.robot.commands.align;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import static frc.robot.Constants.VisionConstants.*;
 
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import frc.robot.FieldDependentConstants;
 import frc.robot.subsystems.Swerve;
 
 public class AlignToAprilTag extends CommandBase {
   /** Creates a new SimpleAlignToTarget. */
-  Swerve swerve; 
-  //private ShuffleboardLayout translationLayout = Shuffleboard.getTab("VisionTuning").getLayout("Translation", BuiltInLayouts.kList);
-  //private ShuffleboardLayout strafeLayout = Shuffleboard.getTab("VisionTuning").getLayout("Strafe", BuiltInLayouts.kList);
-
-  private double translationKP = 0.0;
-  private double strafeKP = 0.0;
-  private double KS = 0.1;
-
-  PIDController translationController = new PIDController(translationKP, 0, 0);
-  PIDController strafeController = new PIDController(strafeKP, 0, 0);
-
+  private final Swerve swerve;
 
   public AlignToAprilTag(Swerve swerve) {
     this.swerve = swerve;
     addRequirements(swerve);
-    //translationLayout.add(translationController);
-    //strafeLayout.add(strafeController);
-
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+  }
+
+  boolean hadTarget = false;
 
   // Called every time the scheduler runs while the command is scheduled.
+  Pose2d desiredPose;
+
   @Override
   public void execute() {
-    SmartDashboard.putBoolean("target", APRILTAG_CAM.getLatestResult().hasTargets());
-    SmartDashboard.putBoolean("connected", APRILTAG_CAM.isConnected());
 
-    if(APRILTAG_CAM.getLatestResult().hasTargets()){
+    if (APRILTAG_CAM.getLatestResult().hasTargets()) {
       PhotonTrackedTarget target = APRILTAG_CAM.getLatestResult().getBestTarget();
-      Translation3d targetPose = target.getAlternateCameraToTarget().getTranslation();
+      int id = target.getFiducialId();
+      double alignOffset = FieldDependentConstants.CurrentField.CUBE_ALIGN_OFFSET;
+      if(Math.abs(swerve.getPose().getY() - desiredPose.getY()) > FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE){
+        alignOffset = FieldDependentConstants.CurrentField.CUBE_ALIGN_X_OFFSET;
+      }
 
-      SmartDashboard.putNumber("targetPoseX", targetPose.getX());
-      SmartDashboard.putNumber("targetPoseY", targetPose.getY());
-      SmartDashboard.putNumber("targetPoseZ", targetPose.getZ());
+      if (id >= 6) {
+        desiredPose = swerve.getField().getTagPose(id).get().toPose2d().transformBy(new Transform2d(
+            new Translation2d(alignOffset, 0), Rotation2d.fromDegrees(0)));
+      } else if (id <= 3) {
+        desiredPose = swerve.getField().getTagPose(id).get().toPose2d().transformBy(new Transform2d(
+            new Translation2d(-alignOffset, 0), Rotation2d.fromDegrees(0)));
+      } else
+        return;
 
-      double strafe = strafeController.calculate(targetPose.getX(), 0) + KS * Math.signum(strafeController.getPositionError());
-      double translation = translationController.calculate(targetPose.getZ(), 1) + KS * Math.signum(translationController.getPositionError());
       
-      
-
-      SmartDashboard.putNumber("strafe", strafe);
-      SmartDashboard.putNumber("translation", translation);
-
-      //swerve.angularDrive(new Translation2d(translation, strafe), Rotation2d.fromDegrees(0), true, true);
-      
+      swerve.pidToPose(desiredPose);
+      hadTarget = true;
     }
+    else if(hadTarget){
+      swerve.pidToPose(desiredPose);
+    }
+
+    swerve.disable();
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+  }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return Math.abs(swerve.getPose().getX() - desiredPose.getX()) < FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE
+        && Math.abs(swerve.getPose().getY() - desiredPose.getY()) < FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE;
   }
 }

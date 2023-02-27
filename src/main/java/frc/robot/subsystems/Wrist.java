@@ -6,30 +6,26 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
-import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
-import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
-import com.ctre.phoenix.motorcontrol.TalonFXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.robot.Constants.ElevatorWristStateConstants;
 
 import static frc.robot.Constants.WristConstants.*;
 
 public class Wrist extends SubsystemBase {
 
-  private TalonFX wristMotor;
-  private DutyCycleEncoder dutyCycleEncoder = new DutyCycleEncoder(23);
-  private Timer throughBoreTimer = new Timer();
+  private final TalonFX wristMotor;
+  private final DutyCycleEncoder dutyCycleEncoder = new DutyCycleEncoder(23);
+  private final Timer throughBoreTimer = new Timer();
+  private Rotation2d goalAngle = Rotation2d.fromDegrees(0);
   /** Creates a new Wrist. */
   public Wrist() {
     wristMotor =  TalonFXFactory.createDefaultTalon(MOTOR_ID, Constants.CANIVORE);
@@ -42,8 +38,9 @@ public class Wrist extends SubsystemBase {
     wristMotor.set(ControlMode.PercentOutput, percent, DemandType.ArbitraryFeedForward, cosineScaler * KS);
   }
   public void setMotionMagic(double clicks){
-    double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
+    goalAngle = new Rotation2d(clicksToRadians(clicks));
 
+    double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
     if(clicks == radiansToClicks(ElevatorWristStateConstants.HOME.angle.getRadians()) && Math.abs(getAngleDeg() - ElevatorWristStateConstants.HOME.angle.getDegrees()) <= 1){
       SmartDashboard.putNumber("error", wristMotor.getClosedLoopError());
       wristMotor.set(ControlMode.PercentOutput, 0);
@@ -51,10 +48,26 @@ public class Wrist extends SubsystemBase {
     else
     wristMotor.set(ControlMode.MotionMagic, clicks, DemandType.ArbitraryFeedForward, cosineScaler * KS);
   }
-  public void setPid(double clicks){
-    double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
-    wristMotor.set(ControlMode.Position, clicks, DemandType.ArbitraryFeedForward, cosineScaler * KS);
+  public double getErrorDeg(){
+    return Math.abs(getAngleDeg() - goalAngle.getDegrees());
   }
+  public boolean atSetPoint(){
+    return getErrorDeg() < MOTION_MAGIC_ERROR_THRESHOLD;
+  }
+  public boolean atSetPointAndSettled(){
+    return settleTimer.hasElapsed(TIME_TO_SETTLE);
+  }
+ 
+  private final Timer settleTimer = new Timer();
+  private void updateSetPointWatcher(){
+    if(atSetPoint())
+      settleTimer.start();
+    else if (settleTimer.get() != 0){
+      settleTimer.stop();
+      settleTimer.restart();
+    }
+  }
+  
 
   /**
    * @param position in falcon clicks
@@ -82,6 +95,10 @@ public class Wrist extends SubsystemBase {
     return new Rotation2d(clicksToRadians(CLICKS_AT_HORIZONTAL - wristMotor.getSelectedSensorPosition()));
   }
 
+  public boolean goalAtHome() {
+    return goalAngle.getDegrees() == ElevatorWristStateConstants.HOME.angle.getDegrees();
+  }
+
   public double getVelocityClicks(){
     return wristMotor.getSelectedSensorVelocity();
 
@@ -100,6 +117,8 @@ public class Wrist extends SubsystemBase {
 
 
 
+
+
   @Override
   public void periodic() {
     if(throughBoreTimer.get() >= TimeBeforeReset){
@@ -107,15 +126,11 @@ public class Wrist extends SubsystemBase {
       throughBoreTimer.reset();
       throughBoreTimer.stop();
     }
-    // SmartDashboard.putNumber("Velocity", getVelocityClicks());
-    // SmartDashboard.putNumber("Positon", getAngle().getDegrees());
+
+    updateSetPointWatcher();
 
     SmartDashboard.putNumber("angle", getAngleDeg());
     SmartDashboard.putNumber("through bore", throughBoreToAngle(dutyCycleEncoder.get()).getDegrees());
-    
-    double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
-    // SmartDashboard.putNumber("ks", cosineScaler * KS);
-    // This method will be called once per scheduler run
   }
 
  
@@ -152,8 +167,6 @@ public class Wrist extends SubsystemBase {
         "Failed to set wrist motor cruise velocity");
     TalonUtil.checkError(wristMotor.configClearPositionOnLimitR(true, Constants.CAN_TIMEOUT),
         "Failed to set wrist leader motor clear position on limit R");
-    TalonUtil.checkError(wristMotor.configAllowableClosedloopError(0, ALLOWABLE_Velocity_ERROR, Constants.CAN_TIMEOUT), 
-    "Failed to set wrist allowable error");
     TalonUtil.checkError(
         wristMotor.configVelocityMeasurementWindow(SENSOR_VELOCITY_MEAS_WINDOW,
             Constants.CAN_TIMEOUT),

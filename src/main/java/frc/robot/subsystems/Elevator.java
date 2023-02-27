@@ -10,24 +10,13 @@ import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
-import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
-import com.ctre.phoenix.motorcontrol.TalonFXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.ctre.phoenix.unmanaged.Unmanaged;
 
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.simulation.ElevatorSim;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.lib.math.Conversions;
-import frc.lib.team254.util.SimulationUtils;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.Mech2dManger;
@@ -35,93 +24,51 @@ import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.Constants;
 import frc.robot.LoggingConstants;
 import frc.robot.Robot;
+import frc.robot.Constants.ElevatorWristStateConstants;
 
 import static frc.robot.Constants.ElevatorConstants.*;
 
 public class Elevator extends SubsystemBase {
 
-  TalonFX elevatorLeaderMotor;
-  TalonFX elevatorFollowerMotor;
+  private final TalonFX elevatorLeaderMotor;
 
-  TalonFXSimCollection elevatorLeaderMotorSim;
+  private final MechanismLigament2d elevator;
 
+  private final LoggedSubsystem logger;
 
-  private MechanismLigament2d elevator;
-
-  private ElevatorSim elevatorSim;
-  LoggedSubsystem logger;
+  private double goalHeightMeters;
 
   /** Creates a new Elevator. */
   public Elevator() {
 
-    if (Robot.isReal()) {
-      elevatorLeaderMotor = TalonFXFactory.createDefaultTalon(LEADER_MOTOR_ID, Constants.CANIVORE);
-      TalonFX elevatorFollowerMotor= TalonFXFactory.createPermanentFollowerTalon(FOLLOWER_MOTOR_ID,
-          LEADER_MOTOR_ID, Constants.CANIVORE);
-
-        elevatorFollowerMotor.setInverted(TalonFXInvertType.OpposeMaster);
-        elevatorFollowerMotor.setNeutralMode(NeutralMode.Brake);
-        elevatorFollowerMotor.configStatorCurrentLimit(STATOR_CURRENT_LIMIT, Constants.CAN_TIMEOUT);
-
-
-
-
-
-    } else if (Robot.isSimulation()) {
-      elevatorLeaderMotor = TalonFXFactory.createDefaultSimulationTalon(LEADER_MOTOR_ID, Constants.CANIVORE);
-      elevatorLeaderMotorSim = elevatorLeaderMotor.getSimCollection();
-
-      TalonFX elevatorFollowerMotor = TalonFXFactory.createPermanentSimulationFollowerTalon(FOLLOWER_MOTOR_ID,
-          LEADER_MOTOR_ID, Constants.CANIVORE);
-      elevatorFollowerMotor.getSimCollection();
-      elevatorFollowerMotor.setInverted(TalonFXInvertType.OpposeMaster);
-      elevatorSim = new ElevatorSim(DCMotor.getFalcon500(2), GEAR_RATIO, 19.0509,
-        SPOOL_DIAMETER, 0, 1.4732, false);
-        
-    }
+    elevatorLeaderMotor = TalonFXFactory.createDefaultTalon(LEADER_MOTOR_ID, Constants.CANIVORE);
+    TalonFX elevatorFollowerMotor = TalonFXFactory.createPermanentFollowerTalon(FOLLOWER_MOTOR_ID,
+        LEADER_MOTOR_ID, Constants.CANIVORE);
+    elevatorFollowerMotor.setInverted(TalonFXInvertType.OpposeMaster);
+    elevatorFollowerMotor.setNeutralMode(NeutralMode.Brake);
 
     configElevatorMotor();
     logger = new LoggedSubsystem("Elevator", LoggingConstants.ELEVATOR);
 
-
     elevator = Mech2dManger.getInstance().getElevator();
   }
 
-  
-
-  @Override
-  public void simulationPeriodic() {
-    super.simulationPeriodic();
-
-
-    
-    elevatorSim.setInputVoltage(elevatorLeaderMotorSim.getMotorOutputLeadVoltage());
-    elevatorSim.update(0.02);
-    elevatorLeaderMotorSim.setLimitFwd(elevatorSim.hasHitUpperLimit());
-    elevatorLeaderMotorSim.setLimitRev(elevatorSim.hasHitLowerLimit());
-    elevatorLeaderMotorSim.setIntegratedSensorRawPosition(metersToClicks(elevatorSim.getPositionMeters()));
-    elevatorLeaderMotorSim.setIntegratedSensorVelocity(mPSToCP100ms(elevatorSim.getVelocityMetersPerSecond()));
-    
-     elevator.setLength(0.2 + elevatorSim.getPositionMeters());
-
-  }
 
   @Override
   public void periodic() {
 
-    //SmartDashboard.putNumber("EVelocity", elevatorLeaderMotor.getSelectedSensorVelocity());
-    SmartDashboard.putNumber("Height", getHeight());
-
-    SmartDashboard.putNumber("forward", elevatorLeaderMotor.isFwdLimitSwitchClosed());
-    SmartDashboard.putNumber("reverse", elevatorLeaderMotor.isFwdLimitSwitchClosed());
+    SmartDashboard.putNumber("Height", getHeightMeters());
 
     // This method will be called once per scheduler run
+    updateSetPointWatcher();
+
+
   }
 
   /**
    * @param position in falcon clicks
    */
-  public void resetToPosition(double position){
+  public void resetToPosition(double position) {
     elevatorLeaderMotor.setSelectedSensorPosition(0);
   }
 
@@ -130,17 +77,35 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setMotionMagicClicks(double position) {
-    if(Robot.isSimulation() || position == 0)
-      elevatorLeaderMotor.set(ControlMode.MotionMagic, position); 
+
+    goalHeightMeters = clicksToMeters(position);
+    if (Robot.isSimulation() || position == 0)
+      elevatorLeaderMotor.set(ControlMode.MotionMagic, position);
     else
       elevatorLeaderMotor.set(ControlMode.MotionMagic, position, DemandType.ArbitraryFeedForward, KS);
   }
 
-  public void disable(){
+  public double getErrorMeters(){
+    return Math.abs(goalHeightMeters - getHeightMeters());
+  }
+
+  public boolean atSetPoint(){
+    return getErrorMeters() < MOTION_MAGIC_ERROR_THRESHOLD;
+  }
+  public boolean atSetPointAndSettled(){
+    return settleTimer.hasElapsed(TIME_TO_SETTLE);
+  }
+
+  public boolean goalAtHome(){
+    return goalHeightMeters == ElevatorWristStateConstants.HOME.height;
+  }
+
+
+  public void disable() {
     elevatorLeaderMotor.set(ControlMode.PercentOutput, 0);
   }
 
-  public double getHeight() {
+  public double getHeightMeters() {
     return clicksToMeters(elevatorLeaderMotor.getSelectedSensorPosition());
   }
 
@@ -149,8 +114,17 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setMotionMagicMeters(double meters) {
-    elevatorLeaderMotor.set(TalonFXControlMode.MotionMagic, metersToClicks(meters),
-        DemandType.ArbitraryFeedForward, KS);
+    setMotionMagicClicks(metersToClicks(meters));
+  }
+
+  private final Timer settleTimer = new Timer();
+  private void updateSetPointWatcher(){
+    if(atSetPoint())
+      settleTimer.start();
+    else if (settleTimer.get() != 0){
+      settleTimer.stop();
+      settleTimer.restart();
+    }
   }
 
   private void configElevatorMotor() {
@@ -193,9 +167,6 @@ public class Elevator extends SubsystemBase {
         "Failed to set elevator motor s curve strength");
     TalonUtil.checkError(elevatorLeaderMotor.configMotionCruiseVelocity(MAX_VELOCITY, Constants.CAN_TIMEOUT),
         "Failed to set elevator motor cruise velocity");
-    TalonUtil.checkError(
-      elevatorLeaderMotor.configAllowableClosedloopError(0, ALLOWABLE_ERROR, Constants.CAN_TIMEOUT),
-        "Failed to set elevator follower motor allowable error");
 
     TalonUtil.checkError(elevatorLeaderMotor.configClearPositionOnLimitR(true, Constants.CAN_TIMEOUT),
         "Failed to set elevator leader motor clear position on limit R");
@@ -203,7 +174,6 @@ public class Elevator extends SubsystemBase {
         elevatorLeaderMotor.configVelocityMeasurementWindow(SENSOR_VELOCITY_MEAS_WINDOW,
             Constants.CAN_TIMEOUT),
         "Failed to set elevator leader motor velocity measurement window");
-
 
     elevatorLeaderMotor.enableVoltageCompensation(true);
     elevatorLeaderMotor.overrideLimitSwitchesEnable(true);
@@ -213,7 +183,6 @@ public class Elevator extends SubsystemBase {
     elevatorLeaderMotor.setInverted(MOTOR_INVERTED);
 
   }
-
   private void initializeLog() {
   }
 

@@ -1,56 +1,38 @@
 package frc.robot;
 
 import java.util.Map;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import com.pathplanner.lib.PathPoint;
-
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.networktables.DoubleEntry;
-import edu.wpi.first.networktables.DoubleSubscriber;
-import edu.wpi.first.networktables.DoubleTopic;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.shuffleboard.WidgetType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.math.Conversions;
-import frc.lib.util.Candle;
-import frc.lib.util.ElevatorWristState;
-import frc.lib.util.Candle.HumanPlayerCommStates;
-import frc.lib.util.Candle.LEDState;
 import frc.lib.util.logging.LoggedSubsystem;
 import static frc.robot.Constants.ElevatorWristStateConstants.*;
 
-import frc.robot.Constants.ElevatorConstants;
-import frc.robot.Constants.WristConstants;
 import frc.robot.commands.*;
 import frc.robot.commands.align.AlignOnChargingStation;
-import frc.robot.commands.align.AlignToConeNodeLimelightOnly;
-import frc.robot.commands.align.AlignToPos;
-import frc.robot.commands.auto.ExamplePathPlannerAuto;
+import frc.robot.commands.auto.AutoFactory;
 import frc.robot.commands.objectManipulation.intake.IntakeCommandFactory;
-import frc.robot.commands.superStructre.IntakeToPosition;
+import frc.robot.commands.objectManipulation.score.ScoreCommandFactory;
+import frc.robot.commands.superStructure.IntakePositionCommandFactory;
+import frc.robot.commands.superStructure.IntakeToPosition;
 import frc.robot.subsystems.*;
+import frc.robot.vison.RetroReflectiveTargeter;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -71,7 +53,7 @@ public class RobotContainer {
         private final Swerve swerve = new Swerve();
         private final Elevator elevator = new Elevator();
         private final Wrist wrist = new Wrist();
-        private final IntakeAndShooter intakeAndShooter = new IntakeAndShooter();
+        private final Intake intake = new Intake();
 
         /* States */
         private boolean isAngularDrive = false;
@@ -83,6 +65,8 @@ public class RobotContainer {
 
         private GenericEntry shootPercent;
         private GenericEntry intakePercent;
+
+        private SendableChooser<Command> autoChooser = new SendableChooser<Command>();
 
         /*----Controls----*/
         /* Drive Controls */
@@ -106,25 +90,33 @@ public class RobotContainer {
         };
 
         /* Buttons */
-        private final JoystickButton zeroGyro = new JoystickButton(driver,
+        private final Trigger zeroGyro = new JoystickButton(driver,
+                        XboxController.Button.kStart.value);
+        private final Trigger alignOnChargingStation = new JoystickButton(driver,
+                        XboxController.Button.kBack.value);
+
+        private final Trigger manualScoreHigh = new JoystickButton(driver,
                         XboxController.Button.kY.value);
-        private final JoystickButton aButton = new JoystickButton(driver,
+        private final Trigger manualScoreMid = new JoystickButton(driver,
                         XboxController.Button.kA.value);
-        private final JoystickButton xButton = new JoystickButton(driver,
+        private final Trigger autoScoreHigh = new JoystickButton(driver,
                         XboxController.Button.kX.value);
-        private final JoystickButton bButton = new JoystickButton(driver,
+        private final Trigger autoScoreMid = new JoystickButton(driver,
                         XboxController.Button.kB.value);
 
-
-        private final JoystickButton rightBumper = new JoystickButton(driver,
+        private final Trigger runIntakeGeneral = new JoystickButton(driver,
                         XboxController.Button.kRightBumper.value);
-        private final JoystickButton leftBumper = new JoystickButton(driver,
+        private final Trigger runOuttakeGeneral = new JoystickButton(driver,
                         XboxController.Button.kLeftBumper.value);
-        private final Trigger intakeFallenCone = leftBumper.and(rightBumper);
 
-       private final Trigger leftTrigger = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
-       private final Trigger rightTrigger = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
+        private final Trigger runOuttakeForHigh = runOuttakeGeneral.and(manualScoreHigh);
+        private final Trigger runOuttakeForLow = runOuttakeGeneral.and(manualScoreMid);
 
+        private final Trigger intakeToFallenCone = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
+        private final Trigger intakeToStandingCone = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
+
+        private final Trigger runIntakeFallenCone = runIntakeGeneral.and(intakeToFallenCone);
+        private final Trigger runIntakeStandingCone = runIntakeGeneral.and(intakeToStandingCone);
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -135,32 +127,31 @@ public class RobotContainer {
                                                 true // Is field relative
                                 ));
 
-                log.addDouble("Translation", (Supplier<Double>) translation, "Drive values");
-                log.addDouble("Strafe", (Supplier<Double>) strafe, "Drive values");
-                log.addDouble("Rotation", (Supplier<Double>) rotation, "Drive values");
-                log.addDouble("Angle", () -> angle.get().getDegrees(), "Drive values");
-                
                 // Configure the button bindings
-                
-                
+                // autoChooser.setDefaultOption("Test Auto", TestAutoFactory.getTestAuto(swerve,
+                // elevator, wrist, intake));
+                // autoChooser.setDefaultOption("Test Auto", TestAutoFactory.getTestAuto(swerve,
+                // elevator, wrist, intake));x
+
                 elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
-                
-                NetworkTable testing =  NetworkTableInstance.getDefault().getTable("Testing");
+
+                NetworkTable testing = NetworkTableInstance.getDefault().getTable("Testing");
 
                 ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
-                
-                
-                PoseFinderElevator = poseFinder.add("height", 0).withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", 0, "max", 1.304079773806718)).getEntry();
-                PoseFinderWrist = poseFinder.add("angle", 13).withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", 13, "max", 204.462891)).getEntry();
 
-                shootPercent = poseFinder.add("shoot", 0).withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -1, "max", 1)).getEntry();
-               
-                intakePercent = poseFinder.add("intake", 0).withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -1, "max", 1)).getEntry();
-              
-                SmartDashboard.putNumber("testtt", ElevatorConstants.clicksToMeters(49220));
-                
+                PoseFinderElevator = poseFinder.add("height", 0).withWidget(BuiltInWidgets.kNumberSlider)
+                                .withProperties(Map.of("min", 0, "max", 1.304079773806718)).getEntry();
+                PoseFinderWrist = poseFinder.add("angle", 13).withWidget(BuiltInWidgets.kNumberSlider)
+                                .withProperties(Map.of("min", 13, "max", 204.462891)).getEntry();
+
+                shootPercent = poseFinder.add("shoot", 0).withWidget(BuiltInWidgets.kNumberSlider)
+                                .withProperties(Map.of("min", -1, "max", 1)).getEntry();
+
+                intakePercent = poseFinder.add("intake", 0).withWidget(BuiltInWidgets.kNumberSlider)
+                                .withProperties(Map.of("min", -1, "max", 1)).getEntry();
+
                 configureButtonBindings();
-        
+
         }
 
         /**
@@ -174,44 +165,36 @@ public class RobotContainer {
         private void configureButtonBindings() {
                 /* Driver Buttons */
                 zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
-                // zeroEncoders.onTrue(new InstantCommand(swerve::alignPoseNonVisionEstimator));
+                alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
 
-                //intakeCube.whileTrue(IntakeCommandFactory.intakeCube(wrist, elevator, intakeAndShooter));
-                // rightBumper.whileTrue(IntakeCommandFactory.intakeUprightCone(wrist, elevator, intakeAndShooter));
-                // intakeFallenCone.whileTrue(IntakeCommandFactory.intakeFallenCone(wrist, elevator, intakeAndShooter));
+                intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist));
+                intakeToFallenCone.whileTrue(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist));
 
-             //   bButton.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
-                xButton.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(115, 0.02)));
+                manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake));
+                manualScoreMid.whileTrue(IntakePositionCommandFactory.IntakeToMid(elevator, wrist, intake));
 
+                autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve));
+                autoScoreMid.whileTrue(ScoreCommandFactory.alignAndScoreMid(wrist, elevator, intake, swerve));
 
-                leftTrigger.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
-                rightTrigger.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(115, 0.02)));
+                runIntakeFallenCone.whileTrue(IntakeCommandFactory.runIntakeForFallenCone(intake));
+                runIntakeStandingCone.whileTrue(IntakeCommandFactory.runIntakeForStandingCone(intake));
 
-                
+                runOuttakeForHigh.whileTrue(ScoreCommandFactory.outtakeHigh(intake));
+                runOuttakeForLow.whileTrue(ScoreCommandFactory.outtakeMid(intake));
 
-                aButton.whileTrue(new TeleopSwerve(swerve, translation, strafe, rotation, () -> Rotation2d.fromDegrees(0), () -> true,
-                true // Is field relative
-                ));
+                runIntakeGeneral.whileTrue(new StartEndCommand(
+                                () -> intake.runIntakeAtPercent(FieldDependentConstants.CurrentField.INTAKE_GENERAL),
+                                intake::disable, intake));
 
-                
+                runOuttakeGeneral.whileTrue(new StartEndCommand(
+                                () -> intake.runIntakeAtPercent(-FieldDependentConstants.CurrentField.OUTTAKE_GENERAL),
+                                intake::disable, intake));
 
-
-
-        //elevatorTest.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
-                bButton.whileTrue(new AlignToConeNodeLimelightOnly(swerve).alongWith(new InstantCommand(() -> Candle.getInstance().changeLedState(LEDState.Fire))).andThen(new InstantCommand(() -> Candle.getInstance().changeLedState(LEDState.Idle))));
-
-                // Left Bumper:
-                leftBumper.whileTrue(new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(intakePercent.getDouble(0)), () -> intakeAndShooter.disable(), intakeAndShooter));
-                rightBumper.whileTrue(new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(-intakePercent.getDouble(0)), () -> intakeAndShooter.disable(), intakeAndShooter));
-                // intakeUprightCone.whileTrue(new StartEndCommand(() -> intakeAndShooter.runIntakeAtPercent(0.3, -0.3), () -> intakeAndShooter.disable(), intakeAndShooter));
-
-                // xButton.onTrue( 
-                //         new InstantCommand( () -> Candle.getInstance().changeLedState(LEDState.HumanPlayerCommunication))
-                //         .andThen(new InstantCommand( () -> Candle.getInstance().changeLedState(LEDState.Idle))
-                // ));
-
-
+                // leftTrigger.whileTrue(new IntakeToPosition(wrist, elevator, () -> new
+                // ElevatorWristState(PoseFinderWrist.getDouble(13),
+                // PoseFinderElevator.getDouble(0))));
         }
+
         /**
          * Use this to pass the autonomous command to the main {@link Robot} class.
          *
@@ -219,7 +202,8 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
                 // An ExampleCommand will run in autonomous
-                return new ExamplePathPlannerAuto(swerve);
+                return AutoFactory.Score2(wrist, elevator, intake, swerve); // AutoFactory.Score2(wrist, elevator,
+                                                                            // intake, swerve);
         }
 
         public void resetToAbsloute() {
@@ -229,6 +213,9 @@ public class RobotContainer {
         public Runnable getSwerveBuffer() {
                 return swerve.bufferYaw();
         }
- 
+
+        public double getLimelightOffset() {
+                return RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), intake.getConeOffset());
+        }
 
 }

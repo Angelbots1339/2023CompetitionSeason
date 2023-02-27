@@ -5,18 +5,21 @@
 package frc.robot.commands.align;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants.SwerveConstants.DrivePidConstants;
 import frc.robot.subsystems.Swerve;
 
 public class AlignToPos extends CommandBase {
-  private Swerve swerve;
-  private boolean atSetpoints = false;
-  private Pose2d target;
+  private final Swerve swerve;
+  private final Pose2d target;
+
+  private double xTolerance, yTolerance;
   /** Creates a new AlignToPos. */
-  public AlignToPos(Swerve swerve, Pose2d target) {
+  public AlignToPos(Swerve swerve, Pose2d target, double xTolerance, double yTolerance) {
     this.swerve = swerve;
     this.target = target;
+    this.xTolerance = xTolerance;
+    this.yTolerance = yTolerance;
     addRequirements(swerve);
 
     // Use addRequirements() here to declare subsystem dependencies.
@@ -29,18 +32,20 @@ public class AlignToPos extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    atSetpoints = swerve.pidToPose(target);
+    swerve.pidToPose(target);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    swerve.drive(new Translation2d(0 ,0), 0, false, false);
+    swerve.disable();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return atSetpoints;
+
+    Pose2d error = swerve.getPose().relativeTo(target); 
+    return Math.abs(error.getX()) < xTolerance && Math.abs(error.getY()) < yTolerance && Math.abs(error.getRotation().getDegrees()) < DrivePidConstants.ANGLE_TOLERANCE;
   }
 }

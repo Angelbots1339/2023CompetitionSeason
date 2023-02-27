@@ -2,16 +2,14 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands.superStructre;
+package frc.robot.commands.superStructure;
 
 import java.util.function.Supplier;
 
+
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.lib.util.Candle;
 import frc.lib.util.ElevatorWristState;
-import frc.lib.util.Candle.LEDState;
 
 import static frc.robot.Constants.ElevatorWristStateConstants.*;
 
@@ -19,13 +17,14 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.ElevatorWristStateConstants;
 import frc.robot.Constants.WristConstants;
 import frc.robot.subsystems.Elevator;
-import frc.robot.subsystems.Swerve;
 import frc.robot.subsystems.Wrist;
 
 public class IntakeToPosition extends CommandBase {
   protected Wrist wrist;
   protected Elevator elevator;
   protected Supplier<ElevatorWristState> goal;
+
+  
 
   /** Creates a new IntakeToPosition. */
   public IntakeToPosition(Wrist wrist, Elevator elevator, Supplier<ElevatorWristState> state) {
@@ -56,17 +55,19 @@ public class IntakeToPosition extends CommandBase {
     Rotation2d wristGoal = goal.get().angle;
     double heightGoal = goal.get().height;
 
-    if (elevator.getHeight() <= IGNORE_CRUSH_ANGLE_HEIGHT
+    if (elevator.getHeightMeters() <= IGNORE_CRUSH_ANGLE_HEIGHT
         && wrist.getAngleDeg() >= CRUSH_ANGLE.getDegrees()
         && heightGoal <= IGNORE_CRUSH_ANGLE_HEIGHT) 
       runElevator = false;
     
-    if (wristGoal.getDegrees() <= SAFE_LIMELIGHT_ANGLE.getDegrees() && willPassThroughLimeLight(heightGoal, elevator.getHeight())) 
+    if (wristGoal.getDegrees() <= SAFE_LIMELIGHT_ANGLE.getDegrees() && willPassThroughLimeLight(heightGoal, elevator.getHeightMeters())) 
         wristGoal = SAFE_LIMELIGHT_ANGLE;  
   
     if(runElevator)
       elevator.setMotionMagicClicks(ElevatorConstants.metersToClicks(heightGoal));
+      
     wrist.setMotionMagic(WristConstants.radiansToClicks(wristGoal.getRadians()));
+
   }
 
 
@@ -88,7 +89,16 @@ public class IntakeToPosition extends CommandBase {
   }
 
 
-  public static Command home(Wrist wrist, Elevator elevator) {
+  public static IntakeToPosition home(Wrist wrist, Elevator elevator) {
     return new IntakeToPosition(wrist, elevator, ElevatorWristStateConstants.HOME);
+  }
+
+  public static IntakeToPosition reachHeightBeforeStartAngle(Wrist wrist, Elevator elevator, ElevatorWristState finalPos, double heightBeforeStartAngle){
+    return new IntakeToPosition(wrist, elevator, () -> {
+      if(elevator.getHeightMeters() < heightBeforeStartAngle)
+        return new ElevatorWristState(ElevatorWristStateConstants.HOME.angle.getDegrees(), finalPos.height);
+      else  
+        return finalPos;
+    });
   }
 }
