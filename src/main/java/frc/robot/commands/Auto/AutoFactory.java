@@ -25,7 +25,7 @@ public class AutoFactory {
 
     public static Command Score2(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
         List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("2ConeGrabBalance", new PathConstraints(3, 1));
-        swerve.zeroGyro(FieldUtil.getTwoardsDriverStation().getDegrees());
+        swerve.zeroGyro(FieldUtil.getTowardsDriverStation().getDegrees());
         return Commands.sequence(
                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH).asProxy(),
                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(0), true, true, swerve, intake,

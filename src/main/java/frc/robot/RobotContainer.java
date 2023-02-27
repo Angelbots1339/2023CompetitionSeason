@@ -32,7 +32,7 @@ import frc.robot.commands.objectManipulation.score.ScoreCommandFactory;
 import frc.robot.commands.superStructure.IntakePositionCommandFactory;
 import frc.robot.commands.superStructure.IntakeToPosition;
 import frc.robot.subsystems.*;
-import frc.robot.vison.RetroReflectiveTargeter;
+import frc.robot.vision.RetroReflectiveTargeter;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -96,13 +96,13 @@ public class RobotContainer {
                         XboxController.Button.kBack.value);
 
         private final Trigger manualScoreHigh = new JoystickButton(driver,
-                        XboxController.Button.kY.value);
-        private final Trigger manualScoreMid = new JoystickButton(driver,
                         XboxController.Button.kA.value);
+        private final Trigger manualScoreMid = new JoystickButton(driver,
+                        XboxController.Button.kB.value);
         private final Trigger autoScoreHigh = new JoystickButton(driver,
                         XboxController.Button.kX.value);
         private final Trigger autoScoreMid = new JoystickButton(driver,
-                        XboxController.Button.kB.value);
+                        XboxController.Button.kY.value);
 
         private final Trigger runIntakeGeneral = new JoystickButton(driver,
                         XboxController.Button.kRightBumper.value);

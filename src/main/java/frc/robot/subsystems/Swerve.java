@@ -5,8 +5,8 @@ import com.pathplanner.lib.PathPoint;
 
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.commands.auto.SwerveFollowTrajectory;
-import frc.robot.vison.PoseEstimator;
-import frc.robot.vison.RetroReflectiveTargeter;
+import frc.robot.vision.PoseEstimator;
+import frc.robot.vision.RetroReflectiveTargeter;
 import frc.lib.math.ClosedLoopUtil;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.LatencyDoubleBuffer;

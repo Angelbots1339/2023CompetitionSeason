@@ -51,7 +51,7 @@ public class FieldUtil {
         }
     }
 
-    public static final Rotation2d getTwoardsDriverStation(){
+    public static final Rotation2d getTowardsDriverStation(){
         if(DriverStation.getAlliance() == Alliance.Red){
             return Rotation2d.fromDegrees(0);
         }else {
