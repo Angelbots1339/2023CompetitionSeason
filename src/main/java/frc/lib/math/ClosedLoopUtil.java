@@ -28,7 +28,7 @@ public class ClosedLoopUtil {
         if(Math.abs(error) < tolerance){
             return 0;
         }else{
-            return error;
+            return output;
         }
     }
 

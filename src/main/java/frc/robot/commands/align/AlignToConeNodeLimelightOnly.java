@@ -8,6 +8,7 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.lib.math.ClosedLoopUtil;
 import frc.lib.util.FieldUtil;
@@ -24,15 +25,11 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   /** Creates a new SimpleAlignToTarget. */
   private final Swerve swerve;
 
-
   private final DoubleSupplier coneOffset;
   private final boolean favorHigh;
 
-
-  PIDController yController = new PIDController(0.5, 0, 0);
-  PIDController xController = new PIDController(1.5, 0, 0);
-
-  
+  PIDController yController = new PIDController(1, 0, 0);
+  PIDController xController = new PIDController(2, 0, 0);
 
   public AlignToConeNodeLimelightOnly(Swerve swerve, DoubleSupplier coneOffset, boolean favorHigh) {
     this.coneOffset = coneOffset;
@@ -40,10 +37,6 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
     this.favorHigh = favorHigh;
     addRequirements(swerve);
   }
-
-
- 
-
 
   // Called when the command is initially scheduled.
   @Override
@@ -56,31 +49,66 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
     RetroReflectiveTargeter.update(swerve.getPose(), favorHigh);
     if (LimeLight.hasTargets()) {
       double yOffset = RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), coneOffset.getAsDouble());
-      double xOffset = RetroReflectiveTargeter.getXOffsetFromPlacePos();
+      // yOffset = RetroReflectiveTargeter.getYOffset();
+      double xOffset = RetroReflectiveTargeter.getXOffset();
 
-      double xSetPoint = 0;
+      double xSetPoint;
 
-      if(Math.abs(yOffset) > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE){
-        if(RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH){
+      if (Math.abs(yOffset) > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE) {
+        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH) {
+          xSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
+        } else {
+          xSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
+        }
+      } else {
+        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH) {
           xSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET;
         } else {
           xSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET;
         }
-      } 
-      
 
-    double X = xController.calculate(xOffset, xSetPoint) 
-       + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KV);
-      X = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(), FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_X_TOLERANCE);
+      }
+
+      double X = xController.calculate(xOffset, xSetPoint)
+          + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
+
+      if (RetroReflectiveTargeter
+          .getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
+              ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
+              : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET)) {
+        X = 0;
+      }
       X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
-    double Y = yController.calculate(yOffset, 0) 
-       + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KV);
-       Y = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(), FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
-       Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
+      double Y = yController.calculate(yOffset, 0)
+          + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
+      
 
-      swerve.angularDrive(new Translation2d(X,-Y), FieldUtil.getTowardsDriverStation(), true, true);
- 
+      Y = ClosedLoopUtil.stopAtSetPoint(Y, yController.getPositionError(),
+          FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
+      Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
+
+      SmartDashboard.putNumber("y Error", yController.getPositionError());
+
+      SmartDashboard.putNumber("X offest", xOffset);
+
+      SmartDashboard.putNumber("y out", yController.calculate(yOffset, 0));
+      SmartDashboard.putNumber("y feed", ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
+
+
+
+      SmartDashboard.putBoolean("y setPoint", yController.getPositionError() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
+      SmartDashboard.putBoolean("x setPoint", RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
+      ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
+      : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET));
+
+
+      swerve.angularDrive(new Translation2d(X, -Y), FieldUtil.getTowardsDriverStation(), true, true);
+
+   
+
+
+
     } else {
       swerve.disable();
     }
@@ -97,8 +125,11 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   public boolean isFinished() {
 
     return Math.abs(yController.getPositionError()) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE
-        && Math.abs(xController.getPositionError()) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_X_TOLERANCE
-        && LimeLight.hasTargets();
+        && RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
+            ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
+            : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET) && LimeLight.hasTargets();
   }
 
 }
+
+

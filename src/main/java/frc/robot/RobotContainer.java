@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.math.Conversions;
+import frc.lib.util.ElevatorWristState;
 import frc.lib.util.logging.LoggedSubsystem;
 import static frc.robot.Constants.ElevatorWristStateConstants.*;
 
@@ -104,16 +105,16 @@ public class RobotContainer {
         private final Trigger autoScoreMid = new JoystickButton(driver,
                         XboxController.Button.kY.value);
 
-        private final Trigger runIntakeGeneral = new JoystickButton(driver,
-                        XboxController.Button.kRightBumper.value);
         private final Trigger runOuttakeGeneral = new JoystickButton(driver,
+                        XboxController.Button.kRightBumper.value);
+        private final Trigger runIntakeGeneral = new JoystickButton(driver,
                         XboxController.Button.kLeftBumper.value);
 
         private final Trigger runOuttakeForHigh = runOuttakeGeneral.and(manualScoreHigh);
         private final Trigger runOuttakeForLow = runOuttakeGeneral.and(manualScoreMid);
 
-        private final Trigger intakeToFallenCone = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
-        private final Trigger intakeToStandingCone = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
+        private final Trigger intakeToStandingCone = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
+        private final Trigger intakeToFallenCone = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
 
         private final Trigger runIntakeFallenCone = runIntakeGeneral.and(intakeToFallenCone);
         private final Trigger runIntakeStandingCone = runIntakeGeneral.and(intakeToStandingCone);
@@ -137,18 +138,9 @@ public class RobotContainer {
 
                 NetworkTable testing = NetworkTableInstance.getDefault().getTable("Testing");
 
-                ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
 
-                PoseFinderElevator = poseFinder.add("height", 0).withWidget(BuiltInWidgets.kNumberSlider)
-                                .withProperties(Map.of("min", 0, "max", 1.304079773806718)).getEntry();
-                PoseFinderWrist = poseFinder.add("angle", 13).withWidget(BuiltInWidgets.kNumberSlider)
-                                .withProperties(Map.of("min", 13, "max", 204.462891)).getEntry();
+               
 
-                shootPercent = poseFinder.add("shoot", 0).withWidget(BuiltInWidgets.kNumberSlider)
-                                .withProperties(Map.of("min", -1, "max", 1)).getEntry();
-
-                intakePercent = poseFinder.add("intake", 0).withWidget(BuiltInWidgets.kNumberSlider)
-                                .withProperties(Map.of("min", -1, "max", 1)).getEntry();
 
                 configureButtonBindings();
 
@@ -165,12 +157,12 @@ public class RobotContainer {
         private void configureButtonBindings() {
                 /* Driver Buttons */
                 zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
-                alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
+                //alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
 
                 intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist));
                 intakeToFallenCone.whileTrue(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist));
 
-                manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake));
+               manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake));
                 manualScoreMid.whileTrue(IntakePositionCommandFactory.IntakeToMid(elevator, wrist, intake));
 
                 autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve));
@@ -190,9 +182,7 @@ public class RobotContainer {
                                 () -> intake.runIntakeAtPercent(-FieldDependentConstants.CurrentField.OUTTAKE_GENERAL),
                                 intake::disable, intake));
 
-                // leftTrigger.whileTrue(new IntakeToPosition(wrist, elevator, () -> new
-                // ElevatorWristState(PoseFinderWrist.getDouble(13),
-                // PoseFinderElevator.getDouble(0))));
+                //manualScoreHigh.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
         }
 
         /**

@@ -105,7 +105,7 @@ public class Candle {
             //         OFFSET_LENGTH));
 
             candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[0][1] + ledZones[1][1], Direction.Backward, OFFSET_LENGTH + ledZones[0][0]), 1);
-            candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 2, Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
+            candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 1, Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
         
 
             currentState = LEDState.Idle;

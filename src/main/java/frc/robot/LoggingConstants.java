@@ -16,7 +16,7 @@ public final class LoggingConstants {
                         "Module", LoggingLevel.SHUFFLEBOARD,
                         "Pose", LoggingLevel.NONE,
                         "AngularDrive", LoggingLevel.NONE,
-                        "Drive", LoggingLevel.NONE,
+                        "Drive", LoggingLevel.SHUFFLEBOARD,
                         "Default", LoggingLevel.NONE,
                         "PidPose", LoggingLevel.NONE,
                         "PoseEstimator", LoggingLevel.SHUFFLEBOARD);

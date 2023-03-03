@@ -31,18 +31,12 @@ public class RetroReflectiveTargeter {
             double horizontalOffset = LimeLight.getHorizontalOffset();
             double verticalOffset = LimeLight.getVerticalOffset();
 
-            double highTargetPredictionX = Math.abs(robotPose.getX() - FieldUtil.getConeNodeHighX())
-                    + VisionConstants.LIMELIGHT_CAM_POS.getX();
+            
             double highTargetPredictionZ = FieldUtil.coneNodeHighZ - VisionConstants.LIMELIGHT_CAM_POS.getZ();
-            double highTargetPrediction = Math.toDegrees(Math.atan(highTargetPredictionZ / highTargetPredictionX));
 
-            double midTargetPredictionX = Math.abs(robotPose.getX()) - FieldUtil.getConeNodeMidX()
-                    + VisionConstants.LIMELIGHT_CAM_POS.getX();
             double midTargetPredictionZ = FieldUtil.coneNodeMidZ - VisionConstants.LIMELIGHT_CAM_POS.getZ();
-            double midTargetPrediction = Math.toDegrees(Math.atan(midTargetPredictionZ / midTargetPredictionX)
-                    + VisionConstants.LIMELIGHT_CAM_POS.getRotation().getY());
 
-            if (Math.abs(verticalOffset - highTargetPrediction) < Math.abs(verticalOffset - midTargetPrediction)) { // high
+            if (verticalOffset > 0) { // high
                 LimeLight.setPipelineMode(highPipeLine);
                 SmartDashboard.putString("Target", "High");
                 if (LimeLight.getPipeline() == highPipeLine) {
@@ -58,8 +52,11 @@ public class RetroReflectiveTargeter {
                 }
             }
 
-            yOffset = Math.tan(getAdjustedYaw(robotPose.getRotation()).getDegrees() + Math.toRadians(horizontalOffset))
-                    * xOffset;
+
+            SmartDashboard.putNumber("angle", getAdjustedYaw(robotPose.getRotation()).getDegrees());
+            yOffset = Math.tan(Math.toRadians(horizontalOffset) + getAdjustedYaw(robotPose.getRotation()).getRadians()) * xOffset;
+
+            
 
         } else {
             status = targetingStatus.NONE;
@@ -72,16 +69,7 @@ public class RetroReflectiveTargeter {
         return xOffset;
     }
     
-    public static double getXOffsetFromPlacePos() {
-        switch (status) {
-            case HIGH:
-                return xOffset - FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_DIST;
-            case MID:
-                return xOffset - FieldDependentConstants.CurrentField.MID_TARGET_LIMELIGHT_DIST;
-            default:
-                return -1;
-        }
-    }
+  
 
     public static double getYOffset() {
         return yOffset;
@@ -104,16 +92,16 @@ public class RetroReflectiveTargeter {
     public static double getYOffsetFromConeOffset(Pose2d robotPose, double coneOffset) {
 
         double horizontalOffset = LimeLight.getHorizontalOffset();
+
+        SmartDashboard.putNumber("predict", FieldDependentConstants.CurrentField.HIGH_CONE_Regression.predict(coneOffset));
         switch (status) {
             case HIGH:
-                 horizontalOffset = horizontalOffset
-                        - FieldDependentConstants.CurrentField.HIGH_CONE_Regression.predict(coneOffset);
-                return Math.tan(getAdjustedYaw(robotPose.getRotation()).getDegrees() + Math.toRadians(horizontalOffset))
+                 horizontalOffset = horizontalOffset -FieldDependentConstants.CurrentField.HIGH_CONE_Regression.predict(coneOffset) ;
+                return Math.tan(Math.toRadians(horizontalOffset))
                         * xOffset;
             case MID:
-                 horizontalOffset = horizontalOffset
-                        - FieldConstants.MID_CONE_Regression.predict(coneOffset);
-                return Math.tan(getAdjustedYaw(robotPose.getRotation()).getDegrees() + Math.toRadians(horizontalOffset))
+                 horizontalOffset = horizontalOffset - FieldConstants.MID_CONE_Regression.predict(coneOffset);
+                return Math.tan(Math.toRadians(horizontalOffset))
                         * xOffset;
             default:
                 return 0;
@@ -125,7 +113,7 @@ public class RetroReflectiveTargeter {
         HIGH, MID, NONE;
     }
 
-    private static Rotation2d getAdjustedYaw(Rotation2d rotation2d) {
+    public static Rotation2d getAdjustedYaw(Rotation2d rotation2d) {
         if (Math.abs(rotation2d.getDegrees()) < 90) {
             return rotation2d;
         } else {

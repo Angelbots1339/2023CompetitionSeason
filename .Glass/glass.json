@@ -6,6 +6,9 @@
     "retained": {
       "SmartDashboard": {
         "open": true
+      },
+      "limelight": {
+        "open": true
       }
     },
     "transitory": {
@@ -45,8 +48,7 @@
       "Swerve": {
         "Modules": {
           "open": true
-        },
-        "open": true
+        }
       },
       "Testing": {
         "open": true
@@ -54,8 +56,7 @@
       "photonvision": {
         "Cam1": {
           "open": true
-        },
-        "open": true
+        }
       }
     },
     "types": {
@@ -67,6 +68,10 @@
       "/LiveWindow/Ungrouped/DigitalInput[23]": "Digital Input",
       "/LiveWindow/Ungrouped/PIDController[10]": "PIDController",
       "/LiveWindow/Ungrouped/PIDController[11]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[12]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[13]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[14]": "PIDController",
+      "/LiveWindow/Ungrouped/PIDController[15]": "PIDController",
       "/LiveWindow/Ungrouped/PIDController[1]": "PIDController",
       "/LiveWindow/Ungrouped/PIDController[2]": "PIDController",
       "/LiveWindow/Ungrouped/PIDController[3]": "PIDController",
@@ -115,7 +120,7 @@
                 0.6901960968971252,
                 1.0
               ],
-              "id": "NT:/SmartDashboard/through bore"
+              "id": "NT:/SmartDashboard/Xoffset"
             }
           ]
         }

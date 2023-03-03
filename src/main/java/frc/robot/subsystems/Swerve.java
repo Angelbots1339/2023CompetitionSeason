@@ -97,6 +97,8 @@ public class Swerve extends SubsystemBase {
         logger.updateDouble("x", chassisSpeeds.vxMetersPerSecond, "Drive");
         logger.updateDouble("y", chassisSpeeds.vyMetersPerSecond, "Drive");
         logger.updateDouble("rot", chassisSpeeds.omegaRadiansPerSecond, "Drive");
+        SmartDashboard.putNumber("xspeed", chassisSpeeds.vxMetersPerSecond);
+
 
         SwerveModuleState[] swerveModuleStates = KINEMATICS.toSwerveModuleStates(chassisSpeeds);
 
@@ -154,7 +156,7 @@ public class Swerve extends SubsystemBase {
         logger.updateDouble("currentHeading", yaw, "AngularDrive");
         double pid = angularDrivePID.calculate(yaw, desiredDegrees.getDegrees());
 
-        if (Math.abs(angularDrivePID.getPositionError()) >= 2) {
+        if (Math.abs(angularDrivePID.getPositionError()) >= ANGLE_TOLERANCE) {
             rotation = MathUtil.clamp(pid + (-desiredAngularVelocity.getRadians() * ANGLE_KV) + // Kv
                                                                                                 // //
                                                                                                 // Velocity
@@ -274,6 +276,9 @@ public class Swerve extends SubsystemBase {
 
     public AprilTagFieldLayout getField(){
         return poseEstimation.getField();
+    }
+    public Pose2d getClosestCubeNode(){
+        return poseEstimation.getClosestCubeNode();
     }
 
     public void resetOdometry(Pose2d pose) {
@@ -405,9 +410,16 @@ public class Swerve extends SubsystemBase {
      */
     public boolean pidToPose(Pose2d target) {
 
+
+        double X = pidToPoseXController.calculate(getPose().getTranslation().getX(), target.getX()) + ClosedLoopUtil.positionFeedForward(pidToPoseXController.getPositionError(), TRANSLATION_KS);
+        double Y = pidToPoseYController.calculate(getPose().getTranslation().getY(), target.getY()) + ClosedLoopUtil.positionFeedForward(pidToPoseYController.getPositionError(), TRANSLATION_KS);
+
+
+        SmartDashboard.putNumber("X", X);
+        SmartDashboard.putNumber("Y", Y);
         Translation2d calculatedValues = new Translation2d(
-                pidToPoseXController.calculate(getPose().getTranslation().getX(), target.getX()),
-                pidToPoseYController.calculate(getPose().getTranslation().getY(), target.getY()));
+                X,
+                Y);
 
         angularDrive(calculatedValues, target.getRotation(), true, false);
 
@@ -452,6 +464,7 @@ public class Swerve extends SubsystemBase {
 
         logger.add(new LoggedSwerveModule("Modules", logger, swerveMods, "Module", true));
 
+
         for (int i = 0; i < swerveMods.length; i++) {
             logger.add(new LoggedFalcon("Angle Motor: " + i, logger, swerveMods[i].getAngleMotor(), "Motor", true));
             logger.add(new LoggedFalcon("Drive Motor: " + i, logger, swerveMods[i].getDriveMotor(), "Motor", true));
@@ -461,11 +474,7 @@ public class Swerve extends SubsystemBase {
     @Override
     public void periodic() {
         poseEstimation.updateOdometry(this, getPose());
-        SmartDashboard.putNumber("yaw", getYaw().getDegrees());
+        // SmartDashboard.putNumber("h offset", getPose().getX() - getField().getTagPose(7).get().toPose2d().getX());
         calculateVelocity();
-
-        RetroReflectiveTargeter.update(getPose(), true);
-        SmartDashboard.putNumber("Xoffset", RetroReflectiveTargeter.getXOffset());
-        SmartDashboard.putNumber("Yoffset", RetroReflectiveTargeter.getYOffset());
     }
 }

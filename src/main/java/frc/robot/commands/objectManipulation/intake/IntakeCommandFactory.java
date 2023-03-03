@@ -4,6 +4,12 @@
 
 package frc.robot.commands.objectManipulation.intake;
 
+import java.util.Map;
+
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import frc.lib.util.FieldUtil;
@@ -45,6 +51,17 @@ public class IntakeCommandFactory {
     public static Command runIntakeForFallenCone(Intake intake) {
         return new StartEndCommand(() -> intake.runIntakeAtPercent(
             FieldDependentConstants.CurrentField.INTAKE_FALLEN_CONE) , intake::disable, intake);
+    }
+    public static Command poseFinderIntake(Intake intake, String name) {
+        
+        ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
+
+        GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("percent: " + name, 0)
+                        .withWidget(BuiltInWidgets.kNumberSlider)
+                        .withProperties(Map.of("min", 0, "max", 1, "Block increment", 0.05)).getEntry();
+                        
+        return new StartEndCommand(() -> intake.runIntakeAtPercent(
+            poseFinderHeightBeforeStartAngle.getDouble(0)) , intake::disable, intake);
     }
 
 

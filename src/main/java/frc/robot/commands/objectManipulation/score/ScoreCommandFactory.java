@@ -7,6 +7,10 @@ package frc.robot.commands.objectManipulation.score;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
@@ -144,6 +148,18 @@ public class ScoreCommandFactory {
 
         public static Command outtakeAtPercent(Intake intake, double percent) {
                 return new StartEndCommand(() -> intake.runIntakeAtPercent(percent), intake::disable, intake);
+        }
+
+        public static Command poseFinder(Intake intake, double percent) {
+                ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
+
+                GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("percent", percent)
+                                .withWidget(BuiltInWidgets.kNumberSlider)
+                                .withProperties(Map.of("min", 0, "max", 1, "Block increment", 0.05)).getEntry();
+
+                return new StartEndCommand(
+                                () -> intake.runIntakeAtPercent(poseFinderHeightBeforeStartAngle.getDouble(percent)),
+                                intake::disable, intake);
         }
 
         public enum ScoreHight {

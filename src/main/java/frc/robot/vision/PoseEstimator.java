@@ -6,6 +6,7 @@ package frc.robot.vision;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,8 @@ public class PoseEstimator {
     public SwerveDrivePoseEstimator poseEstimatorNonVision;
     private AprilTagFieldLayout layout;
 
+    private final Pose2d[] cubeNodePoses = new Pose2d[6];
+
     public PoseEstimator(LoggedField logger, Rotation2d gyroAngle, SwerveModulePosition[] positions) {
 
         // Pose Estimator
@@ -49,6 +52,18 @@ public class PoseEstimator {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        for (int i = 1; i < 7; i++) {
+            if(i > 3){
+                cubeNodePoses[i - 1] = layout.getTagPose(i + 2).get().toPose2d();
+            }
+            else{
+                cubeNodePoses[i - 1] = layout.getTagPose(i).get().toPose2d();
+            }
+            
+        }
+
+        
 
         poseEstimatorNonVision = new SwerveDrivePoseEstimator(SwerveConstants.KINEMATICS, gyroAngle, positions,
                 new Pose2d(), STATE_STD_DEVS, VecBuilder.fill(0, 0, 0));
@@ -163,16 +178,8 @@ public class PoseEstimator {
     }
 
 
-    public double getXOffset() {
-        if(APRILTAG_CAM.getLatestResult().hasTargets()){
-            PhotonTrackedTarget target = APRILTAG_CAM.getLatestResult().getBestTarget();
-            int id = target.getFiducialId();
-            if (id > 8 || id < 1)
-                return 0;
-            Pose3d targetPosition = layout.getTagPose(target.getFiducialId()).get();
-            return getPose().getTranslation().getX() - targetPosition.getTranslation().getX();
-        }
-        return 0;
+    public Pose2d getClosestCubeNode() {
+        return getPose().nearest(Arrays.asList(cubeNodePoses));
     }
     public void alignPoseNonVisionEstimator(SwerveModulePosition[] swerveModulePositions) {
         poseEstimatorNonVision.resetPosition(getPose().getRotation(), swerveModulePositions, getPose());

@@ -4,10 +4,14 @@
 
 package frc.robot.commands.superStructure;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
-
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.lib.util.ElevatorWristState;
 
@@ -23,8 +27,6 @@ public class IntakeToPosition extends CommandBase {
   protected Wrist wrist;
   protected Elevator elevator;
   protected Supplier<ElevatorWristState> goal;
-
-  
 
   /** Creates a new IntakeToPosition. */
   public IntakeToPosition(Wrist wrist, Elevator elevator, Supplier<ElevatorWristState> state) {
@@ -57,22 +59,23 @@ public class IntakeToPosition extends CommandBase {
 
     if (elevator.getHeightMeters() <= IGNORE_CRUSH_ANGLE_HEIGHT
         && wrist.getAngleDeg() >= CRUSH_ANGLE.getDegrees()
-        && heightGoal <= IGNORE_CRUSH_ANGLE_HEIGHT) 
+        && heightGoal <= IGNORE_CRUSH_ANGLE_HEIGHT)
       runElevator = false;
-    
-    if (wristGoal.getDegrees() <= SAFE_LIMELIGHT_ANGLE.getDegrees() && willPassThroughLimeLight(heightGoal, elevator.getHeightMeters())) 
-        wristGoal = SAFE_LIMELIGHT_ANGLE;  
-  
-    if(runElevator)
+
+    if (wristGoal.getDegrees() <= SAFE_LIMELIGHT_ANGLE.getDegrees()
+        && willPassThroughLimeLight(heightGoal, elevator.getHeightMeters()))
+      wristGoal = SAFE_LIMELIGHT_ANGLE;
+
+    if (runElevator)
       elevator.setMotionMagicClicks(ElevatorConstants.metersToClicks(heightGoal));
-      
+
     wrist.setMotionMagic(WristConstants.radiansToClicks(wristGoal.getRadians()));
 
   }
 
-
   private boolean willPassThroughLimeLight(double goal, double current) {
-    return (LIMELIGHT_CRUSH_HEIGHT_LOW >= goal && LIMELIGHT_CRUSH_HEIGHT_HIGH <= current) || (LIMELIGHT_CRUSH_HEIGHT_HIGH <= goal && LIMELIGHT_CRUSH_HEIGHT_LOW >= current);
+    return (LIMELIGHT_CRUSH_HEIGHT_LOW >= goal && LIMELIGHT_CRUSH_HEIGHT_HIGH <= current)
+        || (LIMELIGHT_CRUSH_HEIGHT_HIGH <= goal && LIMELIGHT_CRUSH_HEIGHT_LOW >= current);
   }
 
   // Called once the command ends or is interrupted.
@@ -88,17 +91,46 @@ public class IntakeToPosition extends CommandBase {
     return false;
   }
 
-
   public static IntakeToPosition home(Wrist wrist, Elevator elevator) {
     return new IntakeToPosition(wrist, elevator, ElevatorWristStateConstants.HOME);
   }
 
-  public static IntakeToPosition reachHeightBeforeStartAngle(Wrist wrist, Elevator elevator, ElevatorWristState finalPos, double heightBeforeStartAngle){
+  public static IntakeToPosition reachHeightBeforeStartAngle(Wrist wrist, Elevator elevator,
+      ElevatorWristState finalPos, double heightBeforeStartAngle) {
     return new IntakeToPosition(wrist, elevator, () -> {
-      if(elevator.getHeightMeters() < heightBeforeStartAngle)
+      if (elevator.getHeightMeters() < heightBeforeStartAngle)
         return new ElevatorWristState(ElevatorWristStateConstants.HOME.angle.getDegrees(), finalPos.height);
-      else  
+      else
         return finalPos;
     });
+  }
+
+  public static IntakeToPosition poseFinder(Wrist wrist, Elevator elevator, ElevatorWristState finalPos,
+      double heightBeforeStartAngle, String name) {
+    ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
+
+    GenericEntry poseFinderElevator = poseFinder.add("height: " + name, finalPos.height).withWidget(BuiltInWidgets.kNumberSlider)
+        .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.05)).getEntry();
+
+    GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("heightBeforeStartAngle: " + name, heightBeforeStartAngle)
+        .withWidget(BuiltInWidgets.kNumberSlider)
+        .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.05)).getEntry();
+
+    GenericEntry poseFinderWrist = poseFinder.add("angle: "+ name, finalPos.angle.getDegrees())
+        .withWidget(BuiltInWidgets.kNumberSlider)
+        .withProperties(Map.of("min", 13, "max", 204.462891, "Block increment", 1)).getEntry();
+
+    return new IntakeToPosition(wrist, elevator, () -> {
+      if (elevator.getHeightMeters() < poseFinderHeightBeforeStartAngle.getDouble(heightBeforeStartAngle))
+        return new ElevatorWristState(ElevatorWristStateConstants.HOME.angle.getDegrees(),
+            poseFinderElevator.getDouble(finalPos.height));
+      else
+        return new ElevatorWristState(poseFinderWrist.getDouble(finalPos.angle.getDegrees()),
+            poseFinderElevator.getDouble(finalPos.height));
+    });
+  }
+
+  public static IntakeToPosition poseFinder(Wrist wrist, Elevator elevator, ElevatorWristState finalPose, String name) {
+    return poseFinder(wrist, elevator, finalPose, 0, name);
   }
 }

@@ -30,6 +30,9 @@ public class IntakePositionCommandFactory {
                 Intake.IntakeState.NONE, IntakeToMidConeNode(elevator, wrist)), intake::getState);
     }
 
+  
+
+
     public static IntakeToPosition IntakeToHighConeNode(Elevator elevator, Wrist wrist) {
         return IntakeToPosition.reachHeightBeforeStartAngle(wrist, elevator,
                 FieldDependentConstants.CurrentField.HIGH_CONE,
@@ -61,5 +64,8 @@ public class IntakePositionCommandFactory {
     public static IntakeToPosition IntakeToFallenConeNode(Elevator elevator, Wrist wrist) {
         return new IntakeToPosition(wrist, elevator, FieldDependentConstants.CurrentField.FALLEN_CONE);
     }
+
+
+    
 
 }

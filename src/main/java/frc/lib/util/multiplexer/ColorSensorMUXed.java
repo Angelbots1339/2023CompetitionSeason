@@ -45,8 +45,7 @@ public class ColorSensorMUXed {
         }
     }
 
-    public double xyzColorDifference(Color color){
-        Color matchedColor =  get().getColor();
-        return Math.sqrt(Math.pow(matchedColor.red - color.red, 2) + Math.pow(matchedColor.green - color.green, 2) + Math.pow(matchedColor.blue - color.blue, 20));     
+    public static double xyzColorDifference(Color color1, Color color2){
+        return Math.sqrt(Math.pow(color1.red - color2.red, 2) + Math.pow(color1.green - color2.green, 2) + Math.pow(color1.blue - color2.blue, 20));     
     }
 }

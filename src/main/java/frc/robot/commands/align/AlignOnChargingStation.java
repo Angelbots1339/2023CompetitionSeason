@@ -38,7 +38,7 @@ public class AlignOnChargingStation extends PIDCommand {
         // This uses the output
         output -> {
           swerve.drive(new Translation2d(
-              MathUtil.clamp(output + ClosedLoopUtil.positionFeedForward(output, TRANSLATION_KV), -1, 1), 0),
+              MathUtil.clamp(output + ClosedLoopUtil.positionFeedForward(output, TRANSLATION_KS), -1, 1), 0),
               0, true, false);
           // Use the output here
         });

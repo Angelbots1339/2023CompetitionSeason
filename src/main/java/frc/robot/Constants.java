@@ -215,13 +215,13 @@ public final class Constants {
 
             public static final double TRANSLATION_KP = 0.5; // meters per sec per meter
             public static final double TRANSLATION_KD = 0;
-            public static final double TRANSLATION_KV = 0.0;
+            public static final double TRANSLATION_KS = 0.21;
 
             // Feedfowards
             public static final double ANGLE_KS = 0.7; // radians per sec
-            public static final double ANGLE_TOLERANCE = 10; // Degrees
+            public static final double ANGLE_TOLERANCE = 2; // Degrees
         
-            public static final double TRANSLATION_PID_TOLERANCE = 0;
+            public static final double TRANSLATION_PID_TOLERANCE = 0.02;
 
         }
     }

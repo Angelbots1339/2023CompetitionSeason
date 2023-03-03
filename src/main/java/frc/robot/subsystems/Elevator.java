@@ -24,6 +24,7 @@ import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.Constants;
 import frc.robot.LoggingConstants;
 import frc.robot.Robot;
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.ElevatorWristStateConstants;
 
 import static frc.robot.Constants.ElevatorConstants.*;
@@ -58,11 +59,18 @@ public class Elevator extends SubsystemBase {
   public void periodic() {
 
     SmartDashboard.putNumber("Height", getHeightMeters());
+   
 
+    
     // This method will be called once per scheduler run
     updateSetPointWatcher();
 
 
+  }
+
+  @Override
+  public void simulationPeriodic() {
+       System.out.println(clicksToMeters(50276));
   }
 
   /**
