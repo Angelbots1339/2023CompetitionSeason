@@ -34,6 +34,14 @@ public class Candle {
     // and the second is the # of leds in that zone
     private int[][] ledZones = new int[4][2];
 
+    private enum gamePiece {
+        None,
+        Cube,
+        Cone,
+    }
+
+    private gamePiece currentGamePiece = gamePiece.None;
+
     public enum HumanPlayerCommStates {
         LeftCube,
         RightCube,
@@ -93,6 +101,10 @@ public class Candle {
         currentComState = state;
     }
 
+    public void changeCurrentGamePiece(gamePiece piece) {
+        currentGamePiece = piece;
+    }
+
     public void changeLedState(LEDState state) {
 
         for (int i = 0; i < 10; ++i) {
@@ -149,34 +161,24 @@ public class Candle {
                 candle.animate(
                         new FireAnimation(1, 0.7, ledZones[3][1], 0.8, 0.25, true, OFFSET_LENGTH + ledZones[3][0]), 4);
                 currentState = LEDState.Fire;
-                // candle.animate(new TwinkleAnimation(255, 18, 213, 0, .1, 120 + 8 - 58,
-                // TwinklePercent.Percent30, 58), 3);
                 break;
 
             case Intake:
-                candle.animate(new ColorFlowAnimation(128, 20, 60, 0, 0.9, ledZones[1][1], Direction.Forward,
-                        OFFSET_LENGTH + ledZones[0][0]), 1);
-                candle.animate(new ColorFlowAnimation(128, 20, 60, 0, 0.9, ledZones[3][1], Direction.Backward,
-                        OFFSET_LENGTH + ledZones[2][0]), 2);
+          
+                intakeState(true);
 
                 currentState = LEDState.Intake;
 
                 break;
             case ReverseIntake:
 
-                candle.animate(new ColorFlowAnimation(255, 20, 0, 0, 0.9, ledZones[1][1], Direction.Backward,
-                        OFFSET_LENGTH + ledZones[0][0]), 1);
-                candle.animate(new ColorFlowAnimation(255, 20, 0, 0, 0.9, ledZones[3][1], Direction.Forward,
-                        OFFSET_LENGTH + ledZones[2][0]), 2);
+            intakeState(false);
 
                 currentState = LEDState.ReverseIntake;
                 break;
 
             case HumanPlayerCommunication:
-
-                 candle.animate(new LarsonAnimation(255, 255, 255, 0, 0.5, ledZones[2][1], BounceMode.Front, 3,
-                    OFFSET_LENGTH + ledZones[1][0]), 4);
-
+            
                 humanPlayerCom();
 
                 currentState = LEDState.HumanPlayerCommunication;
@@ -184,41 +186,69 @@ public class Candle {
         }
     }
 
+
+    private void intakeState(boolean isForward) {
+
+        switch (currentGamePiece) {
+            case Cube:
+            candle.animate(new ColorFlowAnimation(255, 0, 255, 0, 0.5, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
+            candle.animate(new ColorFlowAnimation(255, 0, 255, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
+        
+                break;
+
+            case Cone:
+            candle.animate(new ColorFlowAnimation(168, 255, 0, 0, 0.5, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
+            candle.animate(new ColorFlowAnimation(168, 255, 0, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
+        
+                break;
+
+            case None:
+
+            candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
+            candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
+
+                break;
+        }
+
+        
+    }
+    
+
     private void humanPlayerCom() {
 
         switch (currentComState) {
 
-            // Cubes
-            case LeftCube:
-                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
-
-                break;
-
-            case RightCube:
-                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
-
-                break;
-
-            case SingleCube:
-                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
-                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[3][0], OFFSET_LENGTH + ledZones[3][1]), 2);
-
-                break;
-
             // Cones
             case LeftCone:
-                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
 
-            break;
+                break;
 
             case RightCone:
-                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
 
                 break;
 
             case SingleCone:
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, TOTAL_STRIP_LENGTH, OFFSET_LENGTH + ledZones[0][1]), 1);
+                // candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[3][0], OFFSET_LENGTH + ledZones[3][1]), 2);
+
+                break;
+
+            // Cubes
+            case LeftCube:
                 candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
-                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[3][0], OFFSET_LENGTH + ledZones[3][1]), 2);
+
+            break;
+
+            case RightCube:
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+
+                break;
+
+            case SingleCube:
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, TOTAL_STRIP_LENGTH, OFFSET_LENGTH + ledZones[0][1]), 1);
+                // candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[3][0], OFFSET_LENGTH + ledZones[3][1]), 2);
 
                 break;
         }
