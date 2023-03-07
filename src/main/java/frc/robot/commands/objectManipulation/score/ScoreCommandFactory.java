@@ -12,9 +12,13 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
+import frc.lib.util.Candle;
+import frc.lib.util.Candle.LEDState;
+import frc.lib.util.multiplexer.Multiplexer;
 import frc.robot.FieldDependentConstants;
 import frc.robot.commands.align.AlignToAprilTag;
 import frc.robot.commands.align.AlignToConeNodeLimelightOnly;
@@ -37,7 +41,7 @@ public class ScoreCommandFactory {
                                 IntakeState.CUBE, alignAndScoreCubeHigh(wrist, elevator, intake, swerve),
                                 IntakeState.NONE, alignAndScoreConeFavorHigh(wrist, elevator, intake, swerve)
 
-                ), intake::getState);
+                ), intake::getState).deadlineWith(HandleCandle());
         }
 
         public static Command alignAndScoreMid(Wrist wrist, Elevator elevator, Intake intake,
@@ -47,7 +51,7 @@ public class ScoreCommandFactory {
                                 IntakeState.CUBE, alignAndScoreCubeMid(wrist, elevator, intake, swerve),
                                 IntakeState.NONE, alignAndScoreConeFavorMid(wrist, elevator, intake, swerve)
 
-                ), intake::getState);
+                ), intake::getState).deadlineWith(HandleCandle());
         }
 
         public static Command alignAndScoreConeFavorHigh(Wrist wrist, Elevator elevator, Intake intake,
@@ -67,6 +71,12 @@ public class ScoreCommandFactory {
         public static Command alignAndScoreCubeHigh(Wrist wrist, Elevator elevator, Intake intake,
                         Swerve swerve) {
                 return new AlignToAprilTag(swerve).asProxy().andThen(scoreCubeNode(wrist, elevator, intake,
+                                () -> ScoreHight.HIGH));
+        }
+
+        public static Command alignAndScoreCubeHighNotAsProxy(Wrist wrist, Elevator elevator, Intake intake,
+                        Swerve swerve) {
+                return new AlignToAprilTag(swerve).andThen(scoreCubeNode(wrist, elevator, intake,
                                 () -> ScoreHight.HIGH));
         }
 
@@ -105,8 +115,12 @@ public class ScoreCommandFactory {
 
         public static Command extendThenPlace(Wrist wrist, Elevator elevator, Intake intake,
                         IntakeToPosition align, double outtakePercent) {
-                return align.alongWith(outtakeConeAtSetPoint(intake, elevator, wrist, outtakePercent))
-                                .until(() -> !intake.objectInIntake());
+                return new ConditionalCommand(
+                                align.alongWith(outtakeConeAtSetPoint(intake, elevator, wrist, outtakePercent))
+                                                .until(() -> !intake.objectInIntake()),
+                                align.alongWith(outtakeConeAtSetPoint(intake, elevator, wrist, outtakePercent)).until(
+                                                () -> elevator.atSetPointAndSettled() && wrist.atSetPointAndSettled()),
+                                Multiplexer::isConnected);
         }
 
         public static Command outtakeConeAtSetPoint(Intake intake, Elevator elevator, Wrist wrist,
@@ -160,6 +174,15 @@ public class ScoreCommandFactory {
                 return new StartEndCommand(
                                 () -> intake.runIntakeAtPercent(poseFinderHeightBeforeStartAngle.getDouble(percent)),
                                 intake::disable, intake);
+        }
+
+        public static StartEndCommand HandleCandle() {
+                return new StartEndCommand(() -> {
+                        Candle.getInstance().changeLedState(LEDState.Fire);
+                }, () -> {
+                        Candle.getInstance().changeLedState(LEDState.Idle);
+                });
+
         }
 
         public enum ScoreHight {

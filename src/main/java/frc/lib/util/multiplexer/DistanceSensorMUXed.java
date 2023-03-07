@@ -20,6 +20,7 @@ public class DistanceSensorMUXed {
     private RangeProfile profile = RangeProfile.kDefault;
     private final int addr = 0x53;
     private boolean enabled;
+    private boolean measurementStarted = false;
     private Rev2mDistanceSensor rev2mDistanceSensor;
 
     public DistanceSensorMUXed(int port, RangeProfile rangeProfile) {
@@ -44,14 +45,24 @@ public class DistanceSensorMUXed {
     public double getRangeMillimeter() {
         double range = -1;
         if (Multiplexer.getInstance().setDevice(port) && enabled) {
-            if (VL53L0XJNI.GetMeasurementDataReady(i2cPort, addr))
+            if (VL53L0XJNI.GetMeasurementDataReady(i2cPort, addr)){
                 range = VL53L0XJNI.GetRangingMeasurementData(i2cPort, addr);
+                measurementStarted = true;
+            }
+
+            else{
+                return - 2;
+            }
         }
         if (range > 0)
             return range;
         else
             return -1;
     }
+    public boolean isWorking(){
+        return VL53L0XJNI.GetMeasurementDataReady(i2cPort, DEFAULT_ADDRESS) && measurementStarted;
+    }
+
 
     /**
      * @return meters

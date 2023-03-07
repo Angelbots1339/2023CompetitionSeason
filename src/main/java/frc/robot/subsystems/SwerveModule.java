@@ -4,6 +4,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.math.Conversions;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
@@ -64,6 +65,13 @@ public class SwerveModule {
                 setSpeed(desiredState, isOpenLoop);
                 this.desiredState = desiredState;
         }
+        public void setDesiredStateStrict(SwerveModuleState desiredState, boolean isOpenLoop) {
+
+                desiredState = CTREModuleState.optimize(desiredState, getState().angle);
+                setAngleStrict(desiredState);
+                setSpeed(desiredState, isOpenLoop);
+                this.desiredState = desiredState;
+        }
 
         private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
                 if (isOpenLoop) {
@@ -93,6 +101,15 @@ public class SwerveModule {
                                 Conversions.degreesToFalcon(angle.getDegrees(),
                                                 Constants.SwerveConstants.ANGLE_GEAR_RATIO));
                 lastAngle = angle;
+        }
+        private void setAngleStrict(SwerveModuleState desiredState) {
+                // Prevent rotating module if speed is less then
+                                                                      // 1%. Prevents Jittering.
+
+                angleMotor.set(ControlMode.Position,
+                                Conversions.degreesToFalcon(desiredState.angle.getDegrees(),
+                                                Constants.SwerveConstants.ANGLE_GEAR_RATIO));
+                lastAngle = desiredState.angle;
         }
 
         private Rotation2d getAngle() {

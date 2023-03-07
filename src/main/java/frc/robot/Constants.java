@@ -269,15 +269,15 @@ public final class Constants {
 
         public static final double KS = 0.08; // test this is calculated from recalc
 
-        public static final double MAX_VELOCITY = 3100 * 6; // TODO
-        public static final double MAX_ACCELERATION = 3100 *4; // TODO
+        public static final double MAX_VELOCITY = mPSToCP100ms(8.2); // TODO
+        public static final double MAX_ACCELERATION = mPSToCP100ms(6.5); // TODO
 
         public static final int S_CURVE_STRENGTH = 4; 
 
         
 
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 0.02; // Meters
-        public static final double TIME_TO_SETTLE = 0.1;//seconds 
+        public static final double TIME_TO_SETTLE = 0.2;//seconds 
 
         public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 
@@ -360,12 +360,12 @@ public final class Constants {
         //at horizontal
         public static final double KS =  -0.1; //TODO
         
-        public static final double MAX_VELOCITY =  27488.0; 
-        public static final double MAX_ACCELERATION = 13744.0; 
+        public static final double MAX_VELOCITY =  radiansPerSecToClicksPer100ms(6 * ( 2 * Math.PI )); 
+        public static final double MAX_ACCELERATION =  radiansPerSecToClicksPer100ms(4 * ( 2 * Math.PI )); 
 
         public static final int S_CURVE_STRENGTH = 4; // TODO
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 3; // Degrees
-        public static final double TIME_TO_SETTLE = 0.1;//seconds 
+        public static final double TIME_TO_SETTLE = 0.2;//seconds 
 
         public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 
@@ -430,7 +430,7 @@ public final class Constants {
 
 
     public static final class VisionConstants {
-        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(-0.24345, 0.25397, 0.56859),
+        public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0.24345, -0.25397, 0.56859),
                 new Rotation3d(0, -0, 0)); // TODO OPI pos
         public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Cam1");
 
@@ -457,7 +457,7 @@ public final class Constants {
 
         public static final int FAVOR_MID_HIGH_PIPELINE = 2;
         public static final int FAVOR_MID_MID_PIPELINE = 3;
-        
+            
 
 
         public static final Transform3d LIMELIGHT_CAM_POS = new Transform3d(new Translation3d(-0.04, -0.25, 0.85),
@@ -473,7 +473,7 @@ public final class Constants {
     }
 
     public final static class FieldConstants {
-        public static final Translation2d RED_ORIGIN = new Translation2d(16.540988, 1.071626);
+        public static final Translation2d RED_ORIGIN = new Translation2d(16.540988, 8.02);
     }
     
 

@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -29,6 +30,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.util.logging.loggedObjects.LoggedField;
 import static frc.robot.Constants.VisionConstants.*;
 import frc.robot.Constants.SwerveConstants;
@@ -93,7 +95,7 @@ public class PoseEstimator {
                 int id = target.getFiducialId();
                 if (id > 8 || id < 1)
                     continue;
-                Pose3d targetPosition = layout.getTagPose(target.getFiducialId()).get();
+                Pose3d targetPosition = layout.getTagPose(id).get();
 
                 // TODO check sign of pitch and maybe add pitch from gyro
                 Rotation3d gyroCalculatedAngle;
@@ -108,16 +110,23 @@ public class PoseEstimator {
                     gyroCalculatedAngle = new Rotation3d(0,
                             -APRILTAG_CAM_POS.getRotation().getY() + swerve.getGyro().getY(),
                             (yaw > 0 ? 1 : -1) * Math.PI - yaw);
-                Translation3d transformToTarget = target.getBestCameraToTarget().getTranslation();
 
-                Pose3d estimatedPose = PhotonUtils.estimateFieldToRobotAprilTag(
-                        new Transform3d(transformToTarget, gyroCalculatedAngle), targetPosition, APRILTAG_CAM_POS);
+
+                Translation3d transformToTarget = target.getBestCameraToTarget().getTranslation();
+         
+              
+ 
+                // Pose3d estimatedPose = PhotonUtils.estimateFieldToRobotAprilTag(
+                //         new Transform3d(transformToTarget, gyroCalculatedAngle), targetPosition, APRILTAG_CAM_POS);
+                Pose3d estimatedPose = targetPosition.transformBy(new Transform3d(transformToTarget, gyroCalculatedAngle).inverse()).transformBy(APRILTAG_CAM_POS.inverse());
+
+
 
                 double poseDelta = referencePose.getTranslation()
                         .getDistance(estimatedPose.getTranslation().toTranslation2d());
                 if (poseDelta < smallestPoseDelta) {
                     smallestPoseDelta = poseDelta;
-                    lowestDeltaPose = new EstimatedRobotPose(estimatedPose, result.getTimestampSeconds());
+                    lowestDeltaPose = new EstimatedRobotPose(estimatedPose, poseDelta, List.of(target));
                     robotToTarget = transformToTarget.toTranslation2d();
                 }
 
@@ -127,6 +136,8 @@ public class PoseEstimator {
                 return;
             double tagDistance = robotToTarget.getNorm();
             double xyStdDev = KalmanVisionRegression.xyStdDevReg.predict(tagDistance);
+
+
 
             poseEstimator.addVisionMeasurement(lowestDeltaPose.estimatedPose.toPose2d(),
                     lowestDeltaPose.timestampSeconds, VecBuilder.fill(xyStdDev, xyStdDev, 0));
@@ -163,7 +174,7 @@ public class PoseEstimator {
                         .getDistance(estimatedPose.getTranslation().toTranslation2d());
                 if (poseDelta < smallestPoseDelta) {
                     smallestPoseDelta = poseDelta;
-                    lowestDeltaPose = new EstimatedRobotPose(estimatedPose, result.getTimestampSeconds());
+                    lowestDeltaPose = new EstimatedRobotPose(estimatedPose, result.getTimestampSeconds(), List.of(target));
                     robotToTarget = transformToTarget.getTranslation().toTranslation2d();
                 }
             }

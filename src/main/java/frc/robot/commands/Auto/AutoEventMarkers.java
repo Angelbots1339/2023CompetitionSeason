@@ -7,7 +7,9 @@ package frc.robot.commands.auto;
 import java.util.Map;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import frc.robot.commands.objectManipulation.intake.IntakeCommandFactory;
+import frc.robot.commands.superStructure.IntakeToPosition;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Wrist;
@@ -17,8 +19,9 @@ public class AutoEventMarkers {
 
     public static Map<String, Command> getMap(Intake intakeAndShooter, Elevator elevator, Wrist wrist) {
         return Map.of(
-            "IntakeCube", IntakeCommandFactory.intakeCube(wrist, elevator, intakeAndShooter).withTimeout(5).asProxy(),
-            "IntakeStandingCone", IntakeCommandFactory.intakeStandingCone(wrist, elevator, intakeAndShooter).withTimeout(5).asProxy()
+            "IntakeCube", IntakeCommandFactory.intakeCube(wrist, elevator, intakeAndShooter).andThen(IntakeToPosition.home(wrist, elevator)),
+            "IntakeStandingCone", IntakeCommandFactory.intakeStandingCone(wrist, elevator, intakeAndShooter).withTimeout(5).asProxy(),
+            "Home", IntakeToPosition.home(wrist, elevator).withInterruptBehavior(InterruptionBehavior.kCancelSelf)
             );
     }
 }

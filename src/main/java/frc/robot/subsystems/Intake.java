@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.revrobotics.ColorSensorV3;
 import com.revrobotics.Rev2mDistanceSensor.RangeProfile;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -13,8 +14,10 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
+import frc.lib.util.Candle;
 import frc.lib.util.multiplexer.ColorSensorMUXed;
 import frc.lib.util.multiplexer.DistanceSensorMUXed;
+import frc.lib.util.multiplexer.Multiplexer;
 import frc.robot.Constants;
 
 import static frc.robot.Constants.IntakeConstants.*;
@@ -31,7 +34,11 @@ public class Intake extends SubsystemBase {
   private DistanceSensorMUXed rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
   private DistanceSensorMUXed leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
 
+  private boolean colorSensorWorking = true;
+
   private double currentIntakePercent = 0;
+
+  private IntakeState deadSensorOverrideSate = IntakeState.CONE;
 
   /** Creates a new IntakeAndShooter. */
   public Intake() {
@@ -43,9 +50,9 @@ public class Intake extends SubsystemBase {
     updateSensors();
 
     SmartDashboard.putNumber("Cone offset", getConeOffset());
-    SmartDashboard.putNumber("Cone left", lastLeftDist);
-    SmartDashboard.putNumber("Cone right", lastRightDist);
     SmartDashboard.putBoolean("objectInIntake", objectInIntake());
+    SmartDashboard.putString("object", getState().toString());
+    SmartDashboard.putString("override State", deadSensorOverrideSate.toString());
   }
 
   int i = 0;
@@ -53,18 +60,33 @@ public class Intake extends SubsystemBase {
   public void updateSensors() {
     switch (i) {
       case 0:
-      lastColor = cubeSensor.get().getColor();
+      ColorSensorV3 sensor = cubeSensor.get();
+      if(sensor != null){
+        lastColor = sensor.getColor();
+        colorSensorWorking = true;
+      }
+      else {
+        colorSensorWorking = false;
+        resetColorSensor();
+      }
       i++;
         break;
       case 1:
+      if(!leftConeSensor.isWorking())
+        resetLeftDistSensor();
       lastLeftDist = leftConeSensor.getRange();
       i++;
         break;
       case 2:
+      if(!rightConeSensor.isWorking())
+        resetRightDistSensor();
       lastRightDist = rightConeSensor.getRange();
       i = 0;
         break;
     }
+
+
+    Candle.getInstance().changeCurrentGamePiece(getState());
     
   }
 
@@ -73,6 +95,9 @@ public class Intake extends SubsystemBase {
   }
 
   public double getConeOffset() {
+    if(!objectInIntake()){
+      return 0;
+    }
     return lastLeftDist - lastRightDist;
   }
 
@@ -90,10 +115,18 @@ public class Intake extends SubsystemBase {
   }
 
   public void resetSensors() {
-
     cubeSensor = new ColorSensorMUXed(0);
     rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
     leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
+  }
+  public void resetColorSensor() {
+    cubeSensor = new ColorSensorMUXed(0);
+  }
+  public void resetLeftDistSensor() {
+    leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
+  }
+  public void resetRightDistSensor() {
+    rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
   }
 
   public boolean leftEmpty() {
@@ -119,6 +152,9 @@ public class Intake extends SubsystemBase {
   }
 
   public IntakeState getState() {
+    if(!Multiplexer.isConnected()){
+      return deadSensorOverrideSate;
+    }
     if (cubeInIntake()) {
       return IntakeState.CUBE;
     } else if (coneInIntake()) {
@@ -126,6 +162,14 @@ public class Intake extends SubsystemBase {
     } else {
       return IntakeState.NONE;
     }
+  }
+
+  public IntakeState getDeadSensorOverrideSate() {
+      return deadSensorOverrideSate;
+  }
+
+  public void setDeadSensorOverrideSate(IntakeState deadSensorOverrideSate) {
+      this.deadSensorOverrideSate = deadSensorOverrideSate;
   }
 
   // public void runShootAtPercent(double percent) {

@@ -42,7 +42,6 @@ public class Wrist extends SubsystemBase {
 
     double cosineScaler = Math.cos(getAngleFromHorizontal().getRadians());
     if(clicks == radiansToClicks(ElevatorWristStateConstants.HOME.angle.getRadians()) && Math.abs(getAngleDeg() - ElevatorWristStateConstants.HOME.angle.getDegrees()) <= 1){
-      SmartDashboard.putNumber("error", wristMotor.getClosedLoopError());
       wristMotor.set(ControlMode.PercentOutput, 0);
     }
     else
@@ -130,7 +129,7 @@ public class Wrist extends SubsystemBase {
     updateSetPointWatcher();
 
     SmartDashboard.putNumber("angle", getAngleDeg());
-    SmartDashboard.putNumber("through bore", throughBoreToAngle(dutyCycleEncoder.get()).getDegrees());
+    //SmartDashboard.putNumber("through bore", throughBoreToAngle(dutyCycleEncoder.get()).getDegrees());
   }
 
  

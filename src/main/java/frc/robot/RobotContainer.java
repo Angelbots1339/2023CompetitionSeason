@@ -3,6 +3,8 @@ package frc.robot;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import javax.swing.text.StyleContext.SmallAttributeSet;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.GenericEntry;
@@ -15,24 +17,31 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.math.Conversions;
+import frc.lib.util.Candle;
 import frc.lib.util.ElevatorWristState;
+import frc.lib.util.Candle.HumanPlayerCommStates;
+import frc.lib.util.Candle.LEDState;
 import frc.lib.util.logging.LoggedSubsystem;
 import static frc.robot.Constants.ElevatorWristStateConstants.*;
 
 import frc.robot.commands.*;
 import frc.robot.commands.align.AlignOnChargingStation;
 import frc.robot.commands.auto.AutoFactory;
+import frc.robot.commands.auto.TestAutoFactory;
 import frc.robot.commands.objectManipulation.intake.IntakeCommandFactory;
 import frc.robot.commands.objectManipulation.score.ScoreCommandFactory;
 import frc.robot.commands.superStructure.IntakePositionCommandFactory;
 import frc.robot.commands.superStructure.IntakeToPosition;
 import frc.robot.subsystems.*;
+import frc.robot.subsystems.Intake.IntakeState;
 import frc.robot.vision.RetroReflectiveTargeter;
 
 /**
@@ -49,7 +58,7 @@ public class RobotContainer {
         private final LoggedSubsystem log = new LoggedSubsystem("RobotContainer", LoggingConstants.ROBOT_CONTAINER);
         /* Controllers */
         private final XboxController driver = new XboxController(0);
-        private final Joystick test = new Joystick(1);
+        private final XboxController test = new XboxController(1);
         /* Subsystems */
         private final Swerve swerve = new Swerve();
         private final Elevator elevator = new Elevator();
@@ -61,11 +70,7 @@ public class RobotContainer {
         private boolean isFieldCentric = false;
 
         /* Subscribers */
-        private GenericEntry PoseFinderElevator;
-        private GenericEntry PoseFinderWrist;
-
-        private GenericEntry shootPercent;
-        private GenericEntry intakePercent;
+        private GenericEntry isCone;
 
         private SendableChooser<Command> autoChooser = new SendableChooser<Command>();
 
@@ -116,8 +121,18 @@ public class RobotContainer {
         private final Trigger intakeToStandingCone = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
         private final Trigger intakeToFallenCone = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
 
+        private final Trigger switchDeadSensorOverrideObject = new Trigger(() -> driver.getPOV(0) == 90);
+
         private final Trigger runIntakeFallenCone = runIntakeGeneral.and(intakeToFallenCone);
         private final Trigger runIntakeStandingCone = runIntakeGeneral.and(intakeToStandingCone);
+
+        private final Trigger resetSensors = new JoystickButton(test,
+                        XboxController.Button.kB.value);
+
+        private final Trigger signalCube = new JoystickButton(test,
+                        XboxController.Button.kLeftBumper.value);
+        private final Trigger signalCone = new JoystickButton(test,
+                        XboxController.Button.kRightBumper.value);
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -128,19 +143,20 @@ public class RobotContainer {
                                                 true // Is field relative
                                 ));
 
-                // Configure the button bindings
-                // autoChooser.setDefaultOption("Test Auto", TestAutoFactory.getTestAuto(swerve,
-                // elevator, wrist, intake));
-                // autoChooser.setDefaultOption("Test Auto", TestAutoFactory.getTestAuto(swerve,
-                // elevator, wrist, intake));x
+                autoChooser.addOption("Score2BalancePos6",
+                                AutoFactory.Score2BalancePos6(wrist, elevator, intake, swerve));
+                autoChooser.addOption("Score2Pos6", AutoFactory.Score2Pos6(wrist, elevator, intake, swerve));
+                autoChooser.addOption("ScoreBallance",
+                                AutoFactory.ScoreBallance(wrist, elevator, intake, swerve));
+                autoChooser.addOption("ScoreMobilityBallance",
+                                AutoFactory.ScoreMobilityBallance(wrist, elevator, intake, swerve));
+                autoChooser.addOption("2mTest", TestAutoFactory.nonVision2mTest(swerve));
+                // autoChooser.addOption("2mTestPos4", TestAutoFactory.vision2mTest(swerve));
+                autoChooser.addOption("TurnTest", TestAutoFactory.nonVisionTurnTest(swerve));
 
                 elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
 
-                NetworkTable testing = NetworkTableInstance.getDefault().getTable("Testing");
-
-
-               
-
+                SmartDashboard.putData("auto", autoChooser);
 
                 configureButtonBindings();
 
@@ -156,14 +172,15 @@ public class RobotContainer {
          */
         private void configureButtonBindings() {
                 /* Driver Buttons */
-                zeroGyro.onTrue(new InstantCommand(swerve::zeroGyro));
-                //alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
+                zeroGyro.onTrue(new InstantCommand(swerve::resetGyroTowardsDriverStation));
+                // alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
 
                 intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist));
                 intakeToFallenCone.whileTrue(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist));
 
-               manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake));
+                manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake));
                 manualScoreMid.whileTrue(IntakePositionCommandFactory.IntakeToMid(elevator, wrist, intake));
+                // manualScoreMid.whileTrue(new AlignOnChargingStation(swerve));
 
                 autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve));
                 autoScoreMid.whileTrue(ScoreCommandFactory.alignAndScoreMid(wrist, elevator, intake, swerve));
@@ -175,14 +192,56 @@ public class RobotContainer {
                 runOuttakeForLow.whileTrue(ScoreCommandFactory.outtakeMid(intake));
 
                 runIntakeGeneral.whileTrue(new StartEndCommand(
-                                () -> intake.runIntakeAtPercent(FieldDependentConstants.CurrentField.INTAKE_GENERAL),
-                                intake::disable, intake));
+                                () -> {
+                                        intake.runIntakeAtPercent(FieldDependentConstants.CurrentField.INTAKE_GENERAL);
+                                        Candle.getInstance().changeLedState(LEDState.Intake);
+                                },
+                                () -> {
+                                        intake.disable();
+                                        Candle.getInstance().changeLedState(LEDState.Idle);
+                                }, intake));
 
                 runOuttakeGeneral.whileTrue(new StartEndCommand(
-                                () -> intake.runIntakeAtPercent(-FieldDependentConstants.CurrentField.OUTTAKE_GENERAL),
-                                intake::disable, intake));
+                                () -> {
+                                        intake.runIntakeAtPercent(-FieldDependentConstants.CurrentField.INTAKE_GENERAL);
+                                        Candle.getInstance().changeLedState(LEDState.ReverseIntake);
+                                },
+                                () -> {
+                                        intake.disable();
+                                        Candle.getInstance().changeLedState(LEDState.Idle);
+                                }, intake));
 
-                //manualScoreHigh.whileTrue(new IntakeToPosition(wrist, elevator, () -> new ElevatorWristState(PoseFinderWrist.getDouble(13), PoseFinderElevator.getDouble(0))));
+                switchDeadSensorOverrideObject.onTrue(new InstantCommand(() -> {
+                        if (intake.getDeadSensorOverrideSate() == IntakeState.CONE)
+                                intake.setDeadSensorOverrideSate(IntakeState.CUBE);
+                        else
+                                intake.setDeadSensorOverrideSate(IntakeState.CONE);
+                }));
+
+                // Operator Buttons
+                resetSensors.onTrue(new InstantCommand(() -> intake.resetSensors()));
+
+                signalCube.whileTrue(new StartEndCommand(
+                                () -> {
+                                        Candle.getInstance().changeLedState(LEDState.HumanPlayerCommunication);
+                                        Candle.getInstance()
+                                                        .changeHumanPlayerComState(HumanPlayerCommStates.SingleCube);
+                                },
+                                () -> Candle.getInstance().changeLedState(LEDState.Idle)));
+
+                signalCone.whileTrue(new StartEndCommand(
+                                () -> {
+                                        Candle.getInstance().changeLedState(LEDState.HumanPlayerCommunication);
+                                        Candle.getInstance()
+                                                        .changeHumanPlayerComState(HumanPlayerCommStates.SingleCone);
+                                },
+                                () -> Candle.getInstance().changeLedState(LEDState.Idle)));
+
+                alignOnChargingStation.whileTrue(
+                                new AlignOnChargingStation(swerve).andThen(new RunCommand(swerve::xPos, swerve)));
+                // manualScoreHigh.whileTrue(new IntakeToPosition(wrist, elevator, () -> new
+                // ElevatorWristState(PoseFinderWrist.getDouble(13),
+                // PoseFinderElevator.getDouble(0))));
         }
 
         /**
@@ -192,8 +251,9 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
                 // An ExampleCommand will run in autonomous
-                return AutoFactory.Score2(wrist, elevator, intake, swerve); // AutoFactory.Score2(wrist, elevator,
-                                                                            // intake, swerve);
+                return autoChooser.getSelected(); // AutoFactory.Score2(wrist,
+                                                  // elevator,
+                // intake, swerve);
         }
 
         public void resetToAbsloute() {
@@ -204,8 +264,24 @@ public class RobotContainer {
                 return swerve.bufferYaw();
         }
 
-        public double getLimelightOffset() {
-                return RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), intake.getConeOffset());
+        public boolean getLimelightLeftOfTarget() {
+                return RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), intake
+                                .getConeOffset()) < -FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE;
         }
+
+        public boolean getLimelightRightOfTarget() {
+                return RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), intake
+                                .getConeOffset()) > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE;
+        }
+       
+
+        // public void limeLightAlignAuto(){
+        // RetroReflectiveTargeter.update(swerve.getPose(), true);
+        // if(RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(),
+        // intake.getConeOffset()) <
+        // FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE){
+        // Candle.getInstance().changeLedState();
+        // };
+        // }
 
 }

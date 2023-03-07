@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import frc.lib.math.ClosedLoopUtil;
+import frc.lib.util.FieldUtil;
 import frc.robot.FieldDependentConstants;
 import frc.robot.Constants.FieldConstants;
 import static frc.robot.Constants.SwerveConstants.DrivePidConstants.*;
@@ -26,7 +27,7 @@ public class AlignOnChargingStation extends PIDCommand {
   public AlignOnChargingStation(Swerve swerve) {
     super(
         // The controller that the command will use
-        new PIDController(TRANSLATION_KP, 0, 0),
+        new PIDController(1, 0, 0),
         // This should return the measurement
         () -> swerve.getPose().getX(),
         // This should return the setpoint (can also be a constant)
@@ -36,10 +37,11 @@ public class AlignOnChargingStation extends PIDCommand {
         // from
         // Target
         // This uses the output
+
         output -> {
-          swerve.drive(new Translation2d(
-              MathUtil.clamp(output + ClosedLoopUtil.positionFeedForward(output, TRANSLATION_KS), -1, 1), 0),
-              0, true, false);
+          swerve.angularDrive(new Translation2d((
+               FieldUtil.isBlueAlliance()? 1 : -1 *(MathUtil.clamp(output + ClosedLoopUtil.positionFeedForward(output, 0.3), -1, 1))), 0),
+              FieldUtil.getTowardsDriverStation(), true, false);
           // Use the output here
         });
 
@@ -52,6 +54,6 @@ public class AlignOnChargingStation extends PIDCommand {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Math.abs(getController().getPositionError()) <= getController().getPositionTolerance();
+    return Math.abs(getController().getPositionError()) <= TRANSLATION_PID_TOLERANCE;
   }
 }

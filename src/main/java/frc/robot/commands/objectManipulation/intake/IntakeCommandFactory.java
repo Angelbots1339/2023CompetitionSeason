@@ -40,7 +40,7 @@ public class IntakeCommandFactory {
         return new RunIntakeForCone(intake, FieldDependentConstants.CurrentField.INTAKE_STANDING_CONE).deadlineWith(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist));
     }
     public static Command intakeCube(Wrist wrist, Elevator elevator, Intake intake) {
-        return runIntakeForCube(intake).deadlineWith(IntakePositionCommandFactory.IntakeToHighCubeNode(elevator, wrist));
+        return runIntakeForCube(intake).deadlineWith(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist));
     }
 
     public static Command runIntakeForStandingCone(Intake intake) {

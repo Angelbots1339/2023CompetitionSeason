@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import frc.lib.util.Candle;
+import frc.lib.util.Candle.LEDState;
 import frc.lib.util.logging.LoggedCommand;
 import frc.robot.Constants;
 import frc.robot.LoggingConstants;
@@ -44,6 +46,11 @@ public class TeleopSwerve extends CommandBase {
     this.isAngularDrive = isAngularDrive;
   }
 
+ @Override
+ public void initialize() {
+  Candle.getInstance().changeLedState(LEDState.HumanPlayerCommunication);
+     
+ }
   @Override
   public void execute() {
     /* Drive */
@@ -55,7 +62,7 @@ public class TeleopSwerve extends CommandBase {
           false);
     } else {
       swerve.drive(
-          new Translation2d(translation.get(), strafe.get()).times(4),
+          new Translation2d(translation.get(), strafe.get()).times(5),
           (rotation.get() * Constants.SwerveConstants.MAX_ANGULAR_VELOCITY),
           isFieldRelative, // Field relative
           false);

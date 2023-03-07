@@ -35,83 +35,91 @@ public class AlignToAprilTag extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    Pose2d closetNode = swerve.getClosestCubeNode();
+    finalDesiredPose = closetNode.transformBy(new Transform2d(
+        new Translation2d(FieldDependentConstants.CurrentField.CUBE_ALIGN_OFFSET, 0), Rotation2d.fromDegrees(180)));
+
   }
 
   boolean hadTarget = false;
   int lastTarget = 0;
 
   // Called every time the scheduler runs while the command is scheduled.
-  Pose2d desiredPose = new Pose2d();
+ 
+  Pose2d finalDesiredPose = new Pose2d();
 
   PIDController xController = new PIDController(1.5, 0, 0);
   PIDController yController = new PIDController(1.5, 0, 0);
 
   boolean blueSide = false;
+  boolean passedFirstAlign = false;
 
   @Override
   public void execute() {
 
+    /// int id = target.getFiducialId();
 
-      /// int id = target.getFiducialId();
+    passedFirstAlign = true;
 
-      Pose2d closetNode = swerve.getClosestCubeNode();
+    double alignOffset = FieldDependentConstants.CurrentField.CUBE_ALIGN_OFFSET;
 
+    Pose2d closetNode = swerve.getClosestCubeNode();
+    blueSide = closetNode.getX() < 8.26;
+    finalDesiredPose = closetNode.transformBy(new Transform2d(
+        new Translation2d(FieldDependentConstants.CurrentField.CUBE_ALIGN_OFFSET, 0), Rotation2d.fromDegrees(180)));
 
-    
+    Pose2d firstDesiredPose = closetNode.transformBy(new Transform2d(
+        new Translation2d(FieldDependentConstants.CurrentField.CUBE_FIRST_ALIGN_OFFSET, 0),
+        Rotation2d.fromDegrees(180)));
 
-      double alignOffset = FieldDependentConstants.CurrentField.CUBE_ALIGN_OFFSET;
-      if (Math.abs(swerve.getPose().getY() - closetNode.getY()) > FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE) {
-        alignOffset = FieldDependentConstants.CurrentField.CUBE_FIRST_ALIGN_OFFSET;
-      }
+    double Y = (blueSide ? 1 : -1) * (yController.calculate(swerve.getPose().getY(), finalDesiredPose.getY())
+        + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
+    Y = ClosedLoopUtil.stopAtSetPoint(Y, yController.getPositionError(),
+        DrivePidConstants.TRANSLATION_PID_TOLERANCE);
+    Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
-      if (closetNode.getX() < 8.26) {
-        blueSide = true;
-        desiredPose = closetNode.transformBy(new Transform2d(
-            new Translation2d(alignOffset, 0), Rotation2d.fromDegrees(180)));
-
-      } else  {
-        desiredPose = closetNode.transformBy(new Transform2d(
-            new Translation2d(-alignOffset, 0), Rotation2d.fromDegrees(180)));
-
-      } 
-
-    
-
-      double X = xController.calculate(swerve.getPose().getX(), desiredPose.getX())
-          + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
-      if (Math.abs(swerve.getPose().getY() - closetNode.getY()) > FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE) {
-        X = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(),
+    double X = 0;
+    if (Y > 0.02) {
+      X = (blueSide ? 1 : -1) * (xController.calculate(swerve.getPose().getX(), firstDesiredPose.getX())
+          + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
+      X = ClosedLoopUtil.stopAtSetPoint(X, Math.abs(alignOffset),
           DrivePidConstants.TRANSLATION_PID_TOLERANCE);
-      }
-      
-      X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
+    } else if (blueSide ? swerve.getPose().getX() > finalDesiredPose.getX()
+        : swerve.getPose().getX() < finalDesiredPose.getX()) {
+      X = (blueSide ? 1 : -1) * (xController.calculate(swerve.getPose().getX(), finalDesiredPose.getX())
+          + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
+    }
 
-      double Y = xController.calculate(swerve.getPose().getY(), desiredPose.getY())
-          + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
-      Y = ClosedLoopUtil.stopAtSetPoint(Y, yController.getPositionError(),
-          DrivePidConstants.TRANSLATION_PID_TOLERANCE);
-      Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
+    X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
+
+    // SmartDashboard.putNumber("X", X);
+    // SmartDashboard.putNumber("X feed",
+    // ClosedLoopUtil.positionFeedForward(xController.getPositionError(),
+    // DrivePidConstants.TRANSLATION_KS));
+    // SmartDashboard.putNumber("X out",
+    // xController.calculate(swerve.getPose().getX(), desiredPose.getX()));
 
 
-      SmartDashboard.putNumber("X", X);
-      SmartDashboard.putNumber("X feed", ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
-      SmartDashboard.putNumber("X out", xController.calculate(swerve.getPose().getX(), desiredPose.getX()));
-      SmartDashboard.putNumber("Y feed", xController.getPositionError() );
-      SmartDashboard.putNumber("Y out", Y);
-      swerve.angularDrive(new Translation2d(X, Y), desiredPose.getRotation(), true, false);
+    swerve.angularDrive(new Translation2d(X, Y), finalDesiredPose.getRotation(), true, false);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    swerve.disable();
+    System.out.println("end comand" + interrupted);
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return blueSide? swerve.getPose().getX() < desiredPose.getX() : swerve.getPose().getX() > desiredPose.getX()
-        && Math.abs(swerve.getPose().getY() - desiredPose.getY()) < FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE
-        && Math.abs(swerve.getYaw().getDegrees() - desiredPose.getRotation().getDegrees()) < DrivePidConstants.ANGLE_TOLERANCE;
-
+    // return (blueSide? swerve.getPose().getX() < finalDesiredPose.getX() :
+    // swerve.getPose().getX() > finalDesiredPose.getX())
+    // && Math.abs(swerve.getPose().getY() - desiredPose.getY()) <
+    // FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE;
+    return (blueSide ? swerve.getPose().getX() < finalDesiredPose.getX()
+        : swerve.getPose().getX() > finalDesiredPose.getX())
+        && Math.abs(
+            swerve.getPose().getY() - finalDesiredPose.getY()) < FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE;
   }
 }

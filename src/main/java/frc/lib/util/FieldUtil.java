@@ -89,4 +89,8 @@ public class FieldUtil {
             return pose2d;
         }
     }
+
+    public static boolean isBlueAlliance(){
+        return DriverStation.getAlliance() != Alliance.Red;
+    }
 }

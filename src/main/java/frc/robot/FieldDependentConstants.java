@@ -20,13 +20,13 @@ public class FieldDependentConstants {
         //intake positions
         public ElevatorWristState HIGH_CONE = new ElevatorWristState(110, 1.31);
         public double HIGH_CONE_HIGHT_BEFORE_ANGLE = 0.1;
-        public double HIGH_CONE_OUTTAKE_PERCENT = 0.8;
+        public double HIGH_CONE_OUTTAKE_PERCENT = 1;
         
         public ElevatorWristState MID_CONE = new ElevatorWristState(103.28, 0.76);
         public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.1;
         public double MID_CONE_OUTTAKE_PERCENT = 0.5;
         
-        public ElevatorWristState HIGH_CUBE = new ElevatorWristState(92.41, 0.98);
+        public ElevatorWristState HIGH_CUBE = new ElevatorWristState(85, 0.98);
         public double HIGH_CUBE_HIGHT_BEFORE_ANGLE = 0.2;
         public double HIGH_CUBE_OUTTAKE_PERCENT = 0.5;
         
@@ -35,7 +35,7 @@ public class FieldDependentConstants {
         public double MID_CUBE_HIGHT_BEFORE_ANGLE = 0.1;
         public double MID_CUBE_OUTTAKE_PERCENT = 0.5;
 
-        public ElevatorWristState STANDING_CONE = new ElevatorWristState(100, 0);
+        public ElevatorWristState STANDING_CONE = new ElevatorWristState(101.63, 0.027);
 
         public ElevatorWristState FALLEN_CONE = new ElevatorWristState(
             118.52, 0.02);
@@ -63,10 +63,10 @@ public class FieldDependentConstants {
 
         
 
-        public double CUBE_ALIGN_OFFSET = 0.704157;
+        public double CUBE_ALIGN_OFFSET = 0.684157;
         public double CUBE_FIRST_ALIGN_OFFSET = 0.8;
 
-        public double CHARGING_STATION_ALIGN_OFFSET = 0.2;
+        public double CHARGING_STATION_ALIGN_OFFSET = 3.900183;
     }
     public static FieldConstants HOME_FIELD = new FieldConstants();
 

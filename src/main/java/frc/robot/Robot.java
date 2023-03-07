@@ -12,11 +12,14 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.util.Candle;
 import frc.lib.util.Candle.LEDState;
 import frc.lib.util.logging.Logger;
+import frc.robot.Constants.ElevatorConstants;
+import frc.robot.Constants.WristConstants;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -87,9 +90,11 @@ public class Robot extends TimedRobot {
     });
     thread.start();
 
-  SmartDashboard.putNumber("AdjYOffset", m_robotContainer.getLimelightOffset());
    Candle.getInstance().periodic();
-  
+
+
+      Candle.getInstance().setCandleLeftToColor(m_robotContainer.getLimelightLeftOfTarget() ? Color.kRed : Color.kGreen);
+      Candle.getInstance().setCandleRightToColor(m_robotContainer.getLimelightRightOfTarget() ? Color.kRed : Color.kGreen);
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
@@ -114,6 +119,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
+    Candle.getInstance().changeLedState(LEDState.Fire);
   }
 
   /** This function is called periodically during autonomous. */
@@ -146,7 +152,6 @@ public class Robot extends TimedRobot {
     // Cancels all running commands at the start of test mode.
     CommandScheduler.getInstance().cancelAll();
     Candle.getInstance().changeLedState(LEDState.TestMode);
-
   }
 
   /** This function is called periodically during test mode. */

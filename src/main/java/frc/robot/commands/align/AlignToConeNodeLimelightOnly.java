@@ -73,9 +73,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
           + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
 
       if (RetroReflectiveTargeter
-          .getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
-              ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
-              : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET)) {
+          .getXOffset() < xSetPoint) {
         X = 0;
       }
       X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
@@ -88,19 +86,19 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
           FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
       Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
-      SmartDashboard.putNumber("y Error", yController.getPositionError());
+      // SmartDashboard.putNumber("y Error", yController.getPositionError());
 
-      SmartDashboard.putNumber("X offest", xOffset);
+      // SmartDashboard.putNumber("X offest", xOffset);
 
-      SmartDashboard.putNumber("y out", yController.calculate(yOffset, 0));
-      SmartDashboard.putNumber("y feed", ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
+      // SmartDashboard.putNumber("y out", yController.calculate(yOffset, 0));
+      // SmartDashboard.putNumber("y feed", ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
 
 
 
-      SmartDashboard.putBoolean("y setPoint", yController.getPositionError() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
-      SmartDashboard.putBoolean("x setPoint", RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
-      ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
-      : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET));
+      // SmartDashboard.putBoolean("y setPoint", yController.getPositionError() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
+      // SmartDashboard.putBoolean("x setPoint", RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
+      // ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
+      // : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET));
 
 
       swerve.angularDrive(new Translation2d(X, -Y), FieldUtil.getTowardsDriverStation(), true, true);
@@ -117,7 +115,6 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    LimeLight.setLedMode(1);
   }
 
   // Returns true when the command should end.

@@ -20,8 +20,13 @@ import com.ctre.phoenix.led.TwinkleAnimation.TwinklePercent;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.RobotContainer;
+import frc.robot.subsystems.Intake.IntakeState;
+
 import static frc.robot.Constants.CandleConstants.*;
+
+import java.lang.reflect.Field;
 
 /** Add your docs here. */
 public class Candle {
@@ -34,13 +39,7 @@ public class Candle {
     // and the second is the # of leds in that zone
     private int[][] ledZones = new int[4][2];
 
-    private enum gamePiece {
-        None,
-        Cube,
-        Cone,
-    }
-
-    private gamePiece currentGamePiece = gamePiece.None;
+    private IntakeState currentGamePiece = IntakeState.NONE;
 
     public enum HumanPlayerCommStates {
         LeftCube,
@@ -53,7 +52,7 @@ public class Candle {
 
     }
 
-    private HumanPlayerCommStates currentComState = HumanPlayerCommStates.LeftCone;
+    private HumanPlayerCommStates currentComState = HumanPlayerCommStates.SingleCube;
 
     public enum LEDState {
         Idle,
@@ -98,11 +97,22 @@ public class Candle {
     }
 
     public void changeHumanPlayerComState(HumanPlayerCommStates state) {
+        if(currentComState != state) {
         currentComState = state;
+        if(currentState == LEDState.HumanPlayerCommunication){
+            changeLedState(currentState);
+        }
+        }
     }
 
-    public void changeCurrentGamePiece(gamePiece piece) {
-        currentGamePiece = piece;
+    public void changeCurrentGamePiece(IntakeState piece) {
+
+        if(currentGamePiece != piece) {
+            currentGamePiece = piece;
+            if(currentState == LEDState.Intake || currentState == LEDState.ReverseIntake){
+                changeLedState(currentState);
+            }
+        }
     }
 
     public void changeLedState(LEDState state) {
@@ -137,8 +147,6 @@ public class Candle {
             case TestMode:
                 candle.animate(new SingleFadeAnimation(200, 70, 0, 0, 0.1, TOTAL_STRIP_LENGTH, OFFSET_LENGTH), 1);
 
-            
-
                 currentState = LEDState.TestMode;
                 break;
 
@@ -157,7 +165,7 @@ public class Candle {
                 candle.animate(
                         new FireAnimation(1, 0.7, ledZones[1][1], 0.8, 0.25, true, OFFSET_LENGTH + ledZones[1][0]), 2);
                 candle.animate(
-                        new FireAnimation(1, 0.7, ledZones[2][1], 0.8, 0.25, false, OFFSET_LENGTH + ledZones[2][0] + 1), 5);
+                        new FireAnimation(1, 0.7, ledZones[2][1], 0.8, 0.25, false, OFFSET_LENGTH + ledZones[2][0]), 5);
                 candle.animate(
                         new FireAnimation(1, 0.7, ledZones[3][1], 0.8, 0.25, true, OFFSET_LENGTH + ledZones[3][0]), 4);
                 currentState = LEDState.Fire;
@@ -190,22 +198,22 @@ public class Candle {
     private void intakeState(boolean isForward) {
 
         switch (currentGamePiece) {
-            case Cube:
-            candle.animate(new ColorFlowAnimation(255, 0, 255, 0, 0.5, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
-            candle.animate(new ColorFlowAnimation(255, 0, 255, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
+            case CUBE:
+            candle.animate(new ColorFlowAnimation(255, 0, 255, 0, 0.9, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
+            candle.animate(new ColorFlowAnimation(255, 0, 255, 0, 0.9, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
         
                 break;
 
-            case Cone:
-            candle.animate(new ColorFlowAnimation(168, 255, 0, 0, 0.5, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
-            candle.animate(new ColorFlowAnimation(168, 255, 0, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
+            case CONE:
+            candle.animate(new ColorFlowAnimation(168, 255, 0, 0, 0.9, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
+            candle.animate(new ColorFlowAnimation(168, 255, 0, 0, 0.9, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
         
                 break;
 
-            case None:
+            case NONE:
 
-            candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
-            candle.animate(new ColorFlowAnimation(255, 255, 255, 0, 0.5, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
+            candle.animate(new ColorFlowAnimation(255, 0, 0, 0, 0.9, ledZones[0][1] + ledZones[1][1], isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[0][0]), 1);
+            candle.animate(new ColorFlowAnimation(255, 0, 0, 0, 0.9, ledZones[2][1] + ledZones[3][1] - 1, !isForward ? Direction.Backward : Direction.Forward, OFFSET_LENGTH + ledZones[2][0]), 2);      
 
                 break;
         }
@@ -220,34 +228,34 @@ public class Candle {
 
             // Cones
             case LeftCone:
-                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.1, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
 
                 break;
 
             case RightCone:
-                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.1, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
 
                 break;
 
             case SingleCone:
-                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, TOTAL_STRIP_LENGTH, OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.1, TOTAL_STRIP_LENGTH, OFFSET_LENGTH + ledZones[0][0]), 1);
                 // candle.animate(new StrobeAnimation(168, 255, 0, 0, 0.25, ledZones[3][0], OFFSET_LENGTH + ledZones[3][1]), 2);
 
                 break;
 
             // Cubes
             case LeftCube:
-                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.1, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
 
             break;
 
             case RightCube:
-                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.1, ledZones[0][0], OFFSET_LENGTH + ledZones[0][1]), 1);
 
                 break;
 
             case SingleCube:
-                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, TOTAL_STRIP_LENGTH, OFFSET_LENGTH + ledZones[0][1]), 1);
+                candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.1, TOTAL_STRIP_LENGTH, OFFSET_LENGTH + ledZones[0][0]), 1);
                 // candle.animate(new StrobeAnimation(255, 0, 255, 0, 0.25, ledZones[3][0], OFFSET_LENGTH + ledZones[3][1]), 2);
 
                 break;
@@ -262,7 +270,7 @@ public class Candle {
             if (NetworkTableInstance.getDefault().isConnected()) {
               
 
-                if (false) {
+                if (!FieldUtil.isBlueAlliance()) {
                     // Red team
 
                     candle.animate(new SingleFadeAnimation(255, 0, 0, 0, 0.1, TOTAL_STRIP_LENGTH, OFFSET_LENGTH), 1);
@@ -315,6 +323,14 @@ public class Candle {
     public void setAllToColor(int r, int g, int b) {
 
         candle.setLEDs(r, g, b, 255, 0, TOTAL_STRIP_LENGTH);
+
+    }
+    public void setCandleLeftToColor(Color color) {
+        candle.setLEDs((int)color.red, (int)color.green, (int)color.blue, 255, 0, 4);
+
+    }
+    public void setCandleRightToColor(Color color) {
+        candle.setLEDs((int)color.red, (int)color.green, (int)color.blue, 255, 4, 4);
 
     }
 

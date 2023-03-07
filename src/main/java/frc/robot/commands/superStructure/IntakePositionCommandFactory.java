@@ -58,7 +58,7 @@ public class IntakePositionCommandFactory {
     }
 
     public static IntakeToPosition IntakeToStandingConeNode(Elevator elevator, Wrist wrist) {
-        return new IntakeToPosition(wrist, elevator, FieldDependentConstants.CurrentField.STANDING_CONE);
+        return  new IntakeToPosition(wrist, elevator, FieldDependentConstants.CurrentField.STANDING_CONE);
     }
 
     public static IntakeToPosition IntakeToFallenConeNode(Elevator elevator, Wrist wrist) {
