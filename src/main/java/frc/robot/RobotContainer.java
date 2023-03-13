@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
@@ -34,10 +35,13 @@ import static frc.robot.Constants.ElevatorWristStateConstants.*;
 
 import frc.robot.commands.*;
 import frc.robot.commands.align.AlignOnChargingStation;
+import frc.robot.commands.align.AlignWithGyro;
 import frc.robot.commands.auto.AutoFactory;
+import frc.robot.commands.auto.SwerveFollowTrajectory;
 import frc.robot.commands.auto.TestAutoFactory;
 import frc.robot.commands.objectManipulation.intake.IntakeCommandFactory;
 import frc.robot.commands.objectManipulation.score.ScoreCommandFactory;
+import frc.robot.commands.objectManipulation.score.ScoreCommandFactory.ScoreHight;
 import frc.robot.commands.superStructure.IntakePositionCommandFactory;
 import frc.robot.commands.superStructure.IntakeToPosition;
 import frc.robot.subsystems.*;
@@ -121,18 +125,22 @@ public class RobotContainer {
         private final Trigger intakeToStandingCone = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
         private final Trigger intakeToFallenCone = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
 
-        private final Trigger switchDeadSensorOverrideObject = new Trigger(() -> driver.getPOV(0) == 90);
-
+        
         private final Trigger runIntakeFallenCone = runIntakeGeneral.and(intakeToFallenCone);
         private final Trigger runIntakeStandingCone = runIntakeGeneral.and(intakeToStandingCone);
-
+        
+        
+        
+        private final Trigger switchDeadSensorOverrideObject =  new JoystickButton(test,
+        XboxController.Button.kX.value);
         private final Trigger resetSensors = new JoystickButton(test,
                         XboxController.Button.kB.value);
-
         private final Trigger signalCube = new JoystickButton(test,
                         XboxController.Button.kLeftBumper.value);
         private final Trigger signalCone = new JoystickButton(test,
                         XboxController.Button.kRightBumper.value);
+        private final Trigger setUpdateSensor = new JoystickButton(test,
+                        XboxController.Button.kA.value);
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -153,6 +161,7 @@ public class RobotContainer {
                 autoChooser.addOption("2mTest", TestAutoFactory.nonVision2mTest(swerve));
                 // autoChooser.addOption("2mTestPos4", TestAutoFactory.vision2mTest(swerve));
                 autoChooser.addOption("TurnTest", TestAutoFactory.nonVisionTurnTest(swerve));
+                autoChooser.addOption("ScoreMobility", AutoFactory.ScoreMobility(wrist, elevator, intake, swerve));
 
                 elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
 
@@ -238,7 +247,9 @@ public class RobotContainer {
                                 () -> Candle.getInstance().changeLedState(LEDState.Idle)));
 
                 alignOnChargingStation.whileTrue(
-                                new AlignOnChargingStation(swerve).andThen(new RunCommand(swerve::xPos, swerve)));
+                                new AlignWithGyro(swerve).andThen(new RunCommand(swerve::xPos, swerve)));
+
+                setUpdateSensor.onTrue(new InstantCommand(swerve::resetToAbsolute));
                 // manualScoreHigh.whileTrue(new IntakeToPosition(wrist, elevator, () -> new
                 // ElevatorWristState(PoseFinderWrist.getDouble(13),
                 // PoseFinderElevator.getDouble(0))));
@@ -251,8 +262,12 @@ public class RobotContainer {
          */
         public Command getAutonomousCommand() {
                 // An ExampleCommand will run in autonomous
-                return autoChooser.getSelected(); // AutoFactory.Score2(wrist,
-                                                  // elevator,
+                // return Commands.sequence(
+                //         new InstantCommand(swerve::resetGyroTowardsDriverStation),
+                //         ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
+                //         IntakeToPosition.home(wrist, elevator));
+                return AutoFactory.ScoreBallanceWithGyro(wrist, elevator, intake, swerve); // AutoFactory.Score2(wrist,
+                                              
                 // intake, swerve);
         }
 

@@ -8,6 +8,7 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.lib.math.ClosedLoopUtil;
@@ -25,11 +26,15 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   /** Creates a new SimpleAlignToTarget. */
   private final Swerve swerve;
 
+  
+  private Timer minTimer = new Timer();
   private final DoubleSupplier coneOffset;
   private final boolean favorHigh;
+  private boolean hasCalculatedOffset = false;
 
   PIDController yController = new PIDController(1, 0, 0);
-  PIDController xController = new PIDController(2, 0, 0);
+  PIDController xController = new PIDController(3.5
+  , 0, 0);
 
   public AlignToConeNodeLimelightOnly(Swerve swerve, DoubleSupplier coneOffset, boolean favorHigh) {
     this.coneOffset = coneOffset;
@@ -41,6 +46,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    minTimer.start();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -88,17 +94,17 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
 
       // SmartDashboard.putNumber("y Error", yController.getPositionError());
 
-      // SmartDashboard.putNumber("X offest", xOffset);
+      SmartDashboard.putNumber("X offest", xOffset);
 
       // SmartDashboard.putNumber("y out", yController.calculate(yOffset, 0));
       // SmartDashboard.putNumber("y feed", ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
 
 
 
-      // SmartDashboard.putBoolean("y setPoint", yController.getPositionError() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
-      // SmartDashboard.putBoolean("x setPoint", RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
-      // ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
-      // : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET));
+       SmartDashboard.putBoolean("y setPoint", yController.getPositionError() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
+       SmartDashboard.putBoolean("x setPoint", RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
+      ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
+      : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET));
 
 
       swerve.angularDrive(new Translation2d(X, -Y), FieldUtil.getTowardsDriverStation(), true, true);
@@ -107,8 +113,10 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
 
 
 
+      hasCalculatedOffset = true;
     } else {
       swerve.disable();
+
     }
   }
 
@@ -124,7 +132,9 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
     return Math.abs(yController.getPositionError()) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE
         && RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
             ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
-            : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET) && LimeLight.hasTargets();
+            : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET) && LimeLight.hasTargets()
+             && minTimer.get() > 0.3;
+            // Math.abs(swerve.getAdjustedYaw().getDegrees() - 180) < 4;
   }
 
 }

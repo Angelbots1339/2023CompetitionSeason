@@ -236,6 +236,7 @@ public final class Constants {
         // Calculated maxs
         private static final double MAX_ELEVATOR_VELOCITY = 14.905; //Clicks per sec 
 
+        
         public static final int FOLLOWER_MOTOR_ID = 7;// TODO right motor
         public static final int LEADER_MOTOR_ID = 8;// TODO
 
@@ -347,7 +348,7 @@ public final class Constants {
         public static final double CHAIN_SPROCKET = (48 / 16);
 
         //angle when intake is against wrist 
-        public static final double angleOffset = 100;
+        public static final double angleOffset = 63.451949;//6.907668; //126.555942;
         public static final double TimeBeforeReset = 1.5;//sec b/c through bore initializes with 0;
 
        // public static final double KP = 0.01; // 0.0731;
@@ -400,7 +401,7 @@ public final class Constants {
         public static final double LimeLightMidPosition = 0;
         public static final Rotation2d LimeLightMidAngle = Rotation2d.fromDegrees(0);
 
-        public static final ElevatorWristState HOME = new ElevatorWristState(13, 0);
+        public static final ElevatorWristState HOME = new ElevatorWristState(17, 0);
     }
 
     public static final class IntakeConstants {
@@ -416,6 +417,7 @@ public final class Constants {
         public static final TalonFXInvertType INTAKE_MOTOR_INVERTED = TalonFXInvertType.CounterClockwise;
         public static final TalonFXInvertType SHOOT_MOTOR_INVERTED = TalonFXInvertType.CounterClockwise;
 
+        public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 
         public static final RangeProfile DISTANCE_SENSOR_PROFILE = RangeProfile.kHighAccuracy;
 

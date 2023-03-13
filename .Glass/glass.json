@@ -31,7 +31,8 @@
         "Swerve": {
           "Gyro": {
             "open": true
-          }
+          },
+          "open": true
         },
         "Swerve:Module": {
           "Module:0": {

@@ -129,7 +129,8 @@ public class Wrist extends SubsystemBase {
     updateSetPointWatcher();
 
     SmartDashboard.putNumber("angle", getAngleDeg());
-    //SmartDashboard.putNumber("through bore", throughBoreToAngle(dutyCycleEncoder.get()).getDegrees());
+    SmartDashboard.putNumber("through bore", throughBoreToAngle(dutyCycleEncoder.get()).getDegrees());
+    SmartDashboard.putNumber("through bore rot", dutyCycleEncoder.get());
   }
 
  

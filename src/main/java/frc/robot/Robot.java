@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.util.Candle;
 import frc.lib.util.Candle.LEDState;
 import frc.lib.util.logging.Logger;
+import frc.lib.util.multiplexer.Multiplexer;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.WristConstants;
 
@@ -90,8 +91,13 @@ public class Robot extends TimedRobot {
     });
     thread.start();
 
-   Candle.getInstance().periodic();
 
+
+   Candle.getInstance().periodic();
+   SmartDashboard.putBoolean("multiplexer", Multiplexer.isConnected());
+
+
+   
 
       Candle.getInstance().setCandleLeftToColor(m_robotContainer.getLimelightLeftOfTarget() ? Color.kRed : Color.kGreen);
       Candle.getInstance().setCandleRightToColor(m_robotContainer.getLimelightRightOfTarget() ? Color.kRed : Color.kGreen);

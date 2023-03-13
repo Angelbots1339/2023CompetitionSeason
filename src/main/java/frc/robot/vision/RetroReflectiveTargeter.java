@@ -94,11 +94,11 @@ public class RetroReflectiveTargeter {
 
         switch (status) {
             case HIGH:
-                 horizontalOffset = horizontalOffset -FieldDependentConstants.CurrentField.HIGH_CONE_Regression.predict(coneOffset) ;
+                 horizontalOffset = horizontalOffset -FieldDependentConstants.CurrentField.HIGH_CONE_REGRESSION.predict(coneOffset) ;
                 return Math.tan(Math.toRadians(horizontalOffset))
                         * xOffset;
             case MID:
-                 horizontalOffset = horizontalOffset - FieldConstants.MID_CONE_Regression.predict(coneOffset);
+                 horizontalOffset = horizontalOffset - FieldDependentConstants.CurrentField.MID_CONE_REGRESSION.predict(coneOffset);
                 return Math.tan(Math.toRadians(horizontalOffset))
                         * xOffset;
             default:

@@ -11,6 +11,7 @@ import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
@@ -113,14 +114,15 @@ public class ScoreCommandFactory {
                                 scoreHight);
         }
 
+
+        
         public static Command extendThenPlace(Wrist wrist, Elevator elevator, Intake intake,
                         IntakeToPosition align, double outtakePercent) {
-                return new ConditionalCommand(
-                                align.alongWith(outtakeConeAtSetPoint(intake, elevator, wrist, outtakePercent))
-                                                .until(() -> !intake.objectInIntake()),
-                                align.alongWith(outtakeConeAtSetPoint(intake, elevator, wrist, outtakePercent)).until(
-                                                () -> elevator.atSetPointAndSettled() && wrist.atSetPointAndSettled()),
-                                Multiplexer::isConnected);
+                return align.alongWith(outtakeConeAtSetPoint(intake, elevator, wrist, outtakePercent)).until(() -> {
+                        
+                        return !intake.objectInIntake();
+                });
+                               
         }
 
         public static Command outtakeConeAtSetPoint(Intake intake, Elevator elevator, Wrist wrist,

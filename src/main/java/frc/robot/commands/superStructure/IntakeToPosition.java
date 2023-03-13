@@ -105,20 +105,32 @@ public class IntakeToPosition extends CommandBase {
     });
   }
 
-  public static IntakeToPosition poseFinder(Wrist wrist, Elevator elevator, ElevatorWristState finalPos,
-      double heightBeforeStartAngle, String name) {
-    ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
 
-    GenericEntry poseFinderElevator = poseFinder.add("height: " + name, finalPos.height).withWidget(BuiltInWidgets.kNumberSlider)
-        .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.05)).getEntry();
+  static ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
 
-    GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("heightBeforeStartAngle: " + name, heightBeforeStartAngle)
-        .withWidget(BuiltInWidgets.kNumberSlider)
-        .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.05)).getEntry();
+  public static GenericEntry poseFinderElevator =  poseFinder.add("height: " , 0).withWidget(BuiltInWidgets.kNumberSlider)
+   .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.01)).getEntry();
 
-    GenericEntry poseFinderWrist = poseFinder.add("angle: "+ name, finalPos.angle.getDegrees())
+
+   public static GenericEntry poseFinderWrist = poseFinder.add("angle: ", 0)
         .withWidget(BuiltInWidgets.kNumberSlider)
         .withProperties(Map.of("min", 13, "max", 204.462891, "Block increment", 1)).getEntry();
+
+
+      public static GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("heightBeforeStartAngle: " , 0)
+        .withWidget(BuiltInWidgets.kNumberSlider)
+        .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.05)).getEntry();
+   
+
+
+  public static IntakeToPosition poseFinder(Wrist wrist, Elevator elevator, ElevatorWristState finalPos,
+      double heightBeforeStartAngle, String name) {
+
+      
+
+   
+
+    
 
     return new IntakeToPosition(wrist, elevator, () -> {
       if (elevator.getHeightMeters() < poseFinderHeightBeforeStartAngle.getDouble(heightBeforeStartAngle))

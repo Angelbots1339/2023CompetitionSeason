@@ -26,4 +26,12 @@ public class TestAutoFactory {
     List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("2mTest");
     return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, false);
   }
+  public static Command nonVisionTurnTest(Swerve swerve) {
+    List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("TurnTest");
+    return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, false);
+  }
+  public static Command visionTurnTest(Swerve swerve) {
+    List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("TurnTest");
+    return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, false);
+  }
 }

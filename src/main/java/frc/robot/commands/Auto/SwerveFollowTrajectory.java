@@ -22,6 +22,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 import static frc.robot.Constants.AutoConstants.*;
 
+import java.io.Console;
+
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Intake;
@@ -47,11 +49,20 @@ public class SwerveFollowTrajectory extends PPSwerveControllerCommand {
       }
       else{
         swerve.resetOdometry(traj.getInitialHolonomicPose());
-        
       }
-      
     }
     // super.s
+  }
+
+  public static void resetPos(PathPlannerTrajectory traj,  Swerve swerve){
+      if(DriverStation.getAlliance() == Alliance.Red){
+        swerve.resetOdometry(new Pose2d(new Translation2d(FieldConstants.RED_ORIGIN.getX() - traj.getInitialHolonomicPose().getX(), traj.getInitialHolonomicPose().getY()), traj.getInitialHolonomicPose().getRotation().plus(new Rotation2d(Math.PI))));
+      }
+      else{
+        
+        swerve.resetOdometry(new Pose2d(traj.getInitialHolonomicPose().getTranslation(), Rotation2d.fromDegrees(180)));
+      }
+    
   }
 
   public SwerveFollowTrajectory(PathPlannerTrajectory traj, Swerve swerve) {

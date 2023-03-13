@@ -30,6 +30,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.util.logging.loggedObjects.LoggedField;
 import static frc.robot.Constants.VisionConstants.*;
@@ -82,9 +84,12 @@ public class PoseEstimator {
     }
 
 
-    public void updateOdometry(Swerve swerve, Pose2d referencePose) {
-        poseEstimatorNonVision.update(swerve.getYaw(), swerve.getPositions());
+    public void justUpdate(Swerve swerve){
         poseEstimator.update(swerve.getYaw(), swerve.getPositions());
+        poseEstimatorNonVision.update(swerve.getYaw(), swerve.getPositions());
+    }
+
+    public void updateOdometry(Swerve swerve, Pose2d referencePose) {
         PhotonPipelineResult result = APRILTAG_CAM.getLatestResult();
         if (result.hasTargets()) {
             double smallestPoseDelta = 10e9;
@@ -120,13 +125,13 @@ public class PoseEstimator {
                 //         new Transform3d(transformToTarget, gyroCalculatedAngle), targetPosition, APRILTAG_CAM_POS);
                 Pose3d estimatedPose = targetPosition.transformBy(new Transform3d(transformToTarget, gyroCalculatedAngle).inverse()).transformBy(APRILTAG_CAM_POS.inverse());
 
-
+                //SmartDashboard.putNumber("estimatedPose", estimatedPose.getX());
 
                 double poseDelta = referencePose.getTranslation()
                         .getDistance(estimatedPose.getTranslation().toTranslation2d());
                 if (poseDelta < smallestPoseDelta) {
                     smallestPoseDelta = poseDelta;
-                    lowestDeltaPose = new EstimatedRobotPose(estimatedPose, poseDelta, List.of(target));
+                    lowestDeltaPose = new EstimatedRobotPose(estimatedPose, result.getTimestampSeconds(), List.of(target));
                     robotToTarget = transformToTarget.toTranslation2d();
                 }
 
@@ -138,9 +143,14 @@ public class PoseEstimator {
             double xyStdDev = KalmanVisionRegression.xyStdDevReg.predict(tagDistance);
 
 
+            SmartDashboard.putNumber("ndull", lowestDeltaPose.timestampSeconds);
+           
+            SmartDashboard.putNumber("test", xyStdDev);
+            SmartDashboard.putNumber("testre", lowestDeltaPose.timestampSeconds);
+            poseEstimator.addVisionMeasurement(lowestDeltaPose.estimatedPose.toPose2d(), lowestDeltaPose.timestampSeconds, VecBuilder.fill(xyStdDev, xyStdDev, 0));
+            
+            SmartDashboard.putNumber("check", poseEstimator.getEstimatedPosition().getX() );
 
-            poseEstimator.addVisionMeasurement(lowestDeltaPose.estimatedPose.toPose2d(),
-                    lowestDeltaPose.timestampSeconds, VecBuilder.fill(xyStdDev, xyStdDev, 0));
         }
     }
 
@@ -184,7 +194,7 @@ public class PoseEstimator {
     }
 
     public void resetPose(Rotation2d gyroAngle, SwerveModulePosition[] swerveModulePositions, Pose2d pose) {
-        poseEstimator.resetPosition(gyroAngle, swerveModulePositions, pose);
+         poseEstimator.resetPosition(gyroAngle, swerveModulePositions, pose);
         poseEstimatorNonVision.resetPosition(gyroAngle, swerveModulePositions, pose);
     }
 

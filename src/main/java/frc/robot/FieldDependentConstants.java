@@ -14,16 +14,16 @@ public class FieldDependentConstants {
     public static class FieldConstants {
         
         //Defualt values
-        public static PolynomialRegression MID_CONE_Regression = ConeOffsetRegression.midPracticeFieldReg;
-        public PolynomialRegression HIGH_CONE_Regression = ConeOffsetRegression.highPracticeFieldReg;
+        public PolynomialRegression MID_CONE_REGRESSION = ConeOffsetRegression.midPracticeFieldReg;
+        public PolynomialRegression HIGH_CONE_REGRESSION = ConeOffsetRegression.highPracticeFieldReg;
         
         //intake positions
         public ElevatorWristState HIGH_CONE = new ElevatorWristState(110, 1.31);
         public double HIGH_CONE_HIGHT_BEFORE_ANGLE = 0.1;
-        public double HIGH_CONE_OUTTAKE_PERCENT = 1;
+        public double HIGH_CONE_OUTTAKE_PERCENT = 0.8;
         
         public ElevatorWristState MID_CONE = new ElevatorWristState(103.28, 0.76);
-        public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.1;
+        public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.2;
         public double MID_CONE_OUTTAKE_PERCENT = 0.5;
         
         public ElevatorWristState HIGH_CUBE = new ElevatorWristState(85, 0.98);
@@ -53,10 +53,10 @@ public class FieldDependentConstants {
 
         public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.525826;
         public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.853713;
-        public double HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET =  1.542556;
-        public double MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 0.903931;
+        public double HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET =1.57 ;// 1.552556;
+        public double MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 0.93;//0.913931;
 
-        public double LIMELIGHT_ALIGN_Y_TOLERANCE = 0.01;
+        public double LIMELIGHT_ALIGN_Y_TOLERANCE = 0.02;
 
         public double CUBE_ALIGN_Y_TOLERANCE = 0.02;
 
@@ -66,13 +66,29 @@ public class FieldDependentConstants {
         public double CUBE_ALIGN_OFFSET = 0.684157;
         public double CUBE_FIRST_ALIGN_OFFSET = 0.8;
 
-        public double CHARGING_STATION_ALIGN_OFFSET = 3.900183;
+        public double CHARGING_STATION_ALIGN_OFFSET = 16.540988 - 12.450292648584131;
     }
     public static FieldConstants HOME_FIELD = new FieldConstants();
 
+    public static FieldConstants ST_LUIS = new FieldConstants();
+    static {
+        ST_LUIS.MID_CONE_REGRESSION = ConeOffsetRegression.midCompFieldReg;
+        ST_LUIS.HIGH_CONE_REGRESSION = ConeOffsetRegression.highCompFieldReg;
+
+        ST_LUIS.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.385142;
+        ST_LUIS.MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.903931;
+        ST_LUIS.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.457768;
+        ST_LUIS.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 0.924321;
+        ST_LUIS.CUBE_ALIGN_OFFSET = 0.79;
+        ST_LUIS.CUBE_FIRST_ALIGN_OFFSET = 0.82;
+
+
+
+    
+    }
     
 
 
     
-    public static FieldConstants CurrentField = HOME_FIELD;
+    public static FieldConstants CurrentField = ST_LUIS;
 }

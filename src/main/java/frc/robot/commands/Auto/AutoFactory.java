@@ -20,6 +20,7 @@ import frc.lib.util.FieldUtil;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.commands.align.AlignOnChargingStation;
 import frc.robot.commands.align.AlignToAprilTag;
+import frc.robot.commands.align.AlignWithGyro;
 import frc.robot.commands.objectManipulation.score.ScoreCommandFactory;
 import frc.robot.commands.objectManipulation.score.ScoreCommandFactory.ScoreHight;
 import frc.robot.commands.superStructure.IntakeToPosition;
@@ -36,13 +37,14 @@ public class AutoFactory {
                                 new PathConstraints(3.1, 1.1));
                 return Commands.sequence(
                                 new InstantCommand(swerve::resetGyroTowardsDriverStation),
+                                new InstantCommand(() -> SwerveFollowTrajectory.resetPos(trajectories.get(0), swerve)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(0), true, false,
                                                 swerve, intake,
                                                 elevator, wrist),
 
-                                ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake, swerve),
-                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(2), false, false,
+                                //ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake, swerve),
+                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(2), true, false,
                                                 swerve, intake,
                                                 elevator, wrist),
                                 new AlignOnChargingStation(swerve));
@@ -53,19 +55,24 @@ public class AutoFactory {
                                 new PathConstraints(3.1, 1.1));
                 return Commands.sequence(
                                 new InstantCommand(swerve::resetGyroTowardsDriverStation),
+                                new InstantCommand(() -> SwerveFollowTrajectory.resetPos(trajectories.get(0), swerve)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () ->
                                 ScoreHight.HIGH),
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(0), true, false,
                                                 swerve, intake,
                                                 elevator, wrist),
 
-                                ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake, swerve),
+                                //ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake, swerve),
                                 IntakeToPosition.home(wrist, elevator));
         }
 
         public static Command ScoreBallance(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
+                List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("Mobility",
+                                new PathConstraints(2, 1));
                 return Commands.sequence(
                                 new InstantCommand(swerve::resetGyroTowardsDriverStation),
+                                new InstantCommand(() -> SwerveFollowTrajectory.resetPos(trajectories.get(0), swerve)),
+
                                 new InstantCommand(() -> {
                                         if (!FieldUtil.isBlueAlliance()) {
                                                 swerve.resetOdometry(new Pose2d(FieldConstants.RED_ORIGIN,
@@ -80,12 +87,34 @@ public class AutoFactory {
                                                                 .andThen(new RunCommand(swerve::xPos, swerve)),
                                                 IntakeToPosition.home(wrist, elevator)));
         }
+        public static Command ScoreBallanceWithGyro(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
+                List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("Mobility",
+                                new PathConstraints(2, 1));
+                return Commands.sequence(
+                                new InstantCommand(swerve::resetGyroTowardsDriverStation),
+                                new InstantCommand(() -> SwerveFollowTrajectory.resetPos(trajectories.get(0), swerve)),
+
+                                new InstantCommand(() -> {
+                                        if (!FieldUtil.isBlueAlliance()) {
+                                                swerve.resetOdometry(new Pose2d(FieldConstants.RED_ORIGIN,
+                                                                Rotation2d.fromDegrees(0)));
+                                        }
+
+                                }),
+                                ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
+                                IntakeToPosition.home(wrist, elevator).until(() -> elevator.getHeightMeters() < 0.02),
+                                Commands.parallel(
+                                                new AlignOnChargingStation(swerve).andThen(new AlignWithGyro(swerve))
+                                                                .andThen(new RunCommand(swerve::xPos, swerve)),
+                                                IntakeToPosition.home(wrist, elevator)));
+        }
 
         public static Command ScoreMobilityBallance(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("Mobility",
                                 new PathConstraints(2, 1));
                 return Commands.sequence(
                                 new InstantCommand(swerve::resetGyroTowardsDriverStation),
+                                new InstantCommand(() -> SwerveFollowTrajectory.resetPos(trajectories.get(0), swerve)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
                                 IntakeToPosition.home(wrist, elevator).until(() -> elevator.getHeightMeters() < 0.02),
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(0), true, false,
@@ -97,5 +126,19 @@ public class AutoFactory {
                                                                 .andThen(new RunCommand(swerve::xPos, swerve)),
                                                 IntakeToPosition.home(wrist, elevator)));
         }
+        public static Command ScoreMobility(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
+                List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("Mobility",
+                                new PathConstraints(2, 1));
+                return Commands.sequence(
+                                new InstantCommand(swerve::resetGyroTowardsDriverStation),
+                                new InstantCommand(() -> SwerveFollowTrajectory.resetPos(trajectories.get(0), swerve)),
+                                ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
+                                IntakeToPosition.home(wrist, elevator).until(() -> elevator.getHeightMeters() < 0.02),
+                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(0), true, false,
+                                                swerve, intake,
+                                                elevator, wrist));
+                               
+        }
+        
 
 }

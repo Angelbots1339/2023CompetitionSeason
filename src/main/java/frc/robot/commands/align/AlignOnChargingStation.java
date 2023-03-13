@@ -9,6 +9,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.PIDCommand;
 import frc.lib.math.ClosedLoopUtil;
 import frc.lib.util.FieldUtil;
@@ -22,28 +23,33 @@ import frc.robot.subsystems.Swerve;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class AlignOnChargingStation extends PIDCommand {
 
+  public Swerve swerve;
+
 
   /** Creates a new AlignOnChargingStation. */
   public AlignOnChargingStation(Swerve swerve) {
     super(
         // The controller that the command will use
-        new PIDController(1, 0, 0),
+        new PIDController(1.5, 0, 0),
         // This should return the measurement
         () -> swerve.getPose().getX(),
         // This should return the setpoint (can also be a constant)
-        DriverStation.getAlliance() == Alliance.Red
-            ? FieldConstants.RED_ORIGIN.getX() - FieldDependentConstants.CurrentField.CHARGING_STATION_ALIGN_OFFSET
-            : FieldDependentConstants.CurrentField.CHARGING_STATION_ALIGN_OFFSET, // Offset
+       FieldConstants.RED_ORIGIN.getX()/2, // Offset
         // from
         // Target
         // This uses the output
 
         output -> {
+          SmartDashboard.putNumber("out", DriverStation.getAlliance() == Alliance.Red
+          ? FieldConstants.RED_ORIGIN.getX() - FieldDependentConstants.CurrentField.CHARGING_STATION_ALIGN_OFFSET
+          : FieldDependentConstants.CurrentField.CHARGING_STATION_ALIGN_OFFSET);
+
           swerve.angularDrive(new Translation2d((
                FieldUtil.isBlueAlliance()? 1 : -1 *(MathUtil.clamp(output + ClosedLoopUtil.positionFeedForward(output, 0.3), -1, 1))), 0),
               FieldUtil.getTowardsDriverStation(), true, false);
           // Use the output here
         });
+        this.swerve = swerve;
 
     addRequirements(swerve);
     getController().setTolerance(TRANSLATION_PID_TOLERANCE);
@@ -51,9 +57,11 @@ public class AlignOnChargingStation extends PIDCommand {
     // Configure additional PID options by calling `getController` here.
   }
 
-  // Returns true when the command should end.
+  // Returns true when the command should end
   @Override
   public boolean isFinished() {
-    return Math.abs(getController().getPositionError()) <= TRANSLATION_PID_TOLERANCE;
+    SmartDashboard.putNumber("error", Math.abs(getController().getPositionError()));
+    return Math.abs(swerve.getGyrop().getPitch()) > 6;
+    
   }
 }

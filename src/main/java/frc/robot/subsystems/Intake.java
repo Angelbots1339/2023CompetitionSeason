@@ -7,7 +7,10 @@ package frc.robot.subsystems;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.revrobotics.ColorSensorV3;
+import com.revrobotics.Rev2mDistanceSensor;
+import com.revrobotics.Rev2mDistanceSensor.Port;
 import com.revrobotics.Rev2mDistanceSensor.RangeProfile;
+import com.revrobotics.Rev2mDistanceSensor.Unit;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
@@ -28,11 +31,18 @@ public class Intake extends SubsystemBase {
   private double lastLeftDist = 0;
   private double lastRightDist = 0;
 
+
+  private boolean setUpdateSensors = true;
+
   private final TalonFX intakeMotor = TalonFXFactory.createDefaultTalon(INTAKE_MOTOR_ID, Constants.CANIVORE);;
 
-  private ColorSensorMUXed cubeSensor = new ColorSensorMUXed(0);
-  private DistanceSensorMUXed rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
-  private DistanceSensorMUXed leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
+  //private ColorSensorMUXed cubeSensor = new ColorSensorMUXed(0);
+  // private DistanceSensorMUXed rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
+  // private DistanceSensorMUXed leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
+  //private Rev2mDistanceSensor leftConeSensor = new Rev2mDistanceSensor(Port.kOnboard);
+  private Rev2mDistanceSensor rightConeSensor = new Rev2mDistanceSensor(Port.kMXP);
+
+  
 
   private boolean colorSensorWorking = true;
 
@@ -43,11 +53,29 @@ public class Intake extends SubsystemBase {
   /** Creates a new IntakeAndShooter. */
   public Intake() {
     configFalcons();
+    // leftConeSensor.setRangeProfile(RangeProfile.kHighAccuracy);
+    // leftConeSensor.setEnabled(true);
+    // leftConeSensor.setAutomaticMode(true);
+    // leftConeSensor.setDistanceUnits(Unit.kMillimeters);
+    rightConeSensor.setRangeProfile(RangeProfile.kHighAccuracy);
+    rightConeSensor.setAutomaticMode(true);
+    rightConeSensor.setEnabled(true);
+    rightConeSensor.setDistanceUnits(Unit.kMillimeters);
   }
+
+  public void setUpdateSensors( boolean value) {
+    setUpdateSensors = value;
+  }
+  
+  public boolean getUpdateSensors() {
+    return setUpdateSensors;
+  }
+
 
   @Override
   public void periodic() {
     updateSensors();
+    SmartDashboard.putNumber("right cone", rightConeSensor.getMeasurementPeriod() / 1000);
 
     SmartDashboard.putNumber("Cone offset", getConeOffset());
     SmartDashboard.putBoolean("objectInIntake", objectInIntake());
@@ -58,32 +86,34 @@ public class Intake extends SubsystemBase {
   int i = 0;
 
   public void updateSensors() {
+
     switch (i) {
       case 0:
-      ColorSensorV3 sensor = cubeSensor.get();
-      if(sensor != null){
-        lastColor = sensor.getColor();
-        colorSensorWorking = true;
-      }
-      else {
-        colorSensorWorking = false;
-        resetColorSensor();
-      }
+      //ColorSensorV3 sensor = cubeSensor.get();
+      // if(sensor != null){
+      //   lastColor = sensor.getColor();
+      //   colorSensorWorking = true;
+      // }
+      // else {
+      //   colorSensorWorking = false;
+      //   resetColorSensor();
+      // }
       i++;
         break;
       case 1:
-      if(!leftConeSensor.isWorking())
-        resetLeftDistSensor();
-      lastLeftDist = leftConeSensor.getRange();
+      // if(!leftConeSensor.isWorking())
+      //   resetLeftDistSensor();
+      //lastLeftDist = leftConeSensor.getRange();
       i++;
         break;
       case 2:
-      if(!rightConeSensor.isWorking())
-        resetRightDistSensor();
-      lastRightDist = rightConeSensor.getRange();
+      // if(!rightConeSensor.isWorking())
+      //   resetRightDistSensor();
+      lastRightDist = rightConeSensor.getMeasurementPeriod() / 1000;
       i = 0;
         break;
-    }
+    
+  }
 
 
     Candle.getInstance().changeCurrentGamePiece(getState());
@@ -95,11 +125,13 @@ public class Intake extends SubsystemBase {
   }
 
   public double getConeOffset() {
-    if(!objectInIntake()){
-      return 0;
-    }
-    return lastLeftDist - lastRightDist;
+    // if(!objectInIntake()){
+    //   return 0;
+    // }
+    // return lastLeftDist - lastRightDist;
+    return rightConeSensor.GetRange()/ 1000;
   }
+
 
   public boolean coneInIntake() {
     return objectInIntake() && ColorSensorMUXed.xyzColorDifference(lastColor, CONE_COLOR) < ColorSensorMUXed
@@ -115,18 +147,18 @@ public class Intake extends SubsystemBase {
   }
 
   public void resetSensors() {
-    cubeSensor = new ColorSensorMUXed(0);
-    rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
-    leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
+    // cubeSensor = new ColorSensorMUXed(0);
+    // rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
+    // leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
   }
   public void resetColorSensor() {
-    cubeSensor = new ColorSensorMUXed(0);
+    // cubeSensor = new ColorSensorMUXed(0);
   }
   public void resetLeftDistSensor() {
-    leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
+    // leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
   }
   public void resetRightDistSensor() {
-    rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
+    // rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
   }
 
   public boolean leftEmpty() {
@@ -137,9 +169,9 @@ public class Intake extends SubsystemBase {
     return lastRightDist < 0;
   }
 
+
   public boolean objectInIntake() {
-    return lastLeftDist > DISTANCE_SENSOR_EMPTY_THRESHOLD
-        && lastRightDist > DISTANCE_SENSOR_EMPTY_THRESHOLD;
+    return (rightConeSensor.GetRange() / 1000) > 0 && (rightConeSensor.GetRange()/1000) < 0.38;
   }
 
   public boolean cubeInIntake() {

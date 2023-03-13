@@ -15,7 +15,7 @@ import static frc.robot.Constants.MultiplexerConstants.*;
 public class Multiplexer extends I2C {
     private static Multiplexer MULTIPLEXER;
     private static int currentDevice = 0;
-    private static boolean connected = true;
+    private static boolean connected = false;
 
     private Multiplexer() {
         super(DEFAULT_PORT, DEFAULT_ADDRESS);
@@ -32,17 +32,16 @@ public class Multiplexer extends I2C {
     public boolean setDevice(int port) {
         assert port <= 7 && port >= 0;
         boolean success = !getInstance().write(0x00, 1 << port);
-        connected = success;
+       
+        //connected = success;
         if (!success) {
             DriverStation.reportError(String.format("Error switching to channel " + port +
                     " on Multiplexer. Please check your connections",
                     DEFAULT_PORT == Port.kMXP ? "MXP" : "Onboard"), false);
-                   
-        }
-        currentDevice = port;
-        return success;
-    }
-
+                    currentDevice = port;
+                }
+                return success;
+            }
     /**
      * @return Current device address, or 0 if none are selected
      */

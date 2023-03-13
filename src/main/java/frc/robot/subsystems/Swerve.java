@@ -291,6 +291,7 @@ public class Swerve extends SubsystemBase {
 
     public void resetGyroTowardsDriverStation() {
         gyro.setYaw(FieldUtil.getTowardsDriverStation().getDegrees());
+        gyro.setYaw(FieldUtil.getTowardsDriverStation().getDegrees());
     }
 
     public void resetOdometry(Pose2d pose) {
@@ -417,6 +418,9 @@ public class Swerve extends SubsystemBase {
         return new Rotation3d(Math.toRadians(gyro.getRoll()), Math.toRadians(gyro.getPitch()),
                 Math.toRadians(gyro.getYaw()));
     }
+    public Pigeon2 getGyrop() {
+        return gyro;
+    }
 
     // DRIVE PID
     private PIDController pidToPoseXController = new PIDController(TRANSLATION_KP, 0, 0);
@@ -501,8 +505,18 @@ public class Swerve extends SubsystemBase {
     @Override
     public void periodic() {
         poseEstimation.updateOdometry(this, getPose());
+        poseEstimation.justUpdate(this);
+        //RetroReflectiveTargeter.update(getPose(), true);
 
-        //SmartDashboard.putNumber("X", getPose().getX());
+        SmartDashboard.putNumber("X", getPose().getX());
+        SmartDashboard.putNumber("hor off", LimeLight.getHorizontalOffset());
+        SmartDashboard.putNumber("XOffset", RetroReflectiveTargeter.getXOffset());
+
+
+
+
+
+
         // SmartDashboard.putNumber("h offset", getPose().getX() -
         // getField().getTagPose(7).get().toPose2d().getX());
         calculateVelocity();

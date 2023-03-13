@@ -23,6 +23,20 @@ public class ConeOffsetRegression {
     public static PolynomialRegression highPracticeFieldReg = new PolynomialRegression(highPracticeField, 1);
 
 
+    private static double[][] midCompField = {
+        { 0.07, 0},
+        { 0.044000, 2.29},
+        {0.155000, 1.10}
+    };
+    private static double[][] highCompField  = {
+        { 0.07, 0},
+        { 0.044000, 1.70},
+        {0.155000, -2.60}
+    };
+    public static PolynomialRegression midCompFieldReg = new PolynomialRegression(midCompField, 1);
+
+    public static PolynomialRegression highCompFieldReg = new PolynomialRegression(highCompField, 1);
+
 
 
 }
