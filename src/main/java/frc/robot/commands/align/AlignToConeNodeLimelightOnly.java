@@ -26,15 +26,13 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   /** Creates a new SimpleAlignToTarget. */
   private final Swerve swerve;
 
-  
   private Timer minTimer = new Timer();
   private final DoubleSupplier coneOffset;
   private final boolean favorHigh;
-  private boolean hasCalculatedOffset = false;
+  private double xSetPoint = 0;
 
   PIDController yController = new PIDController(1, 0, 0);
-  PIDController xController = new PIDController(3.5
-  , 0, 0);
+  PIDController xController = new PIDController(3.5, 0, 0);
 
   public AlignToConeNodeLimelightOnly(Swerve swerve, DoubleSupplier coneOffset, boolean favorHigh) {
     this.coneOffset = coneOffset;
@@ -58,62 +56,61 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
       // yOffset = RetroReflectiveTargeter.getYOffset();
       double xOffset = RetroReflectiveTargeter.getXOffset();
 
-      double xSetPoint;
+      double firstXSetPoint = 0;
+      xSetPoint = 0;
 
       if (Math.abs(yOffset) > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE) {
         if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH) {
-          xSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
-        } else {
-          xSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
-        }
-      } else {
-        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH) {
+          firstXSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
           xSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET;
+
         } else {
+          firstXSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
           xSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET;
+
         }
-
       }
-
-      double X = xController.calculate(xOffset, xSetPoint)
-          + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
-
-      if (RetroReflectiveTargeter
-          .getXOffset() < xSetPoint) {
-        X = 0;
-      }
-      X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
       double Y = yController.calculate(yOffset, 0)
           + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
-      
-
       Y = ClosedLoopUtil.stopAtSetPoint(Y, yController.getPositionError(),
           FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
       Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
+
+      double X = 0;
+      if (Y > 0.02) {
+        X = xController.calculate(xOffset, firstXSetPoint)
+            + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
+        X = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(),
+            DrivePidConstants.TRANSLATION_PID_TOLERANCE);
+      } else {
+        X = xController.calculate(xOffset, xSetPoint)
+            + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
+        if (RetroReflectiveTargeter
+            .getXOffset() < xSetPoint) {
+          X = 0;
+        }
+      }
+
+      X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
       // SmartDashboard.putNumber("y Error", yController.getPositionError());
 
       SmartDashboard.putNumber("X offest", xOffset);
 
       // SmartDashboard.putNumber("y out", yController.calculate(yOffset, 0));
-      // SmartDashboard.putNumber("y feed", ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS));
+      // SmartDashboard.putNumber("y feed",
+      // ClosedLoopUtil.positionFeedForward(yController.getPositionError(),
+      // DrivePidConstants.TRANSLATION_KS));
 
-
-
-       SmartDashboard.putBoolean("y setPoint", yController.getPositionError() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
-       SmartDashboard.putBoolean("x setPoint", RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
-      ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
-      : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET));
-
+      SmartDashboard.putBoolean("y setPoint",
+          yController.getPositionError() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
+      SmartDashboard.putBoolean("x setPoint",
+          RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
+              ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
+              : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET));
 
       swerve.angularDrive(new Translation2d(X, -Y), FieldUtil.getTowardsDriverStation(), true, true);
-
-   
-
-
-
-      hasCalculatedOffset = true;
     } else {
       swerve.disable();
 
@@ -129,14 +126,13 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   @Override
   public boolean isFinished() {
 
-    return Math.abs(yController.getPositionError()) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE
-        && RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
-            ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
-            : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET) && LimeLight.hasTargets()
-             && minTimer.get() > 0.3;
-            // Math.abs(swerve.getAdjustedYaw().getDegrees() - 180) < 4;
+    return Math
+        .abs(RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(),
+            coneOffset.getAsDouble())) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE
+        && RetroReflectiveTargeter.getXOffset() < xSetPoint
+        && LimeLight.hasTargets()
+        && minTimer.get() > 0.3;
+    // Math.abs(swerve.getAdjustedYaw().getDegrees() - 180) < 4;
   }
 
 }
-
-

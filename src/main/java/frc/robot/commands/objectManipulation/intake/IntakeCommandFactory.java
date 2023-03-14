@@ -52,17 +52,26 @@ public class IntakeCommandFactory {
         return new StartEndCommand(() -> intake.runIntakeAtPercent(
             FieldDependentConstants.CurrentField.INTAKE_FALLEN_CONE) , intake::disable, intake);
     }
-    public static Command poseFinderIntake(Intake intake, String name) {
-        
-        ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
 
-        GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("percent: " + name, 0)
-                        .withWidget(BuiltInWidgets.kNumberSlider)
-                        .withProperties(Map.of("min", 0, "max", 1, "Block increment", 0.05)).getEntry();
-                        
-        return new StartEndCommand(() -> intake.runIntakeAtPercent(
-            poseFinderHeightBeforeStartAngle.getDouble(0)) , intake::disable, intake);
+
+    static ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
+
+    private static GenericEntry poseFinderIntake = poseFinder.add("intake percent", 0)
+    .withWidget(BuiltInWidgets.kNumberSlider)
+    .withProperties(Map.of("min", 0, "max", 1, "Block increment", 0.05)).getEntry();
+
+    
+
+  
+    public static Command poseFinder(Intake intake, double percent) {
+        poseFinderIntake.setDouble(percent);
+            return new StartEndCommand(
+                            () -> intake.runIntakeAtPercent(poseFinderIntake.getDouble(percent)),
+                            intake::disable, intake);
     }
+
+
+   
 
 
 

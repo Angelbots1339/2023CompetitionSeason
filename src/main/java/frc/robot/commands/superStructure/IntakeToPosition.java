@@ -105,33 +105,24 @@ public class IntakeToPosition extends CommandBase {
     });
   }
 
-
   static ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
 
-  public static GenericEntry poseFinderElevator =  poseFinder.add("height: " , 0).withWidget(BuiltInWidgets.kNumberSlider)
-   .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.01)).getEntry();
+  private static GenericEntry poseFinderElevator = poseFinder.add("height", 0).withWidget(BuiltInWidgets.kNumberSlider)
+      .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.01)).getEntry();
 
+  private static GenericEntry poseFinderWrist = poseFinder.add("angle", 0)
+      .withWidget(BuiltInWidgets.kNumberSlider)
+      .withProperties(Map.of("min", 13, "max", 204.462891, "Block increment", 1)).getEntry();
 
-   public static GenericEntry poseFinderWrist = poseFinder.add("angle: ", 0)
-        .withWidget(BuiltInWidgets.kNumberSlider)
-        .withProperties(Map.of("min", 13, "max", 204.462891, "Block increment", 1)).getEntry();
+  private static GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("heightBeforeStartAngle", 0)
+      .withWidget(BuiltInWidgets.kNumberSlider)
+      .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.05)).getEntry();
 
-
-      public static GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("heightBeforeStartAngle: " , 0)
-        .withWidget(BuiltInWidgets.kNumberSlider)
-        .withProperties(Map.of("min", 0, "max", 1.33, "Block increment", 0.05)).getEntry();
-   
-
-
-  public static IntakeToPosition poseFinder(Wrist wrist, Elevator elevator, ElevatorWristState finalPos,
-      double heightBeforeStartAngle, String name) {
-
-      
-
-   
-
-    
-
+  private static IntakeToPosition poseFinder(Wrist wrist, Elevator elevator, ElevatorWristState finalPos,
+      double heightBeforeStartAngle) {
+    poseFinderWrist.setDouble(finalPos.angle.getDegrees());
+    poseFinderElevator.setDouble(finalPos.height);
+    poseFinderHeightBeforeStartAngle.setDouble(heightBeforeStartAngle);
     return new IntakeToPosition(wrist, elevator, () -> {
       if (elevator.getHeightMeters() < poseFinderHeightBeforeStartAngle.getDouble(heightBeforeStartAngle))
         return new ElevatorWristState(ElevatorWristStateConstants.HOME.angle.getDegrees(),
@@ -142,7 +133,7 @@ public class IntakeToPosition extends CommandBase {
     });
   }
 
-  public static IntakeToPosition poseFinder(Wrist wrist, Elevator elevator, ElevatorWristState finalPose, String name) {
-    return poseFinder(wrist, elevator, finalPose, 0, name);
+  public static IntakeToPosition poseFinder(Wrist wrist, Elevator elevator, ElevatorWristState finalPose) {
+    return poseFinder(wrist, elevator, finalPose, 0);
   }
 }

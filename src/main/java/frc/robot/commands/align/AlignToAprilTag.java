@@ -109,7 +109,6 @@ public class AlignToAprilTag extends CommandBase {
   @Override
   public void end(boolean interrupted) {
     swerve.disable();
-    System.out.println("end comand" + interrupted);
   }
 
   // Returns true when the command should end.

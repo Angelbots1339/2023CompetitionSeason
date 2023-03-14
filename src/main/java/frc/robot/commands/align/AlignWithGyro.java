@@ -38,15 +38,11 @@ public class AlignWithGyro extends CommandBase {
       xOut = Math.signum(swerve.getGyro().getY()) * 0.35;
     }
     else if(minTimer.get() < 2){
-      xOut = 0.35;
+      xOut = Math.signum(swerve.getGyro().getY()) * 0.35;
     }
     else{
-     // xOut = 0;
-
+     //xOut = 0;
     }
-    SmartDashboard.putNumber("out", xOut);
-    SmartDashboard.putNumber("yaw", swerve.getGyro().getY());
-    SmartDashboard.putBoolean("bool", Math.abs(swerve.getGyro().getY()) > 9);
 
 
     swerve.drive(new Translation2d(

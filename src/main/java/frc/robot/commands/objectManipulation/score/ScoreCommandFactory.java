@@ -166,15 +166,20 @@ public class ScoreCommandFactory {
                 return new StartEndCommand(() -> intake.runIntakeAtPercent(percent), intake::disable, intake);
         }
 
-        public static Command poseFinder(Intake intake, double percent) {
-                ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
+        private static ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
 
-                GenericEntry poseFinderHeightBeforeStartAngle = poseFinder.add("percent", percent)
+
+
+        private static GenericEntry poseFinderOuttakePercent = poseFinder.add("outtake percent", 0)
                                 .withWidget(BuiltInWidgets.kNumberSlider)
                                 .withProperties(Map.of("min", 0, "max", 1, "Block increment", 0.05)).getEntry();
-
+      
+      
+      
+        public static Command poseFinder(Intake intake, double percent) {
+                poseFinderOuttakePercent.setDouble(percent);
                 return new StartEndCommand(
-                                () -> intake.runIntakeAtPercent(poseFinderHeightBeforeStartAngle.getDouble(percent)),
+                                () -> intake.runIntakeAtPercent(poseFinderOuttakePercent.getDouble(percent)),
                                 intake::disable, intake);
         }
 
