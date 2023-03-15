@@ -11,7 +11,7 @@ public class ClosedLoopUtil {
 
     /**
      * Simple only ks feed for position loops
-     * @param error error of the loop used to deturmen sign 
+     * @param error error of the loop used to determine sign 
      * @param Ks static friction value
      * @return Ks with proper sign 
      */

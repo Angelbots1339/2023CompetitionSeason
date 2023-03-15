@@ -33,8 +33,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   private boolean hasCalculatedOffset = false;
 
   PIDController yController = new PIDController(1, 0, 0);
-  PIDController xController = new PIDController(3.5
-  , 0, 0);
+  PIDController xController = new PIDController(3.5, 0, 0);
 
   public AlignToConeNodeLimelightOnly(Swerve swerve, DoubleSupplier coneOffset, boolean favorHigh) {
     this.coneOffset = coneOffset;

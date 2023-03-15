@@ -47,9 +47,8 @@ public class TeleopSwerve extends CommandBase {
   }
 
  @Override
- public void initialize() {
-  Candle.getInstance().changeLedState(LEDState.HumanPlayerCommunication);
-     
+ public void initialize() { 
+  
  }
   @Override
   public void execute() {
