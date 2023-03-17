@@ -19,19 +19,19 @@ public class TestAutoFactory {
   /** Creates a new examplePathPlannerAuto. */
   public static Command vision2mTest(Swerve swerve) {
     List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("2mTest");
-    return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, true);
+    return new SwerveFollowTrajectory(trajectories.get(0), swerve, true);
   }
 
   public static Command nonVision2mTest(Swerve swerve) {
     List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("2mTest");
-    return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, false);
+    return new SwerveFollowTrajectory(trajectories.get(0), swerve, false);
   }
   public static Command nonVisionTurnTest(Swerve swerve) {
     List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("TurnTest");
-    return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, false);
+    return new SwerveFollowTrajectory(trajectories.get(0), swerve, false);
   }
   public static Command visionTurnTest(Swerve swerve) {
     List<PathPlannerTrajectory> trajectories = AutoUtils.loadTrajectoriesWithConstraints("TurnTest");
-    return new SwerveFollowTrajectory(trajectories.get(0), true, swerve, false);
+    return new SwerveFollowTrajectory(trajectories.get(0), swerve, false);
   }
 }
