@@ -30,7 +30,7 @@ public class RunIntakeForCone extends CommandBase {
   @Override
   public void execute() {
     intakeAndShooter.runIntakeAtPercent(percent);
-    if(intakeAndShooter.coneInIntake())
+    if(intakeAndShooter.objectInIntake())
       centerTimer.start();
       else{
       centerTimer.stop();

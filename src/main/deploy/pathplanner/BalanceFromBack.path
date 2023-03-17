@@ -2,15 +2,15 @@
   "waypoints": [
     {
       "anchorPoint": {
-        "x": 1.8040001916302781,
-        "y": 3.2996925780328428
+        "x": 6.62,
+        "y": 5.34
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.536208631136126,
-        "y": 3.2996925780328428
+        "x": 6.387434838926619,
+        "y": 3.898772210355809
       },
-      "holonomicAngle": 180.0,
+      "holonomicAngle": 0,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
@@ -24,22 +24,22 @@
     },
     {
       "anchorPoint": {
-        "x": 5.5,
-        "y": 3.3
+        "x": 5.312895180950505,
+        "y": 3.442330585728787
       },
       "prevControl": {
-        "x": 4.201227147806792,
-        "y": 3.3
+        "x": 5.6647355999338345,
+        "y": 3.4328213852157243
       },
       "nextControl": {
-        "x": 4.201227147806792,
-        "y": 3.3
+        "x": 5.094056856753643,
+        "y": 3.4482451350314047
       },
-      "holonomicAngle": 180.0,
-      "isReversal": true,
+      "holonomicAngle": 0.0,
+      "isReversal": false,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": true,
+      "isStopPoint": false,
       "stopEvent": {
         "names": [],
         "executionBehavior": "parallel",
@@ -49,15 +49,15 @@
     },
     {
       "anchorPoint": {
-        "x": 3.981607109121693,
-        "y": 3.3
+        "x": 3.943570307069441,
+        "y": 3.442330585728787
       },
       "prevControl": {
-        "x": 4.507716034869171,
-        "y": 3.3000000000000034
+        "x": 4.352465929131148,
+        "y": 3.4518397862418504
       },
       "nextControl": null,
-      "holonomicAngle": 180.0,
+      "holonomicAngle": 0.0,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
@@ -72,19 +72,7 @@
   ],
   "markers": [
     {
-      "position": 0.0,
-      "names": [
-        "Home"
-      ]
-    },
-    {
-      "position": 0.0,
-      "names": [
-        "Home"
-      ]
-    },
-    {
-      "position": 1.0,
+      "position": 0.41212121212120945,
       "names": [
         "Home"
       ]

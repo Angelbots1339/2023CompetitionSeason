@@ -38,7 +38,7 @@ public class RetroReflectiveTargeter {
 
             if (verticalOffset > 0) { // high
                 LimeLight.setPipelineMode(highPipeLine);
-                //SmartDashboard.putString("Target", "High");
+                SmartDashboard.putString("Target", "High");
                 if (LimeLight.getPipeline() == highPipeLine) {
                     status = targetingStatus.HIGH;
                     xOffset = highTargetPredictionZ / Math.tan(Math.toRadians(verticalOffset));
@@ -53,7 +53,7 @@ public class RetroReflectiveTargeter {
             }
 
 
-            yOffset = Math.tan(Math.toRadians(horizontalOffset) + getAdjustedYaw(robotPose.getRotation()).getRadians()) * xOffset;
+            yOffset = Math.tan(Math.toRadians(horizontalOffset)) * xOffset;
 
             
 
@@ -94,11 +94,9 @@ public class RetroReflectiveTargeter {
 
         switch (status) {
             case HIGH:
-                 horizontalOffset = horizontalOffset -FieldDependentConstants.CurrentField.HIGH_CONE_REGRESSION.predict(coneOffset) ;
                 return Math.tan(Math.toRadians(horizontalOffset))
                         * xOffset;
             case MID:
-                 horizontalOffset = horizontalOffset - FieldDependentConstants.CurrentField.MID_CONE_REGRESSION.predict(coneOffset);
                 return Math.tan(Math.toRadians(horizontalOffset))
                         * xOffset;
             default:

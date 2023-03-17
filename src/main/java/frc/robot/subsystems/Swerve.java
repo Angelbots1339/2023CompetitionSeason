@@ -418,8 +418,8 @@ public class Swerve extends SubsystemBase {
         return new Rotation3d(Math.toRadians(gyro.getRoll()), Math.toRadians(gyro.getPitch()),
                 Math.toRadians(gyro.getYaw()));
     }
-    public Pigeon2 getGyrop() {
-        return gyro;
+    public double getPitch() {
+        return gyro.getPitch();
     }
 
     // DRIVE PID
@@ -506,7 +506,7 @@ public class Swerve extends SubsystemBase {
     public void periodic() {
         poseEstimation.updateOdometry(this, getPose());
         poseEstimation.justUpdate(this);
-        //RetroReflectiveTargeter.update(getPose(), true);
+        RetroReflectiveTargeter.update(getPose(), true);
 
         SmartDashboard.putNumber("X", getPose().getX());
         SmartDashboard.putNumber("hor off", LimeLight.getHorizontalOffset());

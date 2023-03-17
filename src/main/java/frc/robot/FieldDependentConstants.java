@@ -51,14 +51,21 @@ public class FieldDependentConstants {
 
         // //Vison
 
-        public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.525826;
-        public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.853713;
-        public double HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET =1.57 ;// 1.552556;
-        public double MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 0.93;//0.913931;
+        public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.557160;
+        public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.842018;
+        public double HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.8 ;// 1.552556;
+        public double MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.1;//0.913931;
+
+        public double CONE_OFFSET = 0.07;
+        public double CONE_BACKUP_OFFSET = 0.02;
 
         public double LIMELIGHT_ALIGN_Y_TOLERANCE = 0.02;
 
         public double CUBE_ALIGN_Y_TOLERANCE = 0.02;
+
+        public double CHARGE_STATION_MIN_ANGLE = 2;
+        public double CHARGE_STATION_MAX_ANGLE = 10;
+        public double CHARGE_STATION_ALIGN_MIN_TIME = 0.1;
 
 
         
@@ -90,5 +97,5 @@ public class FieldDependentConstants {
 
 
     
-    public static FieldConstants CurrentField = ST_LUIS;
+    public static FieldConstants CurrentField = HOME_FIELD;
 }

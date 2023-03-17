@@ -8,6 +8,7 @@ package frc.robot;
 import com.pathplanner.lib.server.PathPlannerServer;
 
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -54,6 +55,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     DataLogManager.start();
     DataLogManager.logNetworkTables(true);
+    DriverStation.startDataLog(DataLogManager.getLog(), true);
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our
@@ -63,6 +65,7 @@ public class Robot extends TimedRobot {
     PathPlannerServer.startServer(5811);
     m_robotContainer.resetToAbsloute();
    Candle.getInstance().changeLedState(LEDState.PreMatch);
+
   }
 
   /**

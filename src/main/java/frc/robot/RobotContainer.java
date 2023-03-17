@@ -139,8 +139,12 @@ public class RobotContainer {
                         XboxController.Button.kLeftBumper.value);
         private final Trigger signalCone = new JoystickButton(test,
                         XboxController.Button.kRightBumper.value);
-        private final Trigger setUpdateSensor = new JoystickButton(test,
+        private final Trigger resetSwerve = new JoystickButton(test,
                         XboxController.Button.kA.value);
+
+                        
+        private final Trigger distSensorOverrideRight = new Trigger(() -> test.getPOV() > 0 && test.getPOV() < 180);
+        private final Trigger distSensorOverrideLeft = new Trigger(() -> test.getPOV() > 180);
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -155,13 +159,17 @@ public class RobotContainer {
                                 AutoFactory.Score2BalancePos6(wrist, elevator, intake, swerve));
                 autoChooser.addOption("Score2Pos6", AutoFactory.Score2Pos6(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreBallance",
-                                AutoFactory.ScoreBallance(wrist, elevator, intake, swerve));
+                                AutoFactory.ScoreBallanceWithGyro(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreMobilityBallance",
                                 AutoFactory.ScoreMobilityBallance(wrist, elevator, intake, swerve));
-                autoChooser.addOption("2mTest", TestAutoFactory.nonVision2mTest(swerve));
-                // autoChooser.addOption("2mTestPos4", TestAutoFactory.vision2mTest(swerve));
-                autoChooser.addOption("TurnTest", TestAutoFactory.nonVisionTurnTest(swerve));
                 autoChooser.addOption("ScoreMobility", AutoFactory.ScoreMobility(wrist, elevator, intake, swerve));
+                autoChooser.addOption("ScoreGrabBallance", AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
+                autoChooser.addOption("ScoreGrabBallanceTurn", AutoFactory.ScoreGrabTurnBallance(wrist, elevator, intake, swerve));
+
+
+
+                autoChooser.addOption("2mTest", TestAutoFactory.nonVision2mTest(swerve));
+                autoChooser.addOption("TurnTest", TestAutoFactory.nonVisionTurnTest(swerve));
 
                 elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
 
@@ -220,16 +228,19 @@ public class RobotContainer {
                                         Candle.getInstance().changeLedState(LEDState.Idle);
                                 }, intake));
 
+                
+
+                alignOnChargingStation.whileTrue(
+                                new AlignWithGyro(swerve).andThen(new RunCommand(swerve::xPos, swerve)));
+
+                // Operator Buttons
                 switchDeadSensorOverrideObject.onTrue(new InstantCommand(() -> {
                         if (intake.getDeadSensorOverrideSate() == IntakeState.CONE)
                                 intake.setDeadSensorOverrideSate(IntakeState.CUBE);
                         else
                                 intake.setDeadSensorOverrideSate(IntakeState.CONE);
                 }));
-
-                // Operator Buttons
                 resetSensors.onTrue(new InstantCommand(() -> intake.resetSensors()));
-
                 signalCube.whileTrue(new StartEndCommand(
                                 () -> {
                                         Candle.getInstance().changeLedState(LEDState.HumanPlayerCommunication);
@@ -246,10 +257,13 @@ public class RobotContainer {
                                 },
                                 () -> Candle.getInstance().changeLedState(LEDState.Idle)));
 
-                alignOnChargingStation.whileTrue(
-                                new AlignWithGyro(swerve).andThen(new RunCommand(swerve::xPos, swerve)));
+                
+                resetSwerve.onTrue(new InstantCommand(swerve::resetToAbsolute));
 
-                setUpdateSensor.onTrue(new InstantCommand(swerve::resetToAbsolute));
+                distSensorOverrideRight.whileTrue(new StartEndCommand(intake::setDistSensorOverrideRight, intake::resetDistSensorOverride));
+                distSensorOverrideLeft.whileTrue(new StartEndCommand(intake::setDistSensorOverrideLeft, intake::resetDistSensorOverride));
+
+
                 // manualScoreHigh.whileTrue(new IntakeToPosition(wrist, elevator, () -> new
                 // ElevatorWristState(PoseFinderWrist.getDouble(13),
                 // PoseFinderElevator.getDouble(0))));
@@ -266,7 +280,7 @@ public class RobotContainer {
                 //         new InstantCommand(swerve::resetGyroTowardsDriverStation),
                 //         ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
                 //         IntakeToPosition.home(wrist, elevator));
-                return AutoFactory.ScoreBallanceWithGyro(wrist, elevator, intake, swerve); // AutoFactory.Score2(wrist,
+                return autoChooser.getSelected(); // AutoFactory.Score2(wrist,
                                               
                 // intake, swerve);
         }

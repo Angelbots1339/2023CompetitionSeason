@@ -31,7 +31,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   private final boolean favorHigh;
   private double xSetPoint = 0;
 
-  PIDController yController = new PIDController(1, 0, 0);
+  PIDController yController = new PIDController(3.5, 0, 0);
   PIDController xController = new PIDController(3.5, 0, 0);
 
   public AlignToConeNodeLimelightOnly(Swerve swerve, DoubleSupplier coneOffset, boolean favorHigh) {
@@ -52,23 +52,21 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   public void execute() {
     RetroReflectiveTargeter.update(swerve.getPose(), favorHigh);
     if (LimeLight.hasTargets()) {
-      double yOffset = RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), coneOffset.getAsDouble());
+      double yOffset = RetroReflectiveTargeter.getYOffset();
       // yOffset = RetroReflectiveTargeter.getYOffset();
       double xOffset = RetroReflectiveTargeter.getXOffset();
 
       double firstXSetPoint = 0;
       xSetPoint = 0;
 
-      if (Math.abs(yOffset) > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE) {
-        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH) {
-          firstXSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
-          xSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET;
+      if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH) {
+        firstXSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
+        xSetPoint = FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET;
 
-        } else {
-          firstXSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
-          xSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET;
+      } else {
+        firstXSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET;
+        xSetPoint = FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET;
 
-        }
       }
 
       double Y = yController.calculate(yOffset, 0)
@@ -78,11 +76,11 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
       Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
       double X = 0;
-      if (Y > 0.02) {
+      if (Y > 0.06) {
         X = xController.calculate(xOffset, firstXSetPoint)
             + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
         X = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(),
-            DrivePidConstants.TRANSLATION_PID_TOLERANCE);
+            0.04);
       } else {
         X = xController.calculate(xOffset, xSetPoint)
             + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);

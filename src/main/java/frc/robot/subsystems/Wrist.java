@@ -15,7 +15,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
+import frc.lib.util.logging.LoggedSubsystem;
 import frc.robot.Constants;
+import frc.robot.LoggingConstants;
 import frc.robot.Constants.ElevatorWristStateConstants;
 
 import static frc.robot.Constants.WristConstants.*;
@@ -26,11 +28,27 @@ public class Wrist extends SubsystemBase {
   private final DutyCycleEncoder dutyCycleEncoder = new DutyCycleEncoder(23);
   private final Timer throughBoreTimer = new Timer();
   private Rotation2d goalAngle = Rotation2d.fromDegrees(0);
+
+  private final LoggedSubsystem logger;
+
   /** Creates a new Wrist. */
   public Wrist() {
     wristMotor =  TalonFXFactory.createDefaultTalon(MOTOR_ID, Constants.CANIVORE);
     configTalons();
     throughBoreTimer.start();
+    logger = new LoggedSubsystem("Wrist", LoggingConstants.WRIST);
+
+
+    logger.addDouble("Angle", this::getAngleDeg, "main");
+    logger.addDouble("Current", () -> wristMotor.getSupplyCurrent(), "Main");
+
+    logger.addDouble("GoalVelocity", () -> wristMotor.getActiveTrajectoryVelocity(), "MotionMagic");
+    logger.addDouble("CurrentVelocity", () -> wristMotor.getSelectedSensorVelocity(), "MotionMagic");
+    logger.addDouble("GoalPosition", () -> wristMotor.getActiveTrajectoryPosition(), "MotionMagic");
+    logger.addDouble("CurrentPosition", () -> wristMotor.getSelectedSensorPosition(), "MotionMagic");
+    logger.addDouble("Error", () -> wristMotor.getClosedLoopError(), "MotionMagic");
+
+
   }
 
   public void setPercent(double percent){
@@ -130,7 +148,6 @@ public class Wrist extends SubsystemBase {
 
     SmartDashboard.putNumber("angle", getAngleDeg());
     SmartDashboard.putNumber("through bore", throughBoreToAngle(dutyCycleEncoder.get()).getDegrees());
-    SmartDashboard.putNumber("through bore rot", dutyCycleEncoder.get());
   }
 
  

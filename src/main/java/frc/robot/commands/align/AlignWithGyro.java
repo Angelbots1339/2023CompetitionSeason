@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.lib.util.FieldUtil;
+import frc.robot.FieldDependentConstants;
 import frc.robot.subsystems.Swerve;
 
 public class AlignWithGyro extends CommandBase {
@@ -27,14 +28,18 @@ public class AlignWithGyro extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    if(Math.abs(swerve.getPitch()) < 4){
+      end(false);
+    }
     minTimer.start();
+    
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
     double xOut = 0;
-    if(Math.abs(swerve.getGyrop().getPitch()) > 10){
+    if(Math.abs(swerve.getPitch()) > FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE){
       xOut = Math.signum(swerve.getGyro().getY()) * 0.35;
     }
     else if(minTimer.get() < 2){
@@ -58,6 +63,6 @@ public class AlignWithGyro extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Math.abs(swerve.getGyrop().getPitch()) < 2 && minTimer.get() > 1;
+    return Math.abs(swerve.getPitch()) < FieldDependentConstants.CurrentField.CHARGE_STATION_MIN_ANGLE && minTimer.get() >  FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE;
   }
 }

@@ -114,10 +114,6 @@ public class AlignToAprilTag extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    // return (blueSide? swerve.getPose().getX() < finalDesiredPose.getX() :
-    // swerve.getPose().getX() > finalDesiredPose.getX())
-    // && Math.abs(swerve.getPose().getY() - desiredPose.getY()) <
-    // FieldDependentConstants.CurrentField.CUBE_ALIGN_Y_TOLERANCE;
     return (blueSide ? swerve.getPose().getX() < finalDesiredPose.getX()
         : swerve.getPose().getX() > finalDesiredPose.getX())
         && Math.abs(

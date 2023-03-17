@@ -51,6 +51,20 @@ public class Elevator extends SubsystemBase {
     configElevatorMotor();
     logger = new LoggedSubsystem("Elevator", LoggingConstants.ELEVATOR);
 
+
+    logger.addDouble("Height", this::getHeightMeters, "main");
+    logger.addBoolean("FwdLimit", () -> elevatorLeaderMotor.isFwdLimitSwitchClosed() ==1, "main");
+    logger.addBoolean("RevLimit", () -> elevatorLeaderMotor.isFwdLimitSwitchClosed() ==1, "main");
+    logger.addDouble("CurrentLeader", () -> elevatorLeaderMotor.getSupplyCurrent(), "main");
+    logger.addDouble("CurrentFollower", () -> elevatorFollowerMotor.getSupplyCurrent(), "main");
+
+    logger.addDouble("GoalVelocity", () -> elevatorLeaderMotor.getActiveTrajectoryVelocity(), "MotionMagic");
+    logger.addDouble("CurrentVelocity", () -> elevatorLeaderMotor.getSelectedSensorVelocity(), "MotionMagic");
+    logger.addDouble("GoalPosition", () -> elevatorLeaderMotor.getActiveTrajectoryPosition(), "MotionMagic");
+    logger.addDouble("CurrentPosition", () -> elevatorLeaderMotor.getSelectedSensorPosition(), "MotionMagic");
+    logger.addDouble("Error", () -> elevatorLeaderMotor.getClosedLoopError(), "MotionMagic");
+
+
     elevator = Mech2dManger.getInstance().getElevator();
   }
 

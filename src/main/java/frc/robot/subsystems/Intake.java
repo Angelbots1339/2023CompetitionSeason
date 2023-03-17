@@ -18,33 +18,30 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.Candle;
+import frc.lib.util.logging.LoggedSubsystem;
 import frc.lib.util.multiplexer.ColorSensorMUXed;
 import frc.lib.util.multiplexer.DistanceSensorMUXed;
 import frc.lib.util.multiplexer.Multiplexer;
 import frc.robot.Constants;
+import frc.robot.FieldDependentConstants;
+import frc.robot.LoggingConstants;
+import frc.robot.regressions.ConeOffsetRegression;
 
 import static frc.robot.Constants.IntakeConstants.*;
 
 public class Intake extends SubsystemBase {
 
-  private Color lastColor = new Color(0, 0, 0);
-  private double lastLeftDist = 0;
-  private double lastRightDist = 0;
+
+  private final LoggedSubsystem logger;
 
 
-  private boolean setUpdateSensors = true;
-
-  private final TalonFX intakeMotor = TalonFXFactory.createDefaultTalon(INTAKE_MOTOR_ID, Constants.CANIVORE);;
-
-  //private ColorSensorMUXed cubeSensor = new ColorSensorMUXed(0);
-  // private DistanceSensorMUXed rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
-  // private DistanceSensorMUXed leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
-  //private Rev2mDistanceSensor leftConeSensor = new Rev2mDistanceSensor(Port.kOnboard);
+  private final TalonFX intakeMotor = TalonFXFactory.createDefaultTalon(INTAKE_MOTOR_ID, Constants.CANIVORE);
   private Rev2mDistanceSensor rightConeSensor = new Rev2mDistanceSensor(Port.kMXP);
 
   
 
-  private boolean colorSensorWorking = true;
+
+  private double distSensorOverride = 0;
 
   private double currentIntakePercent = 0;
 
@@ -53,90 +50,56 @@ public class Intake extends SubsystemBase {
   /** Creates a new IntakeAndShooter. */
   public Intake() {
     configFalcons();
-    // leftConeSensor.setRangeProfile(RangeProfile.kHighAccuracy);
-    // leftConeSensor.setEnabled(true);
-    // leftConeSensor.setAutomaticMode(true);
-    // leftConeSensor.setDistanceUnits(Unit.kMillimeters);
     rightConeSensor.setRangeProfile(RangeProfile.kHighAccuracy);
     rightConeSensor.setAutomaticMode(true);
     rightConeSensor.setEnabled(true);
     rightConeSensor.setDistanceUnits(Unit.kMillimeters);
+    logger = new LoggedSubsystem("Intake", LoggingConstants.INTAKE);
+
+    logger.addDouble("SupplyCurrent", () -> intakeMotor.getSupplyCurrent(), "Main");
+    logger.addDouble("StatorCurrent", () -> intakeMotor.getSupplyCurrent(), "Main");
+
+    logger.addDouble("RightConeSensor", () -> rightConeSensor.getRange(), "Main");
+    logger.addBoolean("SensorDead", () -> getSensorDead(), "Main");
   }
 
-  public void setUpdateSensors( boolean value) {
-    setUpdateSensors = value;
-  }
-  
-  public boolean getUpdateSensors() {
-    return setUpdateSensors;
-  }
+ 
 
 
   @Override
   public void periodic() {
-    updateSensors();
     SmartDashboard.putNumber("right cone", rightConeSensor.getMeasurementPeriod() / 1000);
-
-    SmartDashboard.putNumber("Cone offset", getConeOffset());
+    SmartDashboard.putBoolean("SensorDead", getSensorDead());
     SmartDashboard.putBoolean("objectInIntake", objectInIntake());
-    SmartDashboard.putString("object", getState().toString());
     SmartDashboard.putString("override State", deadSensorOverrideSate.toString());
   }
 
-  int i = 0;
-
-  public void updateSensors() {
-
-    switch (i) {
-      case 0:
-      //ColorSensorV3 sensor = cubeSensor.get();
-      // if(sensor != null){
-      //   lastColor = sensor.getColor();
-      //   colorSensorWorking = true;
-      // }
-      // else {
-      //   colorSensorWorking = false;
-      //   resetColorSensor();
-      // }
-      i++;
-        break;
-      case 1:
-      // if(!leftConeSensor.isWorking())
-      //   resetLeftDistSensor();
-      //lastLeftDist = leftConeSensor.getRange();
-      i++;
-        break;
-      case 2:
-      // if(!rightConeSensor.isWorking())
-      //   resetRightDistSensor();
-      lastRightDist = rightConeSensor.getMeasurementPeriod() / 1000;
-      i = 0;
-        break;
-    
-  }
-
-
-    Candle.getInstance().changeCurrentGamePiece(getState());
-    
-  }
-
+ 
   public void disable() {
     intakeMotor.set(ControlMode.PercentOutput, 0);
   }
 
+  public void resetDistSensorOverride(){
+    distSensorOverride = 0;
+  }
+  public void setDistSensorOverrideLeft(){
+    distSensorOverride = FieldDependentConstants.CurrentField.CONE_BACKUP_OFFSET;
+  }
+  public void setDistSensorOverrideRight(){
+    distSensorOverride = -FieldDependentConstants.CurrentField.CONE_BACKUP_OFFSET;
+  }
+
+
   public double getConeOffset() {
-    // if(!objectInIntake()){
-    //   return 0;
-    // }
-    // return lastLeftDist - lastRightDist;
-    return rightConeSensor.GetRange()/ 1000;
+    if(getSensorDead()){
+      return distSensorOverride;
+    }
+    return (rightConeSensor.GetRange() / 1000) - FieldDependentConstants.CurrentField.CONE_OFFSET;
+  }
+  public boolean getSensorDead() {
+    return rightConeSensor.getRange() < 0;
   }
 
-
-  public boolean coneInIntake() {
-    return objectInIntake() && ColorSensorMUXed.xyzColorDifference(lastColor, CONE_COLOR) < ColorSensorMUXed
-        .xyzColorDifference(lastColor, CUBE_COLOR);
-  }
 
   public void setCurrentIntakePercent(double percent) {
     currentIntakePercent = percent;
@@ -147,36 +110,16 @@ public class Intake extends SubsystemBase {
   }
 
   public void resetSensors() {
-    // cubeSensor = new ColorSensorMUXed(0);
-    // rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
-    // leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
-  }
-  public void resetColorSensor() {
-    // cubeSensor = new ColorSensorMUXed(0);
-  }
-  public void resetLeftDistSensor() {
-    // leftConeSensor = new DistanceSensorMUXed(3, RangeProfile.kHighAccuracy);
-  }
-  public void resetRightDistSensor() {
-    // rightConeSensor = new DistanceSensorMUXed(2, RangeProfile.kHighAccuracy);
+    rightConeSensor = new Rev2mDistanceSensor(Port.kMXP);
+    rightConeSensor.setRangeProfile(RangeProfile.kHighAccuracy);
+    rightConeSensor.setAutomaticMode(true);
+    rightConeSensor.setEnabled(true);
+    rightConeSensor.setDistanceUnits(Unit.kMillimeters);
   }
 
-  public boolean leftEmpty() {
-    return lastLeftDist < 0;
-  }
-
-  public boolean rightEmpty() {
-    return lastRightDist < 0;
-  }
-
-
+  
   public boolean objectInIntake() {
-    return (rightConeSensor.GetRange() / 1000) > 0 && (rightConeSensor.GetRange()/1000) < 0.38;
-  }
-
-  public boolean cubeInIntake() {
-    return objectInIntake() && ColorSensorMUXed.xyzColorDifference(lastColor, CUBE_COLOR) < ColorSensorMUXed
-        .xyzColorDifference(lastColor, CONE_COLOR);
+    return (rightConeSensor.GetRange() / 1000) > 0 && (rightConeSensor.GetRange()/1000) < 0.36;
   }
 
   public void runIntakeAtPercent(double conePercent) {
@@ -184,16 +127,7 @@ public class Intake extends SubsystemBase {
   }
 
   public IntakeState getState() {
-    if(!Multiplexer.isConnected()){
-      return deadSensorOverrideSate;
-    }
-    if (cubeInIntake()) {
-      return IntakeState.CUBE;
-    } else if (coneInIntake()) {
-      return IntakeState.CONE;
-    } else {
-      return IntakeState.NONE;
-    }
+    return deadSensorOverrideSate;
   }
 
   public IntakeState getDeadSensorOverrideSate() {

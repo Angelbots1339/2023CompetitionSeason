@@ -6,9 +6,6 @@
     "Retained Values": {
       "open": false
     },
-    "Transitory Values": {
-      "open": false
-    },
     "retained": {
       "SmartDashboard": {
         "open": true
@@ -69,6 +66,9 @@
         }
       },
       "Testing": {
+        "open": true
+      },
+      "limelight": {
         "open": true
       },
       "photonvision": {
@@ -218,7 +218,7 @@
             }
           ],
           "crosshairs": true,
-          "height": 326,
+          "height": 505,
           "series": [
             {
               "color": [
@@ -227,7 +227,16 @@
                 0.6901960968971252,
                 1.0
               ],
-              "id": "NT:/SmartDashboard/Xoffset"
+              "id": "NT:/SmartDashboard/Cone offset"
+            },
+            {
+              "color": [
+                1.0,
+                0.4427124857902527,
+                0.12962961196899414,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/objectInIntake"
             }
           ]
         }

@@ -61,7 +61,7 @@ public class AlignOnChargingStation extends PIDCommand {
   @Override
   public boolean isFinished() {
     SmartDashboard.putNumber("error", Math.abs(getController().getPositionError()));
-    return Math.abs(swerve.getGyrop().getPitch()) > 6;
+    return Math.abs(swerve.getPitch()) > 6;
     
   }
 }

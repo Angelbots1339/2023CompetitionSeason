@@ -10,13 +10,13 @@ import frc.lib.team254.util.PolynomialRegression;
 public class ConeOffsetRegression {
     private static double[][] midPracticeField = {
         { 0, 0},
-        { 0.155000, 2.01},
-        {-0.184000, -6.94}
+        { 0.044000 -0.07, 2.29},
+        {0.155000 -0.07, 1.10}
     };
     private static double[][] highPracticeField  = {
-        { 0, 0},
-        { 0.155000, 2.4},
-        {-0.184000, -3.65}
+        { 0.07, 0},
+        { 0.044000 - 0.07, 1.70},
+        {0.155000 - 0.07, -2.60}
     };
     public static PolynomialRegression midPracticeFieldReg = new PolynomialRegression(midPracticeField, 1);
 
