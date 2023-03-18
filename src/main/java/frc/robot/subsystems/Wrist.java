@@ -42,11 +42,11 @@ public class Wrist extends SubsystemBase {
     logger.addDouble("Angle", this::getAngleDeg, "main");
     logger.addDouble("Current", () -> wristMotor.getSupplyCurrent(), "Main");
 
-    logger.addDouble("GoalVelocity", () -> wristMotor.getActiveTrajectoryVelocity(), "MotionMagic");
-    logger.addDouble("CurrentVelocity", () -> wristMotor.getSelectedSensorVelocity(), "MotionMagic");
-    logger.addDouble("GoalPosition", () -> wristMotor.getActiveTrajectoryPosition(), "MotionMagic");
-    logger.addDouble("CurrentPosition", () -> wristMotor.getSelectedSensorPosition(), "MotionMagic");
-    logger.addDouble("Error", () -> wristMotor.getClosedLoopError(), "MotionMagic");
+    // logger.addDouble("GoalVelocity", () -> wristMotor.getActiveTrajectoryVelocity(), "MotionMagic");
+    // logger.addDouble("CurrentVelocity", () -> wristMotor.getSelectedSensorVelocity(), "MotionMagic");
+    // logger.addDouble("GoalPosition", () -> wristMotor.getActiveTrajectoryPosition(), "MotionMagic");
+    // logger.addDouble("CurrentPosition", () -> wristMotor.getSelectedSensorPosition(), "MotionMagic");
+    // logger.addDouble("Error", () -> wristMotor.getClosedLoopError(), "MotionMagic");
 
 
   }
@@ -72,7 +72,7 @@ public class Wrist extends SubsystemBase {
     return getErrorDeg() < MOTION_MAGIC_ERROR_THRESHOLD;
   }
   public boolean atSetPointAndSettled(){
-    return settleTimer.hasElapsed(TIME_TO_SETTLE);
+    return settleTimer.get() > TIME_TO_SETTLE && atSetPoint();
   }
  
   private final Timer settleTimer = new Timer();

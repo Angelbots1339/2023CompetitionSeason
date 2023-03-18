@@ -80,8 +80,7 @@ public class IntakeCommandFactory {
 
     public static Command runIntakeForCube(Intake intake) {
         return new StartEndCommand(() -> intake.runIntakeAtPercent(
-                FieldDependentConstants.CurrentField.INTAKE_CUBE), () -> intake.disable(), intake)
-                .until(intake::objectInIntake);
+                FieldDependentConstants.CurrentField.INTAKE_CUBE), () -> intake.disable(), intake);
     }
 
     public enum GroundIntakeType {

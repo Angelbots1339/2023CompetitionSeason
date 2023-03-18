@@ -119,11 +119,8 @@ public class ScoreCommandFactory {
         public static Command extendThenPlace(Wrist wrist, Elevator elevator, Intake intake,
                         IntakeToPosition align, double outtakePercent) {
                 return align.alongWith(outtakeConeAtSetPoint(intake, elevator, wrist, outtakePercent)).until(() -> {
-                        if(intake.getSensorDead()){
-                                return !elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndSettled();
-                        }
-                        return !intake.objectInIntake();
-                });
+                        return !elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndSettled() && wrist.atSetPointAndSettled();
+                }); 
                                
         }
 

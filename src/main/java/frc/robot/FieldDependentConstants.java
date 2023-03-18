@@ -43,7 +43,7 @@ public class FieldDependentConstants {
         public double INTAKE_GENERAL = 0.5;
         public double OUTTAKE_GENERAL = 0.5;
 
-        public Double INTAKE_CUBE = INTAKE_GENERAL;
+        public Double INTAKE_CUBE = 0.5;
         public Double INTAKE_STANDING_CONE = INTAKE_GENERAL;
         public Double INTAKE_FALLEN_CONE = INTAKE_GENERAL;
 

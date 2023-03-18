@@ -24,41 +24,16 @@
     },
     {
       "anchorPoint": {
-        "x": 5.857720887416298,
-        "y": 5.18248399554124
+        "x": 6.42,
+        "y": 5.223926847853695
       },
       "prevControl": {
-        "x": 4.108951657393763,
-        "y": 5.0548366064885
+        "x": 6.438563987745259,
+        "y": 5.214644853981066
       },
       "nextControl": {
-        "x": 6.407791094859687,
-        "y": 5.222635105573604
-      },
-      "holonomicAngle": -3.0,
-      "isReversal": false,
-      "velOverride": null,
-      "isLocked": false,
-      "isStopPoint": false,
-      "stopEvent": {
-        "names": [],
-        "executionBehavior": "parallel",
-        "waitBehavior": "none",
-        "waitTime": 0
-      }
-    },
-    {
-      "anchorPoint": {
-        "x": 6.623605221732737,
-        "y": 5.335660862404528
-      },
-      "prevControl": {
-        "x": 6.642169209477996,
-        "y": 5.326378868531899
-      },
-      "nextControl": {
-        "x": 6.642169209477996,
-        "y": 5.326378868531899
+        "x": 6.438563987745259,
+        "y": 5.214644853981066
       },
       "holonomicAngle": 0.0,
       "isReversal": true,
@@ -74,20 +49,20 @@
     },
     {
       "anchorPoint": {
-        "x": 2.666536161097801,
-        "y": 5.003777650867405
+        "x": 3.0730505461010926,
+        "y": 4.943357886715774
       },
       "prevControl": {
-        "x": 4.568482257983625,
-        "y": 5.450543512551994
+        "x": 4.962572297119117,
+        "y": 5.21694879058548
       },
       "nextControl": {
-        "x": 2.325146269074431,
-        "y": 4.923585394351848
+        "x": 2.7259878114250715,
+        "y": 4.893105378519801
       },
       "holonomicAngle": 182.0,
       "isReversal": false,
-      "velOverride": 1.0,
+      "velOverride": null,
       "isLocked": false,
       "isStopPoint": true,
       "stopEvent": {
@@ -184,13 +159,19 @@
       ]
     },
     {
-      "position": 0.8363636363636324,
+      "position": 0.606060606060644,
       "names": [
         "IntakeCube"
       ]
     },
     {
       "position": 2.5454545454546134,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 1.454545454545599,
       "names": [
         "Home"
       ]

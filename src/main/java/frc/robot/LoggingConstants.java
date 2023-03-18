@@ -20,7 +20,7 @@ public final class LoggingConstants {
                         "Default", LoggingLevel.NONE,
                         "PidPose", LoggingLevel.NONE,
                         "Auto", LoggingLevel.NONE,
-                        "PoseEstimator", LoggingLevel.ONBOARD_ONLY);
+                        "PoseEstimator", LoggingLevel.SHUFFLEBOARD);
 
         public static final Map<String, LoggingLevel> ROBOT_CONTAINER = Map.of(
                         "Drive values", LoggingLevel.NONE,

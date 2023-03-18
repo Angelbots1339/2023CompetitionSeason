@@ -278,7 +278,7 @@ public final class Constants {
         
 
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 0.02; // Meters
-        public static final double TIME_TO_SETTLE = 0.2;//seconds 
+        public static final double TIME_TO_SETTLE = 0.7;//seconds 
 
         public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 
@@ -366,7 +366,7 @@ public final class Constants {
 
         public static final int S_CURVE_STRENGTH = 4; // TODO
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 3; // Degrees
-        public static final double TIME_TO_SETTLE = 0.2;//seconds 
+        public static final double TIME_TO_SETTLE = 0.7;//seconds 
 
         public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 

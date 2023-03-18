@@ -18,10 +18,12 @@ public class AlignWithGyro extends CommandBase {
 
 
   Swerve swerve;
+  Boolean backOn; 
 
   Timer minTimer = new Timer();
-  public AlignWithGyro(Swerve swerve) {
+  public AlignWithGyro(Swerve swerve, Boolean backOn) {
     this.swerve =swerve;
+    this.backOn = backOn;
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -40,10 +42,10 @@ public class AlignWithGyro extends CommandBase {
   public void execute() {
     double xOut = 0;
     if(Math.abs(swerve.getPitch()) > FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE){
-      xOut = Math.signum(swerve.getGyro().getY()) * 0.35;
+      xOut = (backOn? -1 : 1) * Math.signum(swerve.getGyro().getY()) * 0.35;
     }
-    else if(minTimer.get() < 2){
-      xOut = Math.signum(swerve.getGyro().getY()) * 0.35;
+    else if(minTimer.get() < 1){
+      xOut = (backOn? -1 : 1) * Math.signum(swerve.getGyro().getY()) * 0.35;
     }
     else{
      //xOut = 0;
@@ -63,6 +65,6 @@ public class AlignWithGyro extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Math.abs(swerve.getPitch()) < FieldDependentConstants.CurrentField.CHARGE_STATION_MIN_ANGLE && minTimer.get() >  FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE;
+    return Math.abs(swerve.getPitch()) < FieldDependentConstants.CurrentField.CHARGE_STATION_MIN_ANGLE && minTimer.get() > 1;
   }
 }

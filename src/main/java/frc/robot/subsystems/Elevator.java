@@ -58,11 +58,11 @@ public class Elevator extends SubsystemBase {
     logger.addDouble("CurrentLeader", () -> elevatorLeaderMotor.getSupplyCurrent(), "main");
     logger.addDouble("CurrentFollower", () -> elevatorFollowerMotor.getSupplyCurrent(), "main");
 
-    logger.addDouble("GoalVelocity", () -> elevatorLeaderMotor.getActiveTrajectoryVelocity(), "MotionMagic");
-    logger.addDouble("CurrentVelocity", () -> elevatorLeaderMotor.getSelectedSensorVelocity(), "MotionMagic");
-    logger.addDouble("GoalPosition", () -> elevatorLeaderMotor.getActiveTrajectoryPosition(), "MotionMagic");
-    logger.addDouble("CurrentPosition", () -> elevatorLeaderMotor.getSelectedSensorPosition(), "MotionMagic");
-    logger.addDouble("Error", () -> elevatorLeaderMotor.getClosedLoopError(), "MotionMagic");
+    // logger.addDouble("GoalVelocity", () -> elevatorLeaderMotor.getActiveTrajectoryVelocity(), "MotionMagic");
+    // logger.addDouble("CurrentVelocity", () -> elevatorLeaderMotor.getSelectedSensorVelocity(), "MotionMagic");
+    // logger.addDouble("GoalPosition", () -> elevatorLeaderMotor.getActiveTrajectoryPosition(), "MotionMagic");
+    // logger.addDouble("CurrentPosition", () -> elevatorLeaderMotor.getSelectedSensorPosition(), "MotionMagic");
+    // logger.addDouble("Error", () -> elevatorLeaderMotor.getClosedLoopError(), "MotionMagic");
 
 
     elevator = Mech2dManger.getInstance().getElevator();
@@ -115,7 +115,7 @@ public class Elevator extends SubsystemBase {
     return getErrorMeters() < MOTION_MAGIC_ERROR_THRESHOLD;
   }
   public boolean atSetPointAndSettled(){
-    return settleTimer.hasElapsed(TIME_TO_SETTLE);
+    return settleTimer.get() >  TIME_TO_SETTLE && atSetPoint();
   }
 
   public boolean goalAtHome(){

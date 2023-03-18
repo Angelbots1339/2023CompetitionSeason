@@ -65,7 +65,7 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("right cone", rightConeSensor.getMeasurementPeriod() / 1000);
+    SmartDashboard.putNumber("DistSensor", rightConeSensor.getRange() / 1000);
     SmartDashboard.putBoolean("SensorDead", getSensorDead());
     SmartDashboard.putBoolean("objectInIntake", objectInIntake());
     SmartDashboard.putString("override State", deadSensorOverrideSate.toString());
@@ -116,7 +116,7 @@ public class Intake extends SubsystemBase {
 
   
   public boolean objectInIntake() {
-    return (rightConeSensor.GetRange() / 1000) > 0 && (rightConeSensor.GetRange()/1000) < 0.36;
+    return (rightConeSensor.GetRange() / 1000) > 0 && (rightConeSensor.GetRange()/1000) < 0.33;
   }
 
   public void runIntakeAtPercent(double conePercent) {

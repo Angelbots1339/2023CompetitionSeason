@@ -231,7 +231,7 @@ public class RobotContainer {
                 
 
                 alignOnChargingStation.whileTrue(
-                                new AlignWithGyro(swerve).andThen(new RunCommand(swerve::xPos, swerve)));
+                                new AlignWithGyro(swerve, false).andThen(new RunCommand(swerve::xPos, swerve)));
 
                 // Operator Buttons
                 switchDeadSensorOverrideObject.onTrue(new InstantCommand(() -> {
