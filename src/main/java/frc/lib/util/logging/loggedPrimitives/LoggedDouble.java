@@ -17,10 +17,9 @@ import frc.lib.util.logging.loggedObjects.LoggedObject;
 /** Add your docs here. */
 public class LoggedDouble extends LoggedPrimitive<Double> {
     private DoubleLogEntry logEntry;
-
    /**
      * This constructor is used to create a LoggedPrimitive that is an shuffulboard only LOG
-     */
+    */
     public LoggedDouble(LoggedObject<?> object, Supplier<Double> supplier, GenericEntry entry) {
         super(object,  supplier, entry);
     }

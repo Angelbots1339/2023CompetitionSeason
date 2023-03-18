@@ -165,11 +165,10 @@ public class RobotContainer {
                 autoChooser.addOption("ScoreMobility", AutoFactory.ScoreMobility(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreGrabBallance", AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreGrabBallanceTurn", AutoFactory.ScoreGrabTurnBallance(wrist, elevator, intake, swerve));
+                autoChooser.addOption("Score", AutoFactory.Score(wrist, elevator, intake, swerve));
 
 
 
-                autoChooser.addOption("2mTest", TestAutoFactory.nonVision2mTest(swerve));
-                autoChooser.addOption("TurnTest", TestAutoFactory.nonVisionTurnTest(swerve));
 
                 elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
 
@@ -201,6 +200,7 @@ public class RobotContainer {
 
                 autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve));
                 autoScoreMid.whileTrue(ScoreCommandFactory.alignAndScoreMid(wrist, elevator, intake, swerve));
+
 
                 runIntakeFallenCone.whileTrue(IntakeCommandFactory.runIntakeForFallenCone(intake));
                 runIntakeStandingCone.whileTrue(IntakeCommandFactory.runIntakeForStandingCone(intake));

@@ -24,6 +24,7 @@ import static frc.robot.Constants.AutoConstants.*;
 
 import java.io.Console;
 
+import frc.lib.util.logging.loggedObjects.LoggedField;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Intake;
@@ -42,6 +43,9 @@ public class SwerveFollowTrajectory extends PPSwerveControllerCommand {
         swerve::setChassisSpeeds,
         true,
         swerve);
+        
+
+        
   }
 
   public static void resetPos(PathPlannerTrajectory traj,  Swerve swerve){

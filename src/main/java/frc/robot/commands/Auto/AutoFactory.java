@@ -55,6 +55,7 @@ public class AutoFactory {
                                                                 .andThen(new RunCommand(swerve::xPos, swerve)),
                                                 IntakeToPosition.home(wrist, elevator)));
         }
+        
 
         public static Command ScoreGrabBallance(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("2Balance6",

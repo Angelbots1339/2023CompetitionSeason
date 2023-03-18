@@ -38,9 +38,6 @@ public class Intake extends SubsystemBase {
   private final TalonFX intakeMotor = TalonFXFactory.createDefaultTalon(INTAKE_MOTOR_ID, Constants.CANIVORE);
   private Rev2mDistanceSensor rightConeSensor = new Rev2mDistanceSensor(Port.kMXP);
 
-  
-
-
   private double distSensorOverride = 0;
 
   private double currentIntakePercent = 0;

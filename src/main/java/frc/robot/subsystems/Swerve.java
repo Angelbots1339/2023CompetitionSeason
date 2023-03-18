@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.sensors.Pigeon2;
+import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.PathPoint;
 
 import frc.robot.Constants.FieldConstants;
@@ -48,6 +49,10 @@ public class Swerve extends SubsystemBase {
 
     private final PoseEstimator poseEstimation;
     private final LoggedField field;
+    private final LoggedField autoField;
+    private Translation2d autoErrorTranslation = new Translation2d();
+    private Rotation2d autoErrorRotation = new Rotation2d();
+    
 
     public Swerve() {
         configPIDtoPoseControllers();
@@ -68,7 +73,18 @@ public class Swerve extends SubsystemBase {
         logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
 
         field = new LoggedField("PoseEstimator", logger, "PoseEstimator", true);
+        autoField = new LoggedField("AutoField", logger, "Auto", true);
         poseEstimation = new PoseEstimator(field, getYaw(), getPositions());
+
+
+        SwerveFollowTrajectory.setLoggingCallbacks((PathPlannerTrajectory traj) -> {
+            autoField.setTrajectory("AutoPath", traj, true);
+        }, (Pose2d pose2d) -> {
+            autoField.addPose2d("DesiredPose", () -> pose2d, true);
+        }, null, (Translation2d translation2d, Rotation2d rotation2d) -> {
+            autoErrorTranslation = translation2d;
+            autoErrorRotation = rotation2d;
+        });
 
         initializeLog();
     }
@@ -317,6 +333,8 @@ public class Swerve extends SubsystemBase {
         gyro.setYaw(deg);
     }
 
+  
+
     /*-----Getters----- */
 
     public Pose2d getPoseOdometry() {
@@ -488,11 +506,19 @@ public class Swerve extends SubsystemBase {
 
     public void initializeLog() {
         logger.add(field);
+        logger.add(autoField);
+        
         logger.add(new LoggedPigeon2("Gyro", logger, gyro, "Gyro"));
+
 
         logger.addDouble("Heading", () -> getHeading().getDegrees(), "Pose");
         logger.addDouble("x velocity", () -> getCurrentVelocity().getX(), "Pose");
         logger.addDouble("y velocity", () -> getCurrentVelocity().getY(), "Pose");
+
+        logger.addDouble("xAutoError", () -> autoErrorTranslation.getX(), "Auto");
+        logger.addDouble("yAutoError", () -> autoErrorTranslation.getY(), "Auto");
+        logger.addDouble("thetaAutoError", () -> autoErrorRotation.getDegrees(), "Auto");
+
 
         logger.add(new LoggedSwerveModule("Modules", logger, swerveMods, "Module", true));
 
