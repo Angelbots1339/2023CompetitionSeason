@@ -40,9 +40,6 @@ public class AlignOnChargingStation extends PIDCommand {
         // This uses the output
 
         output -> {
-          SmartDashboard.putNumber("out", DriverStation.getAlliance() == Alliance.Red
-          ? FieldConstants.RED_ORIGIN.getX() - FieldDependentConstants.CurrentField.CHARGING_STATION_ALIGN_OFFSET
-          : FieldDependentConstants.CurrentField.CHARGING_STATION_ALIGN_OFFSET);
 
           swerve.angularDrive(new Translation2d((
                FieldUtil.isBlueAlliance()? 1 : -1 *(MathUtil.clamp(output + ClosedLoopUtil.positionFeedForward(output, 0.3), -1, 1))), 0),
@@ -60,7 +57,6 @@ public class AlignOnChargingStation extends PIDCommand {
   // Returns true when the command should end
   @Override
   public boolean isFinished() {
-    SmartDashboard.putNumber("error", Math.abs(getController().getPositionError()));
     return Math.abs(swerve.getPitch()) > 6;
     
   }

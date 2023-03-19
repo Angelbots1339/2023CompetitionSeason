@@ -51,6 +51,7 @@ public class Intake extends SubsystemBase {
     rightConeSensor.setAutomaticMode(true);
     rightConeSensor.setEnabled(true);
     rightConeSensor.setDistanceUnits(Unit.kMillimeters);
+    rightConeSensor.setMeasurementPeriod(1);
     logger = new LoggedSubsystem("Intake", LoggingConstants.INTAKE);
 
     logger.addDouble("SupplyCurrent", () -> intakeMotor.getSupplyCurrent(), "Main");
@@ -66,6 +67,7 @@ public class Intake extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("DistSensor", rightConeSensor.getRange() / 1000);
+    SmartDashboard.putNumber("ConeOffset", getConeOffset());
     SmartDashboard.putBoolean("SensorDead", getSensorDead());
     SmartDashboard.putBoolean("objectInIntake", objectInIntake());
     SmartDashboard.putString("override State", deadSensorOverrideSate.toString());

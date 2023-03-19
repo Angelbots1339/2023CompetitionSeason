@@ -128,6 +128,7 @@ public class RobotContainer {
         
         private final Trigger runIntakeFallenCone = runIntakeGeneral.and(intakeToFallenCone);
         private final Trigger runIntakeStandingCone = runIntakeGeneral.and(intakeToStandingCone);
+        private final Trigger runOutakeStandingCone = runOuttakeGeneral.and(intakeToStandingCone);
         
         
         
@@ -143,8 +144,8 @@ public class RobotContainer {
                         XboxController.Button.kA.value);
 
                         
-        private final Trigger distSensorOverrideRight = new Trigger(() -> test.getPOV() > 0 && test.getPOV() < 180);
-        private final Trigger distSensorOverrideLeft = new Trigger(() -> test.getPOV() > 180);
+        private final Trigger distSensorOverrideLeft = new Trigger(() -> test.getPOV() > 0 && test.getPOV() < 180);
+        private final Trigger distSensorOverrideRight = new Trigger(() -> test.getPOV() > 180);
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -204,6 +205,7 @@ public class RobotContainer {
 
                 runIntakeFallenCone.whileTrue(IntakeCommandFactory.runIntakeForFallenCone(intake));
                 runIntakeStandingCone.whileTrue(IntakeCommandFactory.runIntakeForStandingCone(intake));
+
 
                 runOuttakeForHigh.whileTrue(ScoreCommandFactory.outtakeHigh(intake));
                 runOuttakeForLow.whileTrue(ScoreCommandFactory.outtakeMid(intake));

@@ -51,20 +51,19 @@ public class ScoreCommandFactory {
                                 IntakeState.CONE, alignAndScoreConeFavorMid(wrist, elevator, intake, swerve),
                                 IntakeState.CUBE, alignAndScoreCubeMid(wrist, elevator, intake, swerve),
                                 IntakeState.NONE, alignAndScoreConeFavorMid(wrist, elevator, intake, swerve)
-
                 ), intake::getState).deadlineWith(HandleCandle());
         }
 
         public static Command alignAndScoreConeFavorHigh(Wrist wrist, Elevator elevator, Intake intake,
                         Swerve swerve) {
-                return new AlignToConeNodeLimelightOnly(swerve, () -> intake.getConeOffset(), true).asProxy()
+                return new AlignToConeNodeLimelightOnly(swerve, () -> intake.getConeOffset(), true)
                                 .andThen(scoreConeNode(wrist, elevator, intake,
                                                 RetroReflectiveTargeter::getScoreHight));
         }
 
         public static Command alignAndScoreConeFavorMid(Wrist wrist, Elevator elevator, Intake intake,
                         Swerve swerve) {
-                return new AlignToConeNodeLimelightOnly(swerve, () -> intake.getConeOffset(), false).asProxy()
+                return new AlignToConeNodeLimelightOnly(swerve, () -> intake.getConeOffset(), false)
                                 .andThen(scoreConeNode(wrist, elevator, intake,
                                                 RetroReflectiveTargeter::getScoreHight));
         }
@@ -118,7 +117,9 @@ public class ScoreCommandFactory {
         
         public static Command extendThenPlace(Wrist wrist, Elevator elevator, Intake intake,
                         IntakeToPosition align, double outtakePercent) {
-                return align.alongWith(outtakeConeAtSetPoint(intake, elevator, wrist, outtakePercent)).until(() -> {
+                return align.alongWith(outtakeConeAtSetPoint
+                (intake, elevator, wrist, outtakePercent)).until(() -> {
+                       
                         return !elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndSettled() && wrist.atSetPointAndSettled();
                 }); 
                                
@@ -127,8 +128,8 @@ public class ScoreCommandFactory {
         public static Command outtakeConeAtSetPoint(Intake intake, Elevator elevator, Wrist wrist,
                         double outtakePercent) {
                 return new RunCommand(() -> {
-                        if (!elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPoint()
-                                        && wrist.atSetPoint()) {
+                        if (!elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndTimeHasPassed(0.1)
+                        && wrist.atSetPointAndTimeHasPassed(0.1)) {
                                 intake.runIntakeAtPercent(-outtakePercent);
                         }
 

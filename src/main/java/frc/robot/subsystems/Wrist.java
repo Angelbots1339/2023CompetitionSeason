@@ -74,6 +74,10 @@ public class Wrist extends SubsystemBase {
   public boolean atSetPointAndSettled(){
     return settleTimer.get() > TIME_TO_SETTLE && atSetPoint();
   }
+  public boolean atSetPointAndTimeHasPassed(double time){
+    return settleTimer.get() > time && atSetPoint();
+  }
+
  
   private final Timer settleTimer = new Timer();
   private void updateSetPointWatcher(){

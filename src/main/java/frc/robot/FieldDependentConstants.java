@@ -20,7 +20,7 @@ public class FieldDependentConstants {
         //intake positions
         public ElevatorWristState HIGH_CONE = new ElevatorWristState(110, 1.31);
         public double HIGH_CONE_HIGHT_BEFORE_ANGLE = 0.1;
-        public double HIGH_CONE_OUTTAKE_PERCENT = 0.8;
+        public double HIGH_CONE_OUTTAKE_PERCENT = 0.95;
         
         public ElevatorWristState MID_CONE = new ElevatorWristState(103.28, 0.76);
         public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.2;
@@ -35,13 +35,13 @@ public class FieldDependentConstants {
         public double MID_CUBE_HIGHT_BEFORE_ANGLE = 0.1;
         public double MID_CUBE_OUTTAKE_PERCENT = 0.5;
 
-        public ElevatorWristState STANDING_CONE = new ElevatorWristState(101.63, 0.027);
+        public ElevatorWristState STANDING_CONE = new ElevatorWristState(101.63, 0.1);
 
         public ElevatorWristState FALLEN_CONE = new ElevatorWristState(
             118.52, 0.02);
 
         public double INTAKE_GENERAL = 0.5;
-        public double OUTTAKE_GENERAL = 0.5;
+        public double OUTTAKE_GENERAL = 0.2;
 
         public Double INTAKE_CUBE = 0.5;
         public Double INTAKE_STANDING_CONE = INTAKE_GENERAL;
@@ -51,13 +51,13 @@ public class FieldDependentConstants {
 
         // //Vison
 
-        public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.557160;
-        public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.842018;
+        public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.597160;
+        public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.872018;
         public double HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.8 ;// 1.552556;
         public double MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.1;//0.913931;
 
-        public double CONE_OFFSET = 0.07;
-        public double CONE_BACKUP_OFFSET = 0.02;
+        public double CONE_OFFSET = 0.096000;
+        public double CONE_BACKUP_OFFSET = 1;
 
         public double LIMELIGHT_ALIGN_Y_TOLERANCE = 0.02;
 

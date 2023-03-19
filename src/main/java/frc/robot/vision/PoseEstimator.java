@@ -143,13 +143,6 @@ public class PoseEstimator {
             double xyStdDev = KalmanVisionRegression.xyStdDevReg.predict(tagDistance);
 
 
-            SmartDashboard.putNumber("ndull", lowestDeltaPose.timestampSeconds);
-           
-            SmartDashboard.putNumber("test", xyStdDev);
-            SmartDashboard.putNumber("testre", lowestDeltaPose.timestampSeconds);
-            poseEstimator.addVisionMeasurement(lowestDeltaPose.estimatedPose.toPose2d(), lowestDeltaPose.timestampSeconds, VecBuilder.fill(xyStdDev, xyStdDev, 0));
-            
-            SmartDashboard.putNumber("check", poseEstimator.getEstimatedPosition().getX() );
 
         }
     }

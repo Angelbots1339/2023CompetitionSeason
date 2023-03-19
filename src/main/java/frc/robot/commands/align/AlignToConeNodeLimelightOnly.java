@@ -29,10 +29,12 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   private Timer minTimer = new Timer();
   private final DoubleSupplier coneOffset;
   private final boolean favorHigh;
+  private boolean hasAlined = false;
   private double xSetPoint = 0;
+  private double ySetPoint = 0;
 
-  PIDController yController = new PIDController(3.5, 0, 0);
-  PIDController xController = new PIDController(3.5, 0, 0);
+  PIDController yController = new PIDController(3, 0, 0);
+  PIDController xController = new PIDController(3, 0, 0);
 
   public AlignToConeNodeLimelightOnly(Swerve swerve, DoubleSupplier coneOffset, boolean favorHigh) {
     this.coneOffset = coneOffset;
@@ -44,6 +46,9 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+
+    hasAlined = false;
+    minTimer.reset();
     minTimer.start();
   }
 
@@ -55,6 +60,23 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
       double yOffset = RetroReflectiveTargeter.getYOffset();
       // yOffset = RetroReflectiveTargeter.getYOffset();
       double xOffset = RetroReflectiveTargeter.getXOffset();
+      ySetPoint = 0;
+
+      if (coneOffset.getAsDouble() > 0.063) {
+        
+          if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH)
+          ySetPoint = -0.073;
+        else
+          ySetPoint = -0.021;
+      } else if (coneOffset.getAsDouble() < -0.042) {
+        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH)
+          ySetPoint = 0.062;
+        else
+          ySetPoint = 0.0664;
+        
+      } 
+
+      SmartDashboard.putNumber("ysetpoint", ySetPoint);
 
       double firstXSetPoint = 0;
       xSetPoint = 0;
@@ -69,26 +91,36 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
 
       }
 
-      double Y = yController.calculate(yOffset, 0)
+      double Y = yController.calculate(yOffset, ySetPoint)
           + ClosedLoopUtil.positionFeedForward(yController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
       Y = ClosedLoopUtil.stopAtSetPoint(Y, yController.getPositionError(),
           FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
       Y = ClosedLoopUtil.clampMaxEffort(Y, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
       double X = 0;
-      if (Y > 0.06) {
+      if (Math.abs(yController.getPositionError()) > 0.05 && !hasAlined) {
+        SmartDashboard.putBoolean("On First", false);
         X = xController.calculate(xOffset, firstXSetPoint)
             + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
         X = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(),
             0.04);
-      } else {
-        X = xController.calculate(xOffset, xSetPoint)
-            + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
-        if (RetroReflectiveTargeter
-            .getXOffset() < xSetPoint) {
+      } else if (minTimer.get() > 0.1 && (Math.abs(yController.getPositionError()) < 0.05 || hasAlined)) {
+
+        if (Math.abs(yController.getPositionError()) > 0.05 && xOffset < xSetPoint + 0.2) {
           X = 0;
+        } else {
+          SmartDashboard.putBoolean("On First", true);
+          hasAlined = true;
+          X = xController.calculate(xOffset, xSetPoint)
+              + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
+          if (RetroReflectiveTargeter
+              .getXOffset() < xSetPoint) {
+            X = 0;
+          }
         }
       }
+
+      SmartDashboard.putBoolean("Out", Math.abs(yOffset) > 0.03);
 
       X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
@@ -104,9 +136,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
       SmartDashboard.putBoolean("y setPoint",
           yController.getPositionError() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE);
       SmartDashboard.putBoolean("x setPoint",
-          RetroReflectiveTargeter.getXOffset() < (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH
-              ? FieldDependentConstants.CurrentField.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET
-              : FieldDependentConstants.CurrentField.MID_NODE_LIMELIGHT_ALIGN_OFFSET));
+          xOffset < xSetPoint);
 
       swerve.angularDrive(new Translation2d(X, -Y), FieldUtil.getTowardsDriverStation(), true, true);
     } else {
@@ -118,6 +148,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    swerve.disable();
   }
 
   // Returns true when the command should end.
@@ -125,8 +156,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   public boolean isFinished() {
 
     return Math
-        .abs(RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(),
-            coneOffset.getAsDouble())) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE
+        .abs(yController.getPositionError()) < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE
         && RetroReflectiveTargeter.getXOffset() < xSetPoint
         && LimeLight.hasTargets()
         && minTimer.get() > 0.3;

@@ -535,8 +535,9 @@ public class Swerve extends SubsystemBase {
         RetroReflectiveTargeter.update(getPose(), true);
 
         SmartDashboard.putNumber("X", getPose().getX());
-        SmartDashboard.putNumber("hor off", LimeLight.getHorizontalOffset());
+        // SmartDashboard.putNumber("hor off", LimeLight.getHorizontalOffset());
         SmartDashboard.putNumber("XOffset", RetroReflectiveTargeter.getXOffset());
+        SmartDashboard.putNumber("YOffset", RetroReflectiveTargeter.getYOffset());
 
 
 

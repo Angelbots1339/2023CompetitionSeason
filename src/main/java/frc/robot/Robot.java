@@ -97,7 +97,6 @@ public class Robot extends TimedRobot {
 
 
    Candle.getInstance().periodic();
-   SmartDashboard.putBoolean("multiplexer", Multiplexer.isConnected());
 
 
    
