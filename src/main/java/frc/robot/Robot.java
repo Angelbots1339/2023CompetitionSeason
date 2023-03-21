@@ -42,8 +42,8 @@ public class Robot extends TimedRobot {
 
   public Robot() {
     //TODO sim only
-    LiveWindow.setEnabled(true);
-    LiveWindow.enableAllTelemetry();
+    // LiveWindow.setEnabled(true);
+    // LiveWindow.enableTelemetry(CommandScheduler.getInstance());
   }
 
   /**
@@ -56,6 +56,7 @@ public class Robot extends TimedRobot {
     DataLogManager.start();
     DataLogManager.logNetworkTables(true);
     DriverStation.startDataLog(DataLogManager.getLog(), true);
+
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our
@@ -90,7 +91,7 @@ public class Robot extends TimedRobot {
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
     Thread thread = new Thread(() -> {
-      Logger.getInstance().log((long)Timer.getFPGATimestamp());
+      Logger.getInstance().log(0);
     });
     thread.start();
 

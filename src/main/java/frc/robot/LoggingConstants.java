@@ -17,9 +17,9 @@ public final class LoggingConstants {
                         "Pose", LoggingLevel.NONE,
                         "AngularDrive", LoggingLevel.NONE,
                         "Drive", LoggingLevel.NONE,
-                        "Default", LoggingLevel.NONE,
                         "PidPose", LoggingLevel.NONE,
                         "Auto", LoggingLevel.NONE,
+                        "Main", LoggingLevel.ONBOARD_ONLY,
                         "PoseEstimator", LoggingLevel.SHUFFLEBOARD);
 
         public static final Map<String, LoggingLevel> ROBOT_CONTAINER = Map.of(
@@ -28,15 +28,17 @@ public final class LoggingConstants {
 
         public static final Map<String, LoggingLevel> ELEVATOR = Map.of(
                         "Main", LoggingLevel.ONBOARD_ONLY,
+                        "Motor", LoggingLevel.ONBOARD_ONLY,
                         "Motion Magic", LoggingLevel.NONE,
                         "Default", LoggingLevel.NONE);
         public static final Map<String, LoggingLevel> WRIST = Map.of(
                         "Main", LoggingLevel.ONBOARD_ONLY,
+                        "Motor", LoggingLevel.ONBOARD_ONLY,
                         "Motion Magic", LoggingLevel.NONE,
                         "Default", LoggingLevel.NONE);
         public static final Map<String, LoggingLevel> INTAKE = Map.of(
                                 "Main", LoggingLevel.ONBOARD_ONLY,
-                                "Motion Magic", LoggingLevel.NONE,
+                                "Motor", LoggingLevel.ONBOARD_ONLY,
                                 "Default", LoggingLevel.NONE);
 
         public static final Map<String, LoggingLevel> GLOBAL = Map.of(

@@ -142,6 +142,8 @@ public class PoseEstimator {
             double tagDistance = robotToTarget.getNorm();
             double xyStdDev = KalmanVisionRegression.xyStdDevReg.predict(tagDistance);
 
+            poseEstimator.addVisionMeasurement(lowestDeltaPose.estimatedPose.toPose2d(), lowestDeltaPose.timestampSeconds, VecBuilder.fill(xyStdDev, xyStdDev, 0));
+
 
 
         }

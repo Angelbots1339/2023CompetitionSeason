@@ -34,6 +34,9 @@ public class LoggedFalcon extends LoggedObject<TalonFX> {
         addDoubleToShuffleboard("Stator Current", () ->  object.getStatorCurrent(), layout);
         addDoubleToShuffleboard("Supply Current", () ->  object.getSupplyCurrent(), layout);
         addDoubleToShuffleboard("Bus Voltage", () ->  object.getBusVoltage(), layout);
+        addDoubleToShuffleboard("Output Voltage", () ->  object.getMotorOutputVoltage(), layout);
+        addDoubleToShuffleboard("Temp", () ->  object.getTemperature(), layout);
+
     }
 
     @Override
@@ -41,6 +44,8 @@ public class LoggedFalcon extends LoggedObject<TalonFX> {
         addDoubleToOnboardLog("Stator Current", () -> object.getStatorCurrent());
         addDoubleToOnboardLog("Supply Current", () -> object.getSupplyCurrent());
         addDoubleToOnboardLog("Bus Voltage", () -> object.getBusVoltage());
+        addDoubleToOnboardLog("Output Voltage", () -> object.getMotorOutputVoltage());
+        addDoubleToOnboardLog("Temp", () -> object.getTemperature());
     }
 
 

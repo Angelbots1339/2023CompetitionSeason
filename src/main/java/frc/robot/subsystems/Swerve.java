@@ -4,6 +4,7 @@ import com.ctre.phoenix.sensors.Pigeon2;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.PathPoint;
 
+import frc.robot.Constants.ElevatorWristStateConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.commands.auto.SwerveFollowTrajectory;
@@ -52,7 +53,6 @@ public class Swerve extends SubsystemBase {
     private final LoggedField autoField;
     private Translation2d autoErrorTranslation = new Translation2d();
     private Rotation2d autoErrorRotation = new Rotation2d();
-    
 
     public Swerve() {
         configPIDtoPoseControllers();
@@ -75,7 +75,6 @@ public class Swerve extends SubsystemBase {
         field = new LoggedField("PoseEstimator", logger, "PoseEstimator", true);
         autoField = new LoggedField("AutoField", logger, "Auto", true);
         poseEstimation = new PoseEstimator(field, getYaw(), getPositions());
-
 
         SwerveFollowTrajectory.setLoggingCallbacks((PathPlannerTrajectory traj) -> {
             autoField.setTrajectory("AutoPath", traj, true);
@@ -133,15 +132,14 @@ public class Swerve extends SubsystemBase {
 
     public void xPos() {
         SwerveModuleState[] states = new SwerveModuleState[] {
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45))
+                new SwerveModuleState(0, Rotation2d.fromDegrees(-45)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(45)),
+                new SwerveModuleState(0, Rotation2d.fromDegrees(-45))
         };
         for (SwerveModule mod : swerveMods) {
             mod.setDesiredStateStrict(states[mod.moduleNumber], false);
         }
-
 
     }
 
@@ -307,11 +305,10 @@ public class Swerve extends SubsystemBase {
 
     public void resetGyroTowardsDriverStation() {
         gyro.setYaw(FieldUtil.getTowardsDriverStation().getDegrees());
-        gyro.setYaw(FieldUtil.getTowardsDriverStation().getDegrees());
     }
 
     public void resetOdometry(Pose2d pose) {
-        poseEstimation.resetPose(getYaw(), getPositions(), pose);
+        poseEstimation.resetPose(pose.getRotation(), getPositions(), pose);
     }
 
     public void alignPoseNonVisionEstimator() {
@@ -333,8 +330,6 @@ public class Swerve extends SubsystemBase {
         gyro.setYaw(deg);
     }
 
-  
-
     /*-----Getters----- */
 
     public Pose2d getPoseOdometry() {
@@ -354,6 +349,7 @@ public class Swerve extends SubsystemBase {
                     FieldConstants.RED_ORIGIN.getY() - pose.getY()), getAdjustedYaw());
         }
     }
+
     public Pose2d getPoseTranslatedForAutoOdometry() {
         if (FieldUtil.isBlueAlliance()) {
             return getPoseOdometry();
@@ -436,6 +432,7 @@ public class Swerve extends SubsystemBase {
         return new Rotation3d(Math.toRadians(gyro.getRoll()), Math.toRadians(gyro.getPitch()),
                 Math.toRadians(gyro.getYaw()));
     }
+
     public double getPitch() {
         return gyro.getPitch();
     }
@@ -507,18 +504,18 @@ public class Swerve extends SubsystemBase {
     public void initializeLog() {
         logger.add(field);
         logger.add(autoField);
-        
-        logger.add(new LoggedPigeon2("Gyro", logger, gyro, "Gyro"));
 
+        logger.add(new LoggedPigeon2("Gyro", logger, gyro, "Gyro"));
 
         logger.addDouble("Heading", () -> getHeading().getDegrees(), "Pose");
         logger.addDouble("x velocity", () -> getCurrentVelocity().getX(), "Pose");
         logger.addDouble("y velocity", () -> getCurrentVelocity().getY(), "Pose");
 
+        logger.addString("command", () -> this.getCurrentCommand().getName(), "Main");
+
         logger.addDouble("xAutoError", () -> autoErrorTranslation.getX(), "Auto");
         logger.addDouble("yAutoError", () -> autoErrorTranslation.getY(), "Auto");
         logger.addDouble("thetaAutoError", () -> autoErrorRotation.getDegrees(), "Auto");
-
 
         logger.add(new LoggedSwerveModule("Modules", logger, swerveMods, "Module", true));
 
@@ -528,24 +525,52 @@ public class Swerve extends SubsystemBase {
         }
     }
 
+    private boolean dynamicHome = false;
+
+    public void setDynamicHome(boolean dynamicHOME) {
+        this.dynamicHome = dynamicHOME;
+    }
+
+    public boolean isDynamicHome() {
+        return dynamicHome;
+    }
+
+    public void updateDynamicHome() {
+        if (dynamicHome) {
+            if (FieldUtil.isBlueAlliance()) {
+                if (getPose().getTranslation().getX() > FieldConstants.RED_ORIGIN.getX() / 2) {
+                    ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.FAR_HOME;
+                } else {
+                    ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.CLOSE_HOME;
+                }
+            } else {
+                if (getPose().getTranslation().getX() < FieldConstants.RED_ORIGIN.getX() / 2) {
+                    ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.FAR_HOME;
+                } else {
+                    ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.CLOSE_HOME;
+                }
+            }
+        } else {
+            ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.FAR_HOME;
+        }
+    }
+
     @Override
     public void periodic() {
         poseEstimation.updateOdometry(this, getPose());
         poseEstimation.justUpdate(this);
         RetroReflectiveTargeter.update(getPose(), true);
 
-        SmartDashboard.putNumber("X", getPose().getX());
         // SmartDashboard.putNumber("hor off", LimeLight.getHorizontalOffset());
         SmartDashboard.putNumber("XOffset", RetroReflectiveTargeter.getXOffset());
         SmartDashboard.putNumber("YOffset", RetroReflectiveTargeter.getYOffset());
 
-
-
-
-
+        SmartDashboard.putNumber("dynamicHome", getPose().getTranslation().getX());
 
         // SmartDashboard.putNumber("h offset", getPose().getX() -
         // getField().getTagPose(7).get().toPose2d().getX());
         calculateVelocity();
+
+        updateDynamicHome();
     }
 }

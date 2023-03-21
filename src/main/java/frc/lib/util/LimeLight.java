@@ -18,7 +18,8 @@ public class LimeLight {
 
      */
     public static boolean hasTargets() {
-        return table.getEntry("tx").getDouble(0.0) != 0;
+        //TODO was tx switch back if breaks 
+        return table.getEntry("tv").getDouble(0.0) != 0;
     }
 
     /**

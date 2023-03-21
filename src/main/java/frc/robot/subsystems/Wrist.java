@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.logging.LoggedSubsystem;
+import frc.lib.util.logging.loggedObjects.LoggedFalcon;
 import frc.robot.Constants;
 import frc.robot.LoggingConstants;
 import frc.robot.Constants.ElevatorWristStateConstants;
@@ -39,8 +40,9 @@ public class Wrist extends SubsystemBase {
     logger = new LoggedSubsystem("Wrist", LoggingConstants.WRIST);
 
 
-    logger.addDouble("Angle", this::getAngleDeg, "main");
-    logger.addDouble("Current", () -> wristMotor.getSupplyCurrent(), "Main");
+    logger.add(new LoggedFalcon("Wrist Motor", logger, wristMotor, "Motor"));
+
+    logger.addString("Command", () -> this.getCurrentCommand().getName(), "Main");
 
     // logger.addDouble("GoalVelocity", () -> wristMotor.getActiveTrajectoryVelocity(), "MotionMagic");
     // logger.addDouble("CurrentVelocity", () -> wristMotor.getSelectedSensorVelocity(), "MotionMagic");

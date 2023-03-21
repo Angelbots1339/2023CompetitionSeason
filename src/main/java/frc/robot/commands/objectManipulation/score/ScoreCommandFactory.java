@@ -70,7 +70,7 @@ public class ScoreCommandFactory {
 
         public static Command alignAndScoreCubeHigh(Wrist wrist, Elevator elevator, Intake intake,
                         Swerve swerve) {
-                return new AlignToAprilTag(swerve).asProxy().andThen(scoreCubeNode(wrist, elevator, intake,
+                return new AlignToAprilTag(swerve).andThen(scoreCubeNode(wrist, elevator, intake,
                                 () -> ScoreHight.HIGH));
         }
 
@@ -82,7 +82,7 @@ public class ScoreCommandFactory {
 
         public static Command alignAndScoreCubeMid(Wrist wrist, Elevator elevator, Intake intake,
                         Swerve swerve) {
-                return new AlignToAprilTag(swerve).asProxy().andThen(scoreCubeNode(wrist, elevator, intake,
+                return new AlignToAprilTag(swerve).andThen(scoreCubeNode(wrist, elevator, intake,
                                 () -> ScoreHight.MID));
         }
 

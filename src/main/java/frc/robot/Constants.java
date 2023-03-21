@@ -83,7 +83,6 @@ public final class Constants {
          * 6380/8.14 * 0.1 * pi / 60 = 4.103882295
          * 12 / 4.103882295 = 2.920
          */
-        ////FIXL2
         public static final double DRIVE_KS = (0.23153 / 12);
         public static final double DRIVE_KV = (2.3061 / 12);
         public static final double DRIVE_KA = (0.27485 / 12);
@@ -237,8 +236,8 @@ public final class Constants {
         private static final double MAX_ELEVATOR_VELOCITY = 14.905; //Clicks per sec 
 
         
-        public static final int FOLLOWER_MOTOR_ID = 7;// TODO right motor
-        public static final int LEADER_MOTOR_ID = 8;// TODO
+        public static final int FOLLOWER_MOTOR_ID = 7;
+        public static final int LEADER_MOTOR_ID = 8;
 
         public static double SPOOL_DIAMETER = Units.inchesToMeters(1.7); // Meters
 
@@ -257,8 +256,8 @@ public final class Constants {
 
         public static final int SENSOR_VELOCITY_MEAS_WINDOW = 8;
 
-        public static final int FORWARD_SOFT_LIMIT = 50276; // TODO
-        public static final int REVERSE_SOFT_LIMIT = 0; // TODO
+        public static final int FORWARD_SOFT_LIMIT = 50276; 
+        public static final int REVERSE_SOFT_LIMIT = 0; 
 
         public static final double KP = 0.2; // 0.0731;
         public static final double KD = 0;
@@ -270,8 +269,8 @@ public final class Constants {
 
         public static final double KS = 0.08; // test this is calculated from recalc
 
-        public static final double MAX_VELOCITY = mPSToCP100ms(8.2); // TODO
-        public static final double MAX_ACCELERATION = mPSToCP100ms(6.5); // TODO
+        public static final double MAX_VELOCITY = mPSToCP100ms(8.2); 
+        public static final double MAX_ACCELERATION = mPSToCP100ms(6.5); 
 
         public static final int S_CURVE_STRENGTH = 4; 
 
@@ -326,7 +325,7 @@ public final class Constants {
     public static final class WristConstants{
         public static final int MOTOR_ID = 16;
 
-        public static final double WRIST_HOME_ANGLE = 10;//TODO
+        public static final double WRIST_HOME_ANGLE = 10;
 
         public static final SupplyCurrentLimitConfiguration CURRENT_LIMIT = new SupplyCurrentLimitConfiguration(
                 true, 35, 60, 0.1);
@@ -359,12 +358,12 @@ public final class Constants {
         // F-gain = (0.1 X 1023) / 1718 F-gain = 0.1079
         public static final double KF = 0.1131;
         //at horizontal
-        public static final double KS =  -0.1; //TODO
+        public static final double KS =  -0.1; 
         
         public static final double MAX_VELOCITY =  radiansPerSecToClicksPer100ms(6 * ( 2 * Math.PI )); 
         public static final double MAX_ACCELERATION =  radiansPerSecToClicksPer100ms(4 * ( 2 * Math.PI )); 
 
-        public static final int S_CURVE_STRENGTH = 4; // TODO
+        public static final int S_CURVE_STRENGTH = 4; 
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 3; // Degrees
         public static final double TIME_TO_SETTLE = 0.7;//seconds 
 
@@ -401,12 +400,16 @@ public final class Constants {
         public static final double LimeLightMidPosition = 0;
         public static final Rotation2d LimeLightMidAngle = Rotation2d.fromDegrees(0);
 
-        public static final ElevatorWristState HOME = new ElevatorWristState(17, 0);
+        public static ElevatorWristState HOME = new ElevatorWristState(17, 0);
+
+        public static ElevatorWristState CLOSE_HOME = new ElevatorWristState(10, 0);
+        public static ElevatorWristState FAR_HOME = new ElevatorWristState(17, 0);
+
     }
 
     public static final class IntakeConstants {
-        public static final int INTAKE_MOTOR_ID = 17;// TODO
-        public static final int SHOOT_MOTOR_ID = 15;// TODO
+        public static final int INTAKE_MOTOR_ID = 17;
+        public static final int SHOOT_MOTOR_ID = 15;
         public static final int COLOR_SENSOR_PORT = 2;
         public static final int RIGHT_DIST_SENSOR_PORT = 2;
         public static final int LEFT_DIST_SENSOR_PORT = 2;
@@ -421,7 +424,7 @@ public final class Constants {
 
         public static final RangeProfile DISTANCE_SENSOR_PROFILE = RangeProfile.kHighAccuracy;
 
-        public static final int DISTANCE_SENSOR_EMPTY_THRESHOLD = 0; //TODO cm
+        public static final int DISTANCE_SENSOR_EMPTY_THRESHOLD = 0; 
 
         public static final Color CUBE_COLOR = new Color(60, 104, 89);
         public static final Color CONE_COLOR = new Color(88, 126, 39); 
@@ -433,7 +436,7 @@ public final class Constants {
 
     public static final class VisionConstants {
         public static final Transform3d APRILTAG_CAM_POS = new Transform3d(new Translation3d(0.24345, -0.25397, 0.56859),
-                new Rotation3d(0, -0, 0)); // TODO OPI pos
+                new Rotation3d(0, -0, 0)); 
         public static final PhotonCamera APRILTAG_CAM = new PhotonCamera("Cam1");
 
 

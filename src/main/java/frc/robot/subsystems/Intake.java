@@ -19,6 +19,7 @@ import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.Candle;
 import frc.lib.util.logging.LoggedSubsystem;
+import frc.lib.util.logging.loggedObjects.LoggedFalcon;
 import frc.lib.util.multiplexer.ColorSensorMUXed;
 import frc.lib.util.multiplexer.DistanceSensorMUXed;
 import frc.lib.util.multiplexer.Multiplexer;
@@ -54,11 +55,14 @@ public class Intake extends SubsystemBase {
     rightConeSensor.setMeasurementPeriod(1);
     logger = new LoggedSubsystem("Intake", LoggingConstants.INTAKE);
 
-    logger.addDouble("SupplyCurrent", () -> intakeMotor.getSupplyCurrent(), "Main");
-    logger.addDouble("StatorCurrent", () -> intakeMotor.getSupplyCurrent(), "Main");
+
 
     logger.addDouble("RightConeSensor", () -> rightConeSensor.getRange(), "Main");
     logger.addBoolean("SensorDead", () -> getSensorDead(), "Main");
+    logger.addString("Command", () -> this.getCurrentCommand().getName(), "Main");
+
+
+    logger.add(new LoggedFalcon("IntakeMotor", logger, intakeMotor, "Motor"));
   }
 
  
@@ -66,7 +70,6 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("DistSensor", rightConeSensor.getRange() / 1000);
     SmartDashboard.putNumber("ConeOffset", getConeOffset());
     SmartDashboard.putBoolean("SensorDead", getSensorDead());
     SmartDashboard.putBoolean("objectInIntake", objectInIntake());

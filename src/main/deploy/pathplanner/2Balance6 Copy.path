@@ -145,36 +145,5 @@
       }
     }
   ],
-  "markers": [
-    {
-      "position": 0.0,
-      "names": [
-        "Home"
-      ]
-    },
-    {
-      "position": 3.0606060606059406,
-      "names": [
-        "Home"
-      ]
-    },
-    {
-      "position": 0.606060606060644,
-      "names": [
-        "IntakeCube"
-      ]
-    },
-    {
-      "position": 2.5454545454546134,
-      "names": [
-        "Home"
-      ]
-    },
-    {
-      "position": 1.3030303030302854,
-      "names": [
-        "Home"
-      ]
-    }
-  ]
+  "markers": []
 }

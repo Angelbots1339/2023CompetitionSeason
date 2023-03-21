@@ -1,9 +1,14 @@
 package frc.robot;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.swing.text.StyleContext.SmallAttributeSet;
+
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -23,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.lib.math.Conversions;
@@ -140,7 +146,7 @@ public class RobotContainer {
                         XboxController.Button.kLeftBumper.value);
         private final Trigger signalCone = new JoystickButton(test,
                         XboxController.Button.kRightBumper.value);
-        private final Trigger resetSwerve = new JoystickButton(test,
+        private final Trigger dynamicHomeToggle = new JoystickButton(test,
                         XboxController.Button.kA.value);
 
                         
@@ -192,23 +198,23 @@ public class RobotContainer {
                 zeroGyro.onTrue(new InstantCommand(swerve::resetGyroTowardsDriverStation));
                 // alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
 
-                intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist));
-                intakeToFallenCone.whileTrue(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist));
+                intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist).withName("intakeToStandingCone"));
+                intakeToFallenCone.whileTrue(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist).withName("intakeToFallenCone"));
 
-                manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake));
-                manualScoreMid.whileTrue(IntakePositionCommandFactory.IntakeToMid(elevator, wrist, intake));
+                manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake).withName("manualScoreHigh"));
+                manualScoreMid.whileTrue(IntakePositionCommandFactory.IntakeToMid(elevator, wrist, intake).withName("manualScoreMid"));
                 // manualScoreMid.whileTrue(new AlignOnChargingStation(swerve));
 
-                autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve));
-                autoScoreMid.whileTrue(ScoreCommandFactory.alignAndScoreMid(wrist, elevator, intake, swerve));
+                autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve).withName("autoScoreHigh"));
+                autoScoreMid.whileTrue(ScoreCommandFactory.alignAndScoreMid(wrist, elevator, intake, swerve).withName("autoScoreMid"));
 
 
-                runIntakeFallenCone.whileTrue(IntakeCommandFactory.runIntakeForFallenCone(intake));
-                runIntakeStandingCone.whileTrue(IntakeCommandFactory.runIntakeForStandingCone(intake));
+                runIntakeFallenCone.whileTrue(IntakeCommandFactory.runIntakeForFallenCone(intake).withName("runIntakeFallenCone"));
+                runIntakeStandingCone.whileTrue(IntakeCommandFactory.runIntakeForStandingCone(intake).withName("runIntakeStandingCone"));
 
 
-                runOuttakeForHigh.whileTrue(ScoreCommandFactory.outtakeHigh(intake));
-                runOuttakeForLow.whileTrue(ScoreCommandFactory.outtakeMid(intake));
+                runOuttakeForHigh.whileTrue(ScoreCommandFactory.outtakeHigh(intake).withName("runOuttakeForHigh"));
+                runOuttakeForLow.whileTrue(ScoreCommandFactory.outtakeMid(intake).withName("runOuttakeForLow"));
 
                 runIntakeGeneral.whileTrue(new StartEndCommand(
                                 () -> {
@@ -218,7 +224,7 @@ public class RobotContainer {
                                 () -> {
                                         intake.disable();
                                         Candle.getInstance().changeLedState(LEDState.Idle);
-                                }, intake));
+                                }, intake).withName("runIntakeGeneral"));
 
                 runOuttakeGeneral.whileTrue(new StartEndCommand(
                                 () -> {
@@ -228,12 +234,12 @@ public class RobotContainer {
                                 () -> {
                                         intake.disable();
                                         Candle.getInstance().changeLedState(LEDState.Idle);
-                                }, intake));
+                                }, intake).withName("runOuttakeGeneral"));
 
                 
 
                 alignOnChargingStation.whileTrue(
-                                new AlignWithGyro(swerve, false).andThen(new RunCommand(swerve::xPos, swerve)));
+                                new AlignWithGyro(swerve, false).andThen(new RunCommand(swerve::xPos, swerve)).withName("alignOnChargingStation"));
 
                 // Operator Buttons
                 switchDeadSensorOverrideObject.onTrue(new InstantCommand(() -> {
@@ -243,6 +249,7 @@ public class RobotContainer {
                                 intake.setDeadSensorOverrideSate(IntakeState.CONE);
                 }));
                 resetSensors.onTrue(new InstantCommand(() -> intake.resetSensors()));
+
                 signalCube.whileTrue(new StartEndCommand(
                                 () -> {
                                         Candle.getInstance().changeLedState(LEDState.HumanPlayerCommunication);
@@ -260,7 +267,7 @@ public class RobotContainer {
                                 () -> Candle.getInstance().changeLedState(LEDState.Idle)));
 
                 
-                resetSwerve.onTrue(new InstantCommand(swerve::resetToAbsolute));
+                dynamicHomeToggle.onTrue(new InstantCommand(() -> swerve.setDynamicHome(!swerve.isDynamicHome())));
 
                 distSensorOverrideRight.whileTrue(new StartEndCommand(intake::setDistSensorOverrideRight, intake::resetDistSensorOverride));
                 distSensorOverrideLeft.whileTrue(new StartEndCommand(intake::setDistSensorOverrideLeft, intake::resetDistSensorOverride));
@@ -282,7 +289,12 @@ public class RobotContainer {
                 //         new InstantCommand(swerve::resetGyroTowardsDriverStation),
                 //         ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
                 //         IntakeToPosition.home(wrist, elevator));
-                return autoChooser.getSelected(); // AutoFactory.Score2(wrist,
+                return autoChooser.getSelected().withName("Auto"); // AutoFactory.Score2(wrist,
+
+                // List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("Mobility",
+                //                 new PathConstraints(2, 1));
+
+                // return AutoFactory.resetGyroAndPos(swerve, trajectories.get(0));
                                               
                 // intake, swerve);
         }

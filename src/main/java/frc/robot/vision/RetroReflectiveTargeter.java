@@ -38,7 +38,6 @@ public class RetroReflectiveTargeter {
 
             if (verticalOffset > 0) { // high
                 LimeLight.setPipelineMode(highPipeLine);
-                SmartDashboard.putString("Target", "High");
                 if (LimeLight.getPipeline() == highPipeLine) {
                     status = targetingStatus.HIGH;
                     xOffset = highTargetPredictionZ / Math.tan(Math.toRadians(verticalOffset));

@@ -20,7 +20,7 @@ public class FieldDependentConstants {
         //intake positions
         public ElevatorWristState HIGH_CONE = new ElevatorWristState(110, 1.31);
         public double HIGH_CONE_HIGHT_BEFORE_ANGLE = 0.1;
-        public double HIGH_CONE_OUTTAKE_PERCENT = 0.95;
+        public double HIGH_CONE_OUTTAKE_PERCENT = 1;
         
         public ElevatorWristState MID_CONE = new ElevatorWristState(103.28, 0.76);
         public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.2;
@@ -51,10 +51,20 @@ public class FieldDependentConstants {
 
         // //Vison
 
-        public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.597160;
-        public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.872018;
+        public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.577160;
+        public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.852018;
         public double HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.8 ;// 1.552556;
         public double MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.1;//0.913931;
+
+
+        public double LIMELIGHT_ALIGN_LEFT_BOUND =  0.063;
+        public double LIMELIGHT_ALIGN_LEFT_HIGH_Y_OFFSET = -0.073;
+        public double LIMELIGHT_ALIGN_LEFT_MID_Y_OFFSET = -0.021;
+
+        public double LIMELIGHT_ALIGN_RIGHT_BOUND = -0.042;
+        public double LIMELIGHT_ALIGN_RIGHT_HIGH_Y_OFFSET = 0.062;
+        public double LIMELIGHT_ALIGN_RIGHT_MID_Y_OFFSET = 0.0664;
+        
 
         public double CONE_OFFSET = 0.096000;
         public double CONE_BACKUP_OFFSET = 1;
@@ -88,9 +98,12 @@ public class FieldDependentConstants {
         ST_LUIS.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 0.924321;
         ST_LUIS.CUBE_ALIGN_OFFSET = 0.79;
         ST_LUIS.CUBE_FIRST_ALIGN_OFFSET = 0.82;
+    
+    }
 
 
-
+    public static FieldConstants COLORADO = ST_LUIS;
+    static {
     
     }
     

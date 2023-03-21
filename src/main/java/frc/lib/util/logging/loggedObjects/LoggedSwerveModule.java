@@ -102,12 +102,21 @@ public class LoggedSwerveModule extends LoggedObject<SwerveModule[]> {
         addDoubleToOnboardLog("Module:3/CanCoder", () -> object[3].getCanCoder().getDegrees());
         addDoubleToOnboardLog("Module:3/TotalDistance", () -> object[3].getPosition().distanceMeters);
 
-        addDoubleArrayToOnboardLog("Modules", () -> 
+        addDoubleArrayToOnboardLog("TrueStates", () -> 
         new double[]{
                 object[1].getState().angle.getDegrees(),  object[1].getState().speedMetersPerSecond,
                 object[3].getState().angle.getDegrees(), object[3].getState().speedMetersPerSecond,
                 object[0].getState().angle.getDegrees(), object[0].getState().speedMetersPerSecond,
                 object[2].getState().angle.getDegrees(), object[2].getState().speedMetersPerSecond
+            }
+        );
+
+        addDoubleArrayToOnboardLog("DesiredStates", () -> 
+        new double[]{
+                object[1].getDesiredState().angle.getDegrees(),  object[1].getDesiredState().speedMetersPerSecond,
+                object[3].getDesiredState().angle.getDegrees(), object[3].getDesiredState().speedMetersPerSecond,
+                object[0].getDesiredState().angle.getDegrees(), object[0].getDesiredState().speedMetersPerSecond,
+                object[2].getDesiredState().angle.getDegrees(), object[2].getDesiredState().speedMetersPerSecond
             }
         );
     }

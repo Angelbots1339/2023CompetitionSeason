@@ -21,6 +21,7 @@ import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.Mech2dManger;
 import frc.lib.util.logging.LoggedSubsystem;
+import frc.lib.util.logging.loggedObjects.LoggedFalcon;
 import frc.robot.Constants;
 import frc.robot.LoggingConstants;
 import frc.robot.Robot;
@@ -52,11 +53,14 @@ public class Elevator extends SubsystemBase {
     logger = new LoggedSubsystem("Elevator", LoggingConstants.ELEVATOR);
 
 
-    logger.addDouble("Height", this::getHeightMeters, "main");
-    logger.addBoolean("FwdLimit", () -> elevatorLeaderMotor.isFwdLimitSwitchClosed() ==1, "main");
-    logger.addBoolean("RevLimit", () -> elevatorLeaderMotor.isFwdLimitSwitchClosed() ==1, "main");
-    logger.addDouble("CurrentLeader", () -> elevatorLeaderMotor.getSupplyCurrent(), "main");
-    logger.addDouble("CurrentFollower", () -> elevatorFollowerMotor.getSupplyCurrent(), "main");
+    logger.addBoolean("FwdLimit", () -> elevatorLeaderMotor.isFwdLimitSwitchClosed() == 1, "Main");
+    logger.addBoolean("RevLimit", () -> elevatorLeaderMotor.isFwdLimitSwitchClosed() == 1, "Main");
+
+    logger.addString("RevLimit", () -> this.getCurrentCommand().getName(), "Main");
+
+    logger.add(new LoggedFalcon("Follower", logger, elevatorFollowerMotor, "Motor"));
+    logger.add(new LoggedFalcon("Leader", logger, elevatorLeaderMotor, "Motor"));
+
 
     // logger.addDouble("GoalVelocity", () -> elevatorLeaderMotor.getActiveTrajectoryVelocity(), "MotionMagic");
     // logger.addDouble("CurrentVelocity", () -> elevatorLeaderMotor.getSelectedSensorVelocity(), "MotionMagic");

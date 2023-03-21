@@ -17,6 +17,8 @@ import frc.lib.util.LimeLight;
 import frc.robot.FieldDependentConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.SwerveConstants.DrivePidConstants;
+import frc.robot.regressions.ConeOffsetRegression;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Swerve;
 import frc.robot.vision.RetroReflectiveTargeter;
 import frc.robot.vision.RetroReflectiveTargeter.targetingStatus;
@@ -46,7 +48,6 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-
     hasAlined = false;
     minTimer.reset();
     minTimer.start();
@@ -62,19 +63,39 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
       double xOffset = RetroReflectiveTargeter.getXOffset();
       ySetPoint = 0;
 
-      if (coneOffset.getAsDouble() > 0.063) {
-        
-          if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH)
-          ySetPoint = -0.073;
-        else
-          ySetPoint = -0.021;
-      } else if (coneOffset.getAsDouble() < -0.042) {
+      if (coneOffset.getAsDouble() > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_LEFT_BOUND) {
         if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH)
-          ySetPoint = 0.062;
+          ySetPoint = FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_LEFT_HIGH_Y_OFFSET;
         else
-          ySetPoint = 0.0664;
-        
-      } 
+          ySetPoint = FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_LEFT_MID_Y_OFFSET;
+      } else if (coneOffset.getAsDouble() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_RIGHT_BOUND) {
+        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH)
+          ySetPoint = FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_RIGHT_HIGH_Y_OFFSET;
+        else
+          ySetPoint = FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_RIGHT_MID_Y_OFFSET;
+      }
+
+      /* 
+      * Backup 1 
+      if (coneOffset.getAsDouble() == 1) {
+        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH)
+          ySetPoint = FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_LEFT_HIGH_Y_OFFSET;
+        else
+          ySetPoint = FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_LEFT_MID_Y_OFFSET;
+      } else if (coneOffset.getAsDouble() == -1) {
+        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH)
+          ySetPoint = FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_RIGHT_HIGH_Y_OFFSET;
+        else
+          ySetPoint = FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_RIGHT_MID_Y_OFFSET;
+      } else {
+        if (RetroReflectiveTargeter.getStatus() == targetingStatus.HIGH)
+          ySetPoint = FieldDependentConstants.CurrentField.HIGH_CONE_REGRESSION.predict(coneOffset.getAsDouble());
+        else
+          ySetPoint = FieldDependentConstants.CurrentField.MID_CONE_REGRESSION.predict(coneOffset.getAsDouble());
+      }
+      */
+
+      
 
       SmartDashboard.putNumber("ysetpoint", ySetPoint);
 
@@ -99,7 +120,6 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
 
       double X = 0;
       if (Math.abs(yController.getPositionError()) > 0.05 && !hasAlined) {
-        SmartDashboard.putBoolean("On First", false);
         X = xController.calculate(xOffset, firstXSetPoint)
             + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
         X = ClosedLoopUtil.stopAtSetPoint(X, xController.getPositionError(),
@@ -109,7 +129,6 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
         if (Math.abs(yController.getPositionError()) > 0.05 && xOffset < xSetPoint + 0.2) {
           X = 0;
         } else {
-          SmartDashboard.putBoolean("On First", true);
           hasAlined = true;
           X = xController.calculate(xOffset, xSetPoint)
               + ClosedLoopUtil.positionFeedForward(xController.getPositionError(), DrivePidConstants.TRANSLATION_KS);
@@ -120,13 +139,9 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
         }
       }
 
-      SmartDashboard.putBoolean("Out", Math.abs(yOffset) > 0.03);
-
       X = ClosedLoopUtil.clampMaxEffort(X, VisionConstants.LIMELIGHT_ALIGN_MAX_SPEED);
 
       // SmartDashboard.putNumber("y Error", yController.getPositionError());
-
-      SmartDashboard.putNumber("X offest", xOffset);
 
       // SmartDashboard.putNumber("y out", yController.calculate(yOffset, 0));
       // SmartDashboard.putNumber("y feed",
