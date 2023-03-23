@@ -267,7 +267,6 @@ public class RobotContainer {
                                 () -> Candle.getInstance().changeLedState(LEDState.Idle)));
 
                 
-                dynamicHomeToggle.onTrue(new InstantCommand(() -> swerve.setDynamicHome(!swerve.isDynamicHome())));
 
                 distSensorOverrideRight.whileTrue(new StartEndCommand(intake::setDistSensorOverrideRight, intake::resetDistSensorOverride));
                 distSensorOverrideLeft.whileTrue(new StartEndCommand(intake::setDistSensorOverrideLeft, intake::resetDistSensorOverride));

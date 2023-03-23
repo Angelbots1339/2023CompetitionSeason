@@ -1,6 +1,7 @@
 {
   "download": {
-    "localDir": "C:\\Users\\ethan\\OneDrive\\Desktop\\Logs",
+    "localDir": "C:\\Users\\ethan\\OneDrive\\Desktop\\Important logs",
+    "remoteDir": "/home/lvuser/",
     "serverTeam": "1339"
   },
   "output": {

@@ -8,6 +8,8 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -37,6 +39,9 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
 
   PIDController yController = new PIDController(3, 0, 0);
   PIDController xController = new PIDController(3, 0, 0);
+
+  DoubleLogEntry posError = new DoubleLogEntry(DataLogManager.getLog(), "Align/posError");
+  DoubleLogEntry velocityError = new DoubleLogEntry(DataLogManager.getLog(), "Align/velError");
 
   public AlignToConeNodeLimelightOnly(Swerve swerve, DoubleSupplier coneOffset, boolean favorHigh) {
     this.coneOffset = coneOffset;
@@ -95,9 +100,6 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
       }
       */
 
-      
-
-      SmartDashboard.putNumber("ysetpoint", ySetPoint);
 
       double firstXSetPoint = 0;
       xSetPoint = 0;
@@ -153,6 +155,8 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
       SmartDashboard.putBoolean("x setPoint",
           xOffset < xSetPoint);
 
+      SmartDashboard.putNumber("vError", yController.getVelocityError());
+
       swerve.angularDrive(new Translation2d(X, -Y), FieldUtil.getTowardsDriverStation(), true, true);
     } else {
       swerve.disable();
@@ -164,6 +168,10 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   @Override
   public void end(boolean interrupted) {
     swerve.disable();
+    yController.calculate(RetroReflectiveTargeter.getYOffset(), ySetPoint);
+    posError.append(yController.getPositionError());
+    velocityError.append(yController.getVelocityError());
+
   }
 
   // Returns true when the command should end.

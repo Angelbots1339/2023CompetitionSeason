@@ -19,6 +19,7 @@ public class AlignWithGyro extends CommandBase {
 
   Swerve swerve;
   Boolean backOn; 
+  Boolean startAllined; 
 
   Timer minTimer = new Timer();
   public AlignWithGyro(Swerve swerve, Boolean backOn) {
@@ -30,10 +31,12 @@ public class AlignWithGyro extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    if(Math.abs(swerve.getPitch()) < 4){
-      end(false);
+    if(Math.abs(swerve.getPitch()) < 2){
+      startAllined = true;
     }
+    else{
     minTimer.start();
+    }
     
   }
 
@@ -65,6 +68,6 @@ public class AlignWithGyro extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Math.abs(swerve.getPitch()) < FieldDependentConstants.CurrentField.CHARGE_STATION_MIN_ANGLE && minTimer.get() > 1;
+    return Math.abs(swerve.getPitch()) < FieldDependentConstants.CurrentField.CHARGE_STATION_MIN_ANGLE && (minTimer.get() > 1 || startAllined);
   }
 }

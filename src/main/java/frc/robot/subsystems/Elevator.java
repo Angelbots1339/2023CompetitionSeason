@@ -16,6 +16,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
@@ -30,6 +31,8 @@ import frc.robot.Constants.ElevatorWristStateConstants;
 
 import static frc.robot.Constants.ElevatorConstants.*;
 
+import java.util.Optional;
+
 public class Elevator extends SubsystemBase {
 
   private final TalonFX elevatorLeaderMotor;
@@ -39,6 +42,8 @@ public class Elevator extends SubsystemBase {
   private final LoggedSubsystem logger;
 
   private double goalHeightMeters;
+  private String command = "None";
+
 
   /** Creates a new Elevator. */
   public Elevator() {
@@ -47,7 +52,7 @@ public class Elevator extends SubsystemBase {
     TalonFX elevatorFollowerMotor = TalonFXFactory.createPermanentFollowerTalon(FOLLOWER_MOTOR_ID,
         LEADER_MOTOR_ID, Constants.CANIVORE);
     elevatorFollowerMotor.setInverted(TalonFXInvertType.OpposeMaster);
-    elevatorFollowerMotor.setNeutralMode(NeutralMode.Brake);
+    elevatorFollowerMotor.setNeutralMode(NeutralMode.Coast);
 
     configElevatorMotor();
     logger = new LoggedSubsystem("Elevator", LoggingConstants.ELEVATOR);
@@ -56,7 +61,10 @@ public class Elevator extends SubsystemBase {
     logger.addBoolean("FwdLimit", () -> elevatorLeaderMotor.isFwdLimitSwitchClosed() == 1, "Main");
     logger.addBoolean("RevLimit", () -> elevatorLeaderMotor.isFwdLimitSwitchClosed() == 1, "Main");
 
-    logger.addString("RevLimit", () -> this.getCurrentCommand().getName(), "Main");
+    logger.addString("Command", () -> {
+      Optional.ofNullable(this.getCurrentCommand()).ifPresent((Command c) -> {command = c.getName();});
+      return command;
+    }, "Main");
 
     logger.add(new LoggedFalcon("Follower", logger, elevatorFollowerMotor, "Motor"));
     logger.add(new LoggedFalcon("Leader", logger, elevatorLeaderMotor, "Motor"));

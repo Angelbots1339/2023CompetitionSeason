@@ -54,9 +54,9 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     DataLogManager.start();
+    
     DataLogManager.logNetworkTables(true);
     DriverStation.startDataLog(DataLogManager.getLog(), true);
-
 
     // Instantiate our RobotContainer. This will perform all our button bindings,
     // and put our

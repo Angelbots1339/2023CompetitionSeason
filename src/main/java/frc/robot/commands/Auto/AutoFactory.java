@@ -33,7 +33,7 @@ public class AutoFactory {
 
         public static Command Score2BalancePos6(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("2Balance6",
-                                new PathConstraints(3.1, 1.1));
+                                new PathConstraints(3.1, 1.1), new PathConstraints(3.5, 1.5),new PathConstraints(3.1, 1.1),new PathConstraints(3.1, 1.1));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories.get(0)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
@@ -43,15 +43,16 @@ public class AutoFactory {
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(1), false,
                                                 swerve, intake,
                                                 elevator, wrist),
-                                // ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake,
-                                // swerve),
-                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(3), false,
+                                ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake,
+                                swerve),
+                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(3), true,
                                                 swerve, intake,
                                                 elevator, wrist)
-                                                .until(() -> swerve
-                                                                .getPitch() < -FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE),
+                                                // .until(() -> swerve
+                                                //                 .getPitch() < -FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE)
+                                                ,
                                 Commands.parallel(
-                                                new AlignWithGyro(swerve)
+                                                new AlignWithGyro(swerve, false)
                                                                 .andThen(new RunCommand(swerve::xPos, swerve)),
                                                 IntakeToPosition.home(wrist, elevator)));
         }
@@ -65,18 +66,16 @@ public class AutoFactory {
                                 new PathConstraints(3.1, 1.1));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories.get(0)),
-                                ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
+                                ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH).deadlineWith(new RunCommand(swerve::disable)),
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(0), false,
                                                 swerve, intake,
                                                 elevator, wrist),
-                                // ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake,
-                                // swerve),
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories2.get(0), false,
                                                 swerve, intake,
                                                 elevator, wrist).until(() -> swerve
-                                                .getPitch() > FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE),
+                                                .getPitch() < -FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE),
                                 Commands.parallel(
-                                                new AlignWithGyro(swerve)
+                                                new AlignWithGyro(swerve, true)
                                                                 .andThen(new RunCommand(swerve::xPos, swerve)),
                                                 IntakeToPosition.home(wrist, elevator)));
         }
@@ -95,12 +94,13 @@ public class AutoFactory {
                                                 elevator, wrist),
                                 // ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake,
                                 // swerve),
+
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories2.get(0), false,
                                                 swerve, intake,
                                                 elevator, wrist).until(() -> swerve
                                                 .getPitch() > FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE),
                                 Commands.parallel(
-                                                new AlignWithGyro(swerve)
+                                                new AlignWithGyro(swerve, false)
                                                                 .andThen(new RunCommand(swerve::xPos, swerve)),
                                                 IntakeToPosition.home(wrist, elevator)));
         }
@@ -117,8 +117,8 @@ public class AutoFactory {
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(1), false,
                                                 swerve, intake,
                                                 elevator, wrist),
-                                // ScoreCommandFactory.alignAndScoreCubeHighNotAsProxy(wrist, elevator, intake,
-                                // swerve),
+                                ScoreCommandFactory.alignAndScoreCubeHigh(wrist, elevator, intake,
+                                        swerve),
                                 IntakeToPosition.home(wrist, elevator));
         }
 
@@ -130,14 +130,14 @@ public class AutoFactory {
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
                                 IntakeToPosition.home(wrist, elevator).until(() -> elevator.getHeightMeters() < 0.02),
                                 Commands.parallel(
-                                                new AlignOnChargingStation(swerve).andThen(new AlignWithGyro(swerve))
+                                                new AlignOnChargingStation(swerve).andThen(new AlignWithGyro(swerve, false))
                                                                 .andThen(new RunCommand(swerve::xPos, swerve)),
                                                 IntakeToPosition.home(wrist, elevator)));
         }
 
         public static Command ScoreMobilityBallance(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("Mobility",
-                                new PathConstraints(2, 1));
+                                new PathConstraints(1.2, 0.4));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories.get(0)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
@@ -151,7 +151,7 @@ public class AutoFactory {
                                                 .until(() -> swerve
                                                                 .getPitch() > FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE),
                                 Commands.parallel(
-                                                new AlignWithGyro(swerve)
+                                                new AlignWithGyro(swerve, false)
                                                                 .andThen(new RunCommand(swerve::xPos, swerve)),
                                                 IntakeToPosition.home(wrist, elevator)));
         }
@@ -178,7 +178,6 @@ public class AutoFactory {
         public static Command resetGyroAndPos(Swerve swerve, PathPlannerTrajectory trajectory) {
                 return new InstantCommand(swerve::resetGyroTowardsDriverStation)
                                 .andThen(() -> SwerveFollowTrajectory.resetPos(trajectory, swerve));
-
         }
 
 }

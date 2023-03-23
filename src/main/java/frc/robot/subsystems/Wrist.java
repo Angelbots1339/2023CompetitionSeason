@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
@@ -23,6 +24,8 @@ import frc.robot.Constants.ElevatorWristStateConstants;
 
 import static frc.robot.Constants.WristConstants.*;
 
+import java.util.Optional;
+
 public class Wrist extends SubsystemBase {
 
   private final TalonFX wristMotor;
@@ -31,6 +34,9 @@ public class Wrist extends SubsystemBase {
   private Rotation2d goalAngle = Rotation2d.fromDegrees(0);
 
   private final LoggedSubsystem logger;
+
+  private String command = "None";
+
 
   /** Creates a new Wrist. */
   public Wrist() {
@@ -42,7 +48,10 @@ public class Wrist extends SubsystemBase {
 
     logger.add(new LoggedFalcon("Wrist Motor", logger, wristMotor, "Motor"));
 
-    logger.addString("Command", () -> this.getCurrentCommand().getName(), "Main");
+    logger.addString("Command", () -> {
+      Optional.ofNullable(this.getCurrentCommand()).ifPresent((Command c) -> {command = c.getName();});
+      return command;
+    }, "Main");
 
     // logger.addDouble("GoalVelocity", () -> wristMotor.getActiveTrajectoryVelocity(), "MotionMagic");
     // logger.addDouble("CurrentVelocity", () -> wristMotor.getSelectedSensorVelocity(), "MotionMagic");

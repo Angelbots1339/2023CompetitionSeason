@@ -12,15 +12,15 @@ import frc.lib.util.logging.Logger.LoggingLevel;
 public final class LoggingConstants {
         public static final Map<String, LoggingLevel> SWERVE = Map.of(
                         "Motor", LoggingLevel.ONBOARD_ONLY,
-                        "Gyro", LoggingLevel.NONE,
+                        "Gyro", LoggingLevel.ONBOARD_ONLY,
                         "Module", LoggingLevel.ONBOARD_ONLY,
                         "Pose", LoggingLevel.NONE,
                         "AngularDrive", LoggingLevel.NONE,
                         "Drive", LoggingLevel.NONE,
                         "PidPose", LoggingLevel.NONE,
                         "Auto", LoggingLevel.NONE,
-                        "Main", LoggingLevel.ONBOARD_ONLY,
-                        "PoseEstimator", LoggingLevel.SHUFFLEBOARD);
+                        "Main", LoggingLevel.NONE,
+                        "PoseEstimator", LoggingLevel.ONBOARD_ONLY);
 
         public static final Map<String, LoggingLevel> ROBOT_CONTAINER = Map.of(
                         "Drive values", LoggingLevel.NONE,
@@ -28,17 +28,17 @@ public final class LoggingConstants {
 
         public static final Map<String, LoggingLevel> ELEVATOR = Map.of(
                         "Main", LoggingLevel.ONBOARD_ONLY,
-                        "Motor", LoggingLevel.ONBOARD_ONLY,
+                        "Motor", LoggingLevel.NONE,
                         "Motion Magic", LoggingLevel.NONE,
                         "Default", LoggingLevel.NONE);
         public static final Map<String, LoggingLevel> WRIST = Map.of(
                         "Main", LoggingLevel.ONBOARD_ONLY,
-                        "Motor", LoggingLevel.ONBOARD_ONLY,
+                        "Motor", LoggingLevel.NONE,
                         "Motion Magic", LoggingLevel.NONE,
                         "Default", LoggingLevel.NONE);
         public static final Map<String, LoggingLevel> INTAKE = Map.of(
                                 "Main", LoggingLevel.ONBOARD_ONLY,
-                                "Motor", LoggingLevel.ONBOARD_ONLY,
+                                "Motor", LoggingLevel.NONE,
                                 "Default", LoggingLevel.NONE);
 
         public static final Map<String, LoggingLevel> GLOBAL = Map.of(

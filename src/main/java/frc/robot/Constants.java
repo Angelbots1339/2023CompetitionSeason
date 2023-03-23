@@ -279,7 +279,7 @@ public final class Constants {
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 0.02; // Meters
         public static final double TIME_TO_SETTLE = 0.7;//seconds 
 
-        public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
+        public static final NeutralMode NEUTRAL_MODE = NeutralMode.Coast;
 
 
         /**
@@ -342,12 +342,13 @@ public final class Constants {
         public static final int FORWARD_SOFT_LIMIT = radiansToClicks(Math.toRadians(204.462891)); 
         public static final int REVERSE_SOFT_LIMIT = radiansToClicks(Math.toRadians(13));
 
-        public static final double MAX_PLANETARY = (5 / 1.0);
+        public static final double MAX_PLANETARY = (
+            5 / 1.0);
         public static final double GEARS = (60 / 30);
         public static final double CHAIN_SPROCKET = (48 / 16);
 
         //angle when intake is against wrist 
-        public static final double angleOffset = 63.451949;//6.907668; //126.555942;
+        public static final double angleOffset = 74.638082;//6.907668; //126.555942;
         public static final double TimeBeforeReset = 1.5;//sec b/c through bore initializes with 0;
 
        // public static final double KP = 0.01; // 0.0731;
@@ -367,7 +368,7 @@ public final class Constants {
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 3; // Degrees
         public static final double TIME_TO_SETTLE = 0.7;//seconds 
 
-        public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
+        public static final NeutralMode NEUTRAL_MODE = NeutralMode.Coast;
 
         public static int radiansToClicks(double radians) {
             double rotations = radians / (2 * Math.PI);

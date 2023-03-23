@@ -50,6 +50,7 @@ public class LoggedBoolean extends LoggedPrimitive<Boolean>{
     @Override
     protected void logOnboard(long timestamp, Boolean value) {
         logEntry.append(value, timestamp);
+        
     }
 
     @Override

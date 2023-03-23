@@ -53,8 +53,7 @@ public class SwerveFollowTrajectory extends PPSwerveControllerCommand {
         swerve.resetOdometry(new Pose2d(new Translation2d(FieldConstants.RED_ORIGIN.getX() - traj.getInitialHolonomicPose().getX(), traj.getInitialHolonomicPose().getY()), traj.getInitialHolonomicPose().getRotation().plus(new Rotation2d(Math.PI))));
       }
       else{
-        
-        swerve.resetOdometry(new Pose2d(traj.getInitialHolonomicPose().getTranslation(), Rotation2d.fromDegrees(180)));
+        swerve.resetOdometry(new Pose2d(traj.getInitialHolonomicPose().getTranslation(), traj.getInitialHolonomicPose().getRotation()));
       }
     
   }

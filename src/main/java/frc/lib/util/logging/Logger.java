@@ -28,7 +28,7 @@ public class Logger implements Iloggable {
     }
 
     public void log(long timestamp) {
-        subsystems.forEach(logger -> logger.log(timestamp));
+        subsystems.forEach(logger -> logger.log(0));
 
     }
 

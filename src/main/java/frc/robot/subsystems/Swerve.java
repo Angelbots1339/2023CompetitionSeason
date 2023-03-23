@@ -39,9 +39,12 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import static frc.robot.Constants.SwerveConstants.*;
 import static frc.robot.Constants.SwerveConstants.DrivePidConstants.*;
+
+import java.util.Optional;
 
 public class Swerve extends SubsystemBase {
     private final SwerveModule[] swerveMods;
@@ -501,6 +504,11 @@ public class Swerve extends SubsystemBase {
         field.setTrajectory("AlignTraj", SwerveFollowTrajectory.SwerveGenerateTrajectoryToPoint(endpoint, this), true);
     }
 
+    private String command = "None";
+
+    
+
+
     public void initializeLog() {
         logger.add(field);
         logger.add(autoField);
@@ -511,7 +519,10 @@ public class Swerve extends SubsystemBase {
         logger.addDouble("x velocity", () -> getCurrentVelocity().getX(), "Pose");
         logger.addDouble("y velocity", () -> getCurrentVelocity().getY(), "Pose");
 
-        logger.addString("command", () -> this.getCurrentCommand().getName(), "Main");
+        logger.addString("Command", () -> {
+            Optional.ofNullable(this.getCurrentCommand()).ifPresent((Command c) -> {command = c.getName();});
+            return command;
+          }, "Main");
 
         logger.addDouble("xAutoError", () -> autoErrorTranslation.getX(), "Auto");
         logger.addDouble("yAutoError", () -> autoErrorTranslation.getY(), "Auto");
@@ -525,35 +536,9 @@ public class Swerve extends SubsystemBase {
         }
     }
 
-    private boolean dynamicHome = false;
+    
 
-    public void setDynamicHome(boolean dynamicHOME) {
-        this.dynamicHome = dynamicHOME;
-    }
-
-    public boolean isDynamicHome() {
-        return dynamicHome;
-    }
-
-    public void updateDynamicHome() {
-        if (dynamicHome) {
-            if (FieldUtil.isBlueAlliance()) {
-                if (getPose().getTranslation().getX() > FieldConstants.RED_ORIGIN.getX() / 2) {
-                    ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.FAR_HOME;
-                } else {
-                    ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.CLOSE_HOME;
-                }
-            } else {
-                if (getPose().getTranslation().getX() < FieldConstants.RED_ORIGIN.getX() / 2) {
-                    ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.FAR_HOME;
-                } else {
-                    ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.CLOSE_HOME;
-                }
-            }
-        } else {
-            ElevatorWristStateConstants.HOME = ElevatorWristStateConstants.FAR_HOME;
-        }
-    }
+   
 
     @Override
     public void periodic() {
@@ -565,12 +550,9 @@ public class Swerve extends SubsystemBase {
         SmartDashboard.putNumber("XOffset", RetroReflectiveTargeter.getXOffset());
         SmartDashboard.putNumber("YOffset", RetroReflectiveTargeter.getYOffset());
 
-        SmartDashboard.putNumber("dynamicHome", getPose().getTranslation().getX());
 
         // SmartDashboard.putNumber("h offset", getPose().getX() -
         // getField().getTagPose(7).get().toPose2d().getX());
         calculateVelocity();
-
-        updateDynamicHome();
     }
 }

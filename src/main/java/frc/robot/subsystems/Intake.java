@@ -14,6 +14,7 @@ import com.revrobotics.Rev2mDistanceSensor.Unit;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.team254.util.TalonFXFactory;
 import frc.lib.team254.util.TalonUtil;
@@ -30,6 +31,8 @@ import frc.robot.regressions.ConeOffsetRegression;
 
 import static frc.robot.Constants.IntakeConstants.*;
 
+import java.util.Optional;
+
 public class Intake extends SubsystemBase {
 
 
@@ -44,6 +47,7 @@ public class Intake extends SubsystemBase {
   private double currentIntakePercent = 0;
 
   private IntakeState deadSensorOverrideSate = IntakeState.CONE;
+  private String command = "None";
 
   /** Creates a new IntakeAndShooter. */
   public Intake() {
@@ -59,7 +63,10 @@ public class Intake extends SubsystemBase {
 
     logger.addDouble("RightConeSensor", () -> rightConeSensor.getRange(), "Main");
     logger.addBoolean("SensorDead", () -> getSensorDead(), "Main");
-    logger.addString("Command", () -> this.getCurrentCommand().getName(), "Main");
+    logger.addString("Command", () -> {
+      Optional.ofNullable(this.getCurrentCommand()).ifPresent((Command c) -> {command = c.getName();});
+      return command;
+    }, "Main");
 
 
     logger.add(new LoggedFalcon("IntakeMotor", logger, intakeMotor, "Motor"));

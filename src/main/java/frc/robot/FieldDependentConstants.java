@@ -102,13 +102,17 @@ public class FieldDependentConstants {
     }
 
 
-    public static FieldConstants COLORADO = ST_LUIS;
+    public static FieldConstants COLORADO = new FieldConstants();
     static {
     
     }
     
+    public static FieldConstants PRACTICE_FELID = new FieldConstants();
+    static {
+    
+    }
 
 
     
-    public static FieldConstants CurrentField = HOME_FIELD;
+    public static FieldConstants CurrentField = COLORADO;
 }

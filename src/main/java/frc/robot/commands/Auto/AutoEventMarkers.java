@@ -19,7 +19,8 @@ public class AutoEventMarkers {
 
     public static Map<String, Command> getMap(Intake intakeAndShooter, Elevator elevator, Wrist wrist) {
         return Map.of(
-            "IntakeCube", IntakeToPosition.home(wrist, elevator).withInterruptBehavior(InterruptionBehavior.kCancelSelf),
+            "IntakeCube", IntakeCommandFactory.intakeCube(wrist, elevator, intakeAndShooter),
+
             "IntakeStandingCone", IntakeToPosition.home(wrist, elevator).withInterruptBehavior(InterruptionBehavior.kCancelSelf),
             "Home", IntakeToPosition.home(wrist, elevator).withInterruptBehavior(InterruptionBehavior.kCancelSelf)
             );
