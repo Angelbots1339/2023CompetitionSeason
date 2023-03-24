@@ -74,7 +74,8 @@
       "photonvision": {
         "Cam1": {
           "open": true
-        }
+        },
+        "open": true
       }
     },
     "types": {

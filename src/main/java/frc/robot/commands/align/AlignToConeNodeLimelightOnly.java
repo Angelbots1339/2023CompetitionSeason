@@ -37,7 +37,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
   private double xSetPoint = 0;
   private double ySetPoint = 0;
 
-  PIDController yController = new PIDController(3, 0, 0);
+  PIDController yController = new PIDController(2.4, 0, 0);
   PIDController xController = new PIDController(3, 0, 0);
 
   DoubleLogEntry posError = new DoubleLogEntry(DataLogManager.getLog(), "Align/posError");
@@ -128,7 +128,7 @@ public class AlignToConeNodeLimelightOnly extends CommandBase {
             0.04);
       } else if (minTimer.get() > 0.1 && (Math.abs(yController.getPositionError()) < 0.05 || hasAlined)) {
 
-        if (Math.abs(yController.getPositionError()) > 0.05 && xOffset < xSetPoint + 0.2) {
+        if (Math.abs(yController.getPositionError()) > 0.05 && xOffset < xSetPoint - 1) {
           X = 0;
         } else {
           hasAlined = true;

@@ -79,8 +79,19 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     SmartDashboard.putNumber("ConeOffset", getConeOffset());
     SmartDashboard.putBoolean("SensorDead", getSensorDead());
+    // SmartDashboard.putNumber("ConeSensor", rightConeSensor.getRange() / 1000);
+
     SmartDashboard.putBoolean("objectInIntake", objectInIntake());
     SmartDashboard.putString("override State", deadSensorOverrideSate.toString());
+
+    String align = "mid";
+    if (getConeOffset() > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_LEFT_BOUND) {
+      align = "coneLeft";
+    } else if (getConeOffset() < FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_RIGHT_BOUND) {
+      align = "coneRight";
+    }
+
+    SmartDashboard.putString("ConeLocation", align);
   }
 
  
@@ -128,7 +139,7 @@ public class Intake extends SubsystemBase {
 
   
   public boolean objectInIntake() {
-    return (rightConeSensor.GetRange() / 1000) > 0 && (rightConeSensor.GetRange()/1000) < 0.33;
+    return (rightConeSensor.GetRange() / 1000) > 0 && (rightConeSensor.GetRange()/1000) < 0.28;
   }
 
   public void runIntakeAtPercent(double conePercent) {

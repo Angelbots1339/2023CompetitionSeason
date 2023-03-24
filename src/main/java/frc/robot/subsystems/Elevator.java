@@ -52,7 +52,7 @@ public class Elevator extends SubsystemBase {
     TalonFX elevatorFollowerMotor = TalonFXFactory.createPermanentFollowerTalon(FOLLOWER_MOTOR_ID,
         LEADER_MOTOR_ID, Constants.CANIVORE);
     elevatorFollowerMotor.setInverted(TalonFXInvertType.OpposeMaster);
-    elevatorFollowerMotor.setNeutralMode(NeutralMode.Coast);
+    elevatorFollowerMotor.setNeutralMode(NeutralMode.Brake);
 
     configElevatorMotor();
     logger = new LoggedSubsystem("Elevator", LoggingConstants.ELEVATOR);
