@@ -146,6 +146,9 @@ public class RobotContainer {
                         XboxController.Button.kLeftBumper.value);
         private final Trigger signalCone = new JoystickButton(test,
                         XboxController.Button.kRightBumper.value);
+        private final Trigger resetModules = new JoystickButton(test,
+                        XboxController.Button.kRightBumper.value);
+
         private final Trigger dynamicHomeToggle = new JoystickButton(test,
                         XboxController.Button.kA.value);
 
@@ -272,6 +275,7 @@ public class RobotContainer {
                 distSensorOverrideLeft.whileTrue(new StartEndCommand(intake::setDistSensorOverrideLeft, intake::resetDistSensorOverride));
 
 
+                resetModules.onTrue(new InstantCommand(() -> resetToAbsloute()));
                 // manualScoreHigh.whileTrue(new IntakeToPosition(wrist, elevator, () -> new
                 // ElevatorWristState(PoseFinderWrist.getDouble(13),
                 // PoseFinderElevator.getDouble(0))));

@@ -40,7 +40,7 @@ public class FieldDependentConstants {
         public ElevatorWristState FALLEN_CONE = new ElevatorWristState(
             118.52, 0.02);
 
-        public double INTAKE_GENERAL = 0.5;
+        public double INTAKE_GENERAL = 0.6;
         public double OUTTAKE_GENERAL = 0.2;
 
         public Double INTAKE_CUBE = 0.5;
@@ -114,11 +114,11 @@ public class FieldDependentConstants {
         COLORADO.CUBE_ALIGN_OFFSET = 0.79;
         COLORADO.CUBE_FIRST_ALIGN_OFFSET = 0.82;
 
-        COLORADO.LIMELIGHT_ALIGN_LEFT_BOUND =  0.063;
+        COLORADO.LIMELIGHT_ALIGN_LEFT_BOUND =  0.047;
         COLORADO.LIMELIGHT_ALIGN_LEFT_HIGH_Y_OFFSET = -0.045862;
         COLORADO.LIMELIGHT_ALIGN_LEFT_MID_Y_OFFSET = -0.047894;
 
-        COLORADO.LIMELIGHT_ALIGN_RIGHT_BOUND = -0.042;
+        COLORADO.LIMELIGHT_ALIGN_RIGHT_BOUND = -0.02;
         COLORADO.LIMELIGHT_ALIGN_RIGHT_HIGH_Y_OFFSET = 0.075350;
         COLORADO.LIMELIGHT_ALIGN_RIGHT_MID_Y_OFFSET = 0.051564;
     }
