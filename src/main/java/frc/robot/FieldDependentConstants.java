@@ -23,17 +23,17 @@ public class FieldDependentConstants {
         public double HIGH_CONE_OUTTAKE_PERCENT = 1;
         
         public ElevatorWristState MID_CONE = new ElevatorWristState(103.28, 0.76);
-        public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.2;
+        public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.02;
         public double MID_CONE_OUTTAKE_PERCENT = 0.5;
         
         public ElevatorWristState HIGH_CUBE = new ElevatorWristState(85, 0.98);
         public double HIGH_CUBE_HIGHT_BEFORE_ANGLE = 0.2;
-        public double HIGH_CUBE_OUTTAKE_PERCENT = 0.5;
+        public double HIGH_CUBE_OUTTAKE_PERCENT = 0.3;
         
 
         public ElevatorWristState MID_CUBE = new ElevatorWristState(64.67, 0.41);
         public double MID_CUBE_HIGHT_BEFORE_ANGLE = 0.1;
-        public double MID_CUBE_OUTTAKE_PERCENT = 0.5;
+        public double MID_CUBE_OUTTAKE_PERCENT = 0.4;
 
         public ElevatorWristState STANDING_CONE = new ElevatorWristState(101.63, 0.1);
 
@@ -118,7 +118,7 @@ public class FieldDependentConstants {
         COLORADO.LIMELIGHT_ALIGN_LEFT_HIGH_Y_OFFSET = -0.045862;
         COLORADO.LIMELIGHT_ALIGN_LEFT_MID_Y_OFFSET = -0.047894;
 
-        COLORADO.LIMELIGHT_ALIGN_RIGHT_BOUND = -0.02;
+        COLORADO.LIMELIGHT_ALIGN_RIGHT_BOUND = -0.03;
         COLORADO.LIMELIGHT_ALIGN_RIGHT_HIGH_Y_OFFSET = 0.075350;
         COLORADO.LIMELIGHT_ALIGN_RIGHT_MID_Y_OFFSET = 0.051564;
     }

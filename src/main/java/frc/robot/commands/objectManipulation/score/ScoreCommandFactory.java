@@ -58,14 +58,14 @@ public class ScoreCommandFactory {
                         Swerve swerve) {
                 return new AlignToConeNodeLimelightOnly(swerve, () -> intake.getConeOffset(), true)
                                 .andThen(scoreConeNode(wrist, elevator, intake,
-                                                RetroReflectiveTargeter::getScoreHight));
+                                                () -> ScoreHight.HIGH));
         }
 
         public static Command alignAndScoreConeFavorMid(Wrist wrist, Elevator elevator, Intake intake,
                         Swerve swerve) {
                 return new AlignToConeNodeLimelightOnly(swerve, () -> intake.getConeOffset(), false)
                                 .andThen(scoreConeNode(wrist, elevator, intake,
-                                                RetroReflectiveTargeter::getScoreHight));
+                                () -> ScoreHight.MID));
         }
 
         public static Command alignAndScoreCubeHigh(Wrist wrist, Elevator elevator, Intake intake,
@@ -85,6 +85,7 @@ public class ScoreCommandFactory {
                 return new AlignToAprilTag(swerve).andThen(scoreCubeNode(wrist, elevator, intake,
                                 () -> ScoreHight.MID));
         }
+
 
         public static Command scoreConeNode(Wrist wrist, Elevator elevator, Intake intake,
                         Supplier<Object> scoreHight) {
