@@ -120,5 +120,30 @@
       }
     }
   ],
-  "markers": []
+  "markers": [
+    {
+      "position": 0.0,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 0.85,
+      "names": [
+        "IntakeCube"
+      ]
+    },
+    {
+      "position": 2.448484848484837,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 3.75757575757578,
+      "names": [
+        "IntakeToHybrid"
+      ]
+    }
+  ]
 }

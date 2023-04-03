@@ -168,13 +168,15 @@ public class RobotContainer {
                 autoChooser.addOption("Score2BalancePos6",
                                 AutoFactory.Score2BalancePos6(wrist, elevator, intake, swerve));
                 autoChooser.addOption("Score2Pos6", AutoFactory.Score2Pos6(wrist, elevator, intake, swerve));
-                autoChooser.addOption("ScoreBallance",
-                                AutoFactory.ScoreBallanceWithGyro(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreMobilityBallance",
                                 AutoFactory.ScoreMobilityBallance(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreMobility", AutoFactory.ScoreMobility(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreGrabBallance", AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
-                autoChooser.addOption("ScoreGrabBallanceTurn", AutoFactory.ScoreGrabTurnBallance(wrist, elevator, intake, swerve));
+                autoChooser.addOption("Score2BallancePos1", AutoFactory.Score2BalancePos1(wrist, elevator, intake, swerve));
+                autoChooser.addOption("Score3Pos6", AutoFactory.Score3Pos6Cube(wrist, elevator, intake, swerve));
+                autoChooser.addOption("Score3Pos1", AutoFactory.Score3Pos1(wrist, elevator, intake, swerve));
+
+
                 autoChooser.addOption("Score", AutoFactory.Score(wrist, elevator, intake, swerve));
 
 

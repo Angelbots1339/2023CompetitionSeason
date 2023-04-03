@@ -114,7 +114,7 @@
       "isReversal": true,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": false,
+      "isStopPoint": true,
       "stopEvent": {
         "names": [],
         "executionBehavior": "parallel",
@@ -139,7 +139,7 @@
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": false,
+      "isStopPoint": true,
       "stopEvent": {
         "names": [],
         "executionBehavior": "parallel",
@@ -173,5 +173,42 @@
   "maxVelocity": 1.0,
   "maxAcceleration": 1.0,
   "isReversed": null,
-  "markers": []
+  "markers": [
+    {
+      "position": 0.0,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 2.0,
+      "names": [
+        "IntakeCube"
+      ]
+    },
+    {
+      "position": 3.163636363636389,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 3.7454545454545114,
+      "names": [
+        "IntakeToHighCube"
+      ]
+    },
+    {
+      "position": 4.0,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 5.0,
+      "names": [
+        "Home"
+      ]
+    }
+  ]
 }

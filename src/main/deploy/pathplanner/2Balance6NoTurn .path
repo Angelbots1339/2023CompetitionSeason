@@ -173,5 +173,42 @@
   "maxVelocity": 3.0,
   "maxAcceleration": 3.0,
   "isReversed": null,
-  "markers": []
+  "markers": [
+    {
+      "position": 0.0,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 1.381818181818338,
+      "names": [
+        "IntakeCube"
+      ]
+    },
+    {
+      "position": 3.1,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 4.0,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 5.0,
+      "names": [
+        "Home"
+      ]
+    },
+    {
+      "position": 3.85,
+      "names": [
+        "IntakeToHighCube"
+      ]
+    }
+  ]
 }
