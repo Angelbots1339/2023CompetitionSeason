@@ -270,7 +270,7 @@ public final class Constants {
         public static final double KS = 0.08; // test this is calculated from recalc
 
         public static final double MAX_VELOCITY = mPSToCP100ms(8.2); 
-        public static final double MAX_ACCELERATION = mPSToCP100ms(6.5); 
+        public static final double MAX_ACCELERATION = mPSToCP100ms(10); 
 
         public static final int S_CURVE_STRENGTH = 4; 
 

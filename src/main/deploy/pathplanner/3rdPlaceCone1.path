@@ -120,30 +120,5 @@
       }
     }
   ],
-  "markers": [
-    {
-      "position": 0.0,
-      "names": [
-        "Home"
-      ]
-    },
-    {
-      "position": 1.0181818181817843,
-      "names": [
-        "IntakeCube"
-      ]
-    },
-    {
-      "position": 2.29,
-      "names": [
-        "Home"
-      ]
-    },
-    {
-      "position": 0.0,
-      "names": [
-        "event"
-      ]
-    }
-  ]
+  "markers": []
 }

@@ -58,8 +58,6 @@ public class Wrist extends SubsystemBase {
     // logger.addDouble("GoalPosition", () -> wristMotor.getActiveTrajectoryPosition(), "MotionMagic");
     // logger.addDouble("CurrentPosition", () -> wristMotor.getSelectedSensorPosition(), "MotionMagic");
     // logger.addDouble("Error", () -> wristMotor.getClosedLoopError(), "MotionMagic");
-
-
   }
 
   public void setPercent(double percent){

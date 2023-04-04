@@ -17,17 +17,17 @@ public class KalmanVisionRegression {
      * with units in meters and radians.
      */
     private static double[][] xyStdDev = { //Values from 6238 see https://github.com/Mechanical-Advantage/RobotCode2023/blob/main/src/main/java/org/littletonrobotics/frc2023/subsystems/apriltagvision/AprilTagVision.java
-            { 0.752358, 0.005 },
-            { 1.016358, 0.0135 },
-            { 1.296358, 0.016 },
-            { 1.574358, 0.038 },
-            { 1.913358, 0.0515 },
-            { 2.184358, 0.0925 },
-            { 2.493358, 0.0695 },
-            { 2.758358, 0.046 },
-            { 3.223358, 0.1245 },
-            { 4.093358, 0.0815 },
-            { 4.726358, 0.193 }
+            { 0.752358, 0.006 },
+            { 1.016358, 0.014 },
+            { 1.296358, 0.017 },
+            { 1.574358, 0.039 },
+            { 1.913358, 0.052 },
+            { 2.184358, 0.093 },
+            { 2.493358, 0.07 },
+            { 2.758358, 0.047 },
+            { 3.223358, 0.125 },
+            { 4.093358, 0.082 },
+            { 4.726358, 0.2 }
     };
   
 
