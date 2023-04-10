@@ -128,6 +128,8 @@ public class RobotContainer {
         private final Trigger runOuttakeForHigh = runOuttakeGeneral.and(manualScoreHigh);
         private final Trigger runOuttakeForLow = runOuttakeGeneral.and(manualScoreMid);
 
+        private final Trigger throwCube = runOuttakeGeneral.and(runIntakeGeneral);
+
         private final Trigger intakeToStandingCone = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
         private final Trigger intakeToFallenCone = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
 
@@ -172,7 +174,6 @@ public class RobotContainer {
                                 AutoFactory.ScoreMobilityBallance(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreMobility", AutoFactory.ScoreMobility(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreGrabBallance", AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
-                autoChooser.addOption("Score2BallancePos1", AutoFactory.Score2BalancePos1(wrist, elevator, intake, swerve));
                 autoChooser.addOption("Score3Pos6", AutoFactory.Score3Pos6Cube(wrist, elevator, intake, swerve));
                 autoChooser.addOption("Score3Pos1", AutoFactory.Score3Pos1(wrist, elevator, intake, swerve));
 
@@ -220,6 +221,8 @@ public class RobotContainer {
 
                 runOuttakeForHigh.whileTrue(ScoreCommandFactory.outtakeHigh(intake).withName("runOuttakeForHigh"));
                 runOuttakeForLow.whileTrue(ScoreCommandFactory.outtakeMid(intake).withName("runOuttakeForLow"));
+
+                throwCube.onTrue(ScoreCommandFactory.throwCube(wrist, elevator, intake));
 
                 runIntakeGeneral.whileTrue(new StartEndCommand(
                                 () -> {

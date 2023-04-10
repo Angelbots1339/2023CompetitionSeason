@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
@@ -21,6 +22,7 @@ import frc.lib.util.Candle;
 import frc.lib.util.Candle.LEDState;
 import frc.lib.util.multiplexer.Multiplexer;
 import frc.robot.FieldDependentConstants;
+import frc.robot.Constants.ElevatorWristStateConstants;
 import frc.robot.commands.align.AlignToAprilTag;
 import frc.robot.commands.align.AlignToConeNodeLimelightOnly;
 import frc.robot.commands.superStructure.IntakePositionCommandFactory;
@@ -169,12 +171,23 @@ public class ScoreCommandFactory {
 
         private static ShuffleboardTab poseFinder = Shuffleboard.getTab("poseFinder");
 
+        private static GenericEntry poseFinderOuttakePercent = poseFinder.add("outtake angle", 0)
+        .withWidget(BuiltInWidgets.kNumberSlider)
+        .withProperties(Map.of("min", 0, "max", 30, "Block increment", 0.25)).getEntry();
+
+        public static Command throwCube(Wrist wrist, Elevator elevator, Intake intake){
+                poseFinderOuttakePercent.setDouble(FieldDependentConstants.CurrentField.CUBE_THROW_OUTTAKE_ANGLE);
+                return Commands.parallel(IntakeToPosition.poseFinder(wrist, elevator, FieldDependentConstants.CurrentField.CUBE_THROW), new RunCommand(() -> {
+                        if(wrist.getAngleDeg() >= ElevatorWristStateConstants.HOME.angle.getDegrees() + poseFinderOuttakePercent.getDouble(FieldDependentConstants.CurrentField.CUBE_THROW_OUTTAKE_ANGLE)){
+                                intake.runIntakeAtPercent(-1);
+                        }
+                }, intake)).until(() -> {
+                        return !elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPoint() && wrist.atSetPoint();
+                });
+        }
 
 
-        private static GenericEntry poseFinderOuttakePercent = poseFinder.add("outtake percent", 0)
-                                .withWidget(BuiltInWidgets.kNumberSlider)
-                                .withProperties(Map.of("min", 0, "max", 1, "Block increment", 0.05)).getEntry();
-      
+
       
       
         public static Command poseFinder(Intake intake, double percent) {

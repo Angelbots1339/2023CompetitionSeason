@@ -37,17 +37,22 @@ public class FieldDependentConstants {
 
         public ElevatorWristState STANDING_CONE = new ElevatorWristState(101.63, 0.1);
 
+
+
+        public ElevatorWristState CUBE_THROW = new ElevatorWristState(50, 0);
+        public double CUBE_THROW_OUTTAKE_ANGLE = 10;
+
         public ElevatorWristState FALLEN_CONE = new ElevatorWristState(
             118.52, 0.02);
 
         public double INTAKE_GENERAL = 0.6;
         public double OUTTAKE_GENERAL = 0.2;
 
-        public Double INTAKE_CUBE = 0.5;
-        public Double INTAKE_STANDING_CONE = INTAKE_GENERAL;
-        public Double INTAKE_FALLEN_CONE = INTAKE_GENERAL;
+        public double INTAKE_CUBE = 0.5;
+        public double INTAKE_STANDING_CONE = INTAKE_GENERAL;
+        public double INTAKE_FALLEN_CONE = INTAKE_GENERAL;
 
-        public Double CONE_SETTLE_TIME = 0.3;
+        public double CONE_SETTLE_TIME = 0.3;
 
         // //Vison
 
