@@ -128,7 +128,7 @@ public class RobotContainer {
         private final Trigger runOuttakeForHigh = runOuttakeGeneral.and(manualScoreHigh);
         private final Trigger runOuttakeForLow = runOuttakeGeneral.and(manualScoreMid);
 
-        private final Trigger throwCube = runOuttakeGeneral.and(runIntakeGeneral);
+        //private final Trigger throwCube = runOuttakeGeneral.and(runIntakeGeneral);
 
         private final Trigger intakeToStandingCone = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
         private final Trigger intakeToFallenCone = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
@@ -157,6 +157,8 @@ public class RobotContainer {
                         
         private final Trigger distSensorOverrideLeft = new Trigger(() -> test.getPOV() > 0 && test.getPOV() < 180);
         private final Trigger distSensorOverrideRight = new Trigger(() -> test.getPOV() > 180);
+
+
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -204,7 +206,7 @@ public class RobotContainer {
                 zeroGyro.onTrue(new InstantCommand(swerve::resetGyroTowardsDriverStation));
                 // alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
 
-                intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist).withName("intakeToStandingCone"));
+                //intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist).withName("intakeToStandingCone"));
                 intakeToFallenCone.whileTrue(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist).withName("intakeToFallenCone"));
 
                 manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake).withName("manualScoreHigh"));
@@ -222,7 +224,7 @@ public class RobotContainer {
                 runOuttakeForHigh.whileTrue(ScoreCommandFactory.outtakeHigh(intake).withName("runOuttakeForHigh"));
                 runOuttakeForLow.whileTrue(ScoreCommandFactory.outtakeMid(intake).withName("runOuttakeForLow"));
 
-                throwCube.onTrue(ScoreCommandFactory.throwCube(wrist, elevator, intake));
+                intakeToStandingCone.whileTrue(ScoreCommandFactory.throwCube(wrist, elevator, intake));
 
                 runIntakeGeneral.whileTrue(new StartEndCommand(
                                 () -> {
@@ -311,10 +313,7 @@ public class RobotContainer {
                 swerve.resetToAbsolute();
         }
 
-        public Runnable getSwerveBuffer() {
-                return swerve.bufferYaw();
-        }
-
+   
         public boolean getLimelightLeftOfTarget() {
                 return RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), intake
                                 .getConeOffset()) < -FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE;

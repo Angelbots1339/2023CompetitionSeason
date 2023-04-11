@@ -48,8 +48,8 @@ public final class Constants {
 
         public static final int PIGEON_ID = 21;
         public static final boolean INVERT_GYRO = false; // Always ensure Gyro is CCW+ CW-
-        public static final int YAW_BUFFER_PERIOD = 5; // 5ms
-        public static final int YAW_BUFFER_SIZE = 20; // amount of values to store in buffer
+        public static final int GYRO_BUFFER_PERIOD = 40; // 5ms
+        public static final int GYRO_BUFFER_SIZE = 20; // amount of values to store in buffer
 
         /* Drivetrain Constants */
         public static final double TRACK_WIDTH = Units.inchesToMeters(19.75);

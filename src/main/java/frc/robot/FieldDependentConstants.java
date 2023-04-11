@@ -39,14 +39,15 @@ public class FieldDependentConstants {
 
 
 
-        public ElevatorWristState CUBE_THROW = new ElevatorWristState(50, 0);
-        public double CUBE_THROW_OUTTAKE_ANGLE = 10;
+
+        public ElevatorWristState CUBE_THROW = new ElevatorWristState(103.28, 0.76);
+        public double CUBE_THROW_DELAY = 0.1;
 
         public ElevatorWristState FALLEN_CONE = new ElevatorWristState(
             118.52, 0.02);
 
         public double INTAKE_GENERAL = 0.6;
-        public double OUTTAKE_GENERAL = 0.2;
+        public double OUTTAKE_GENERAL = 1;
 
         public double INTAKE_CUBE = 0.5;
         public double INTAKE_STANDING_CONE = INTAKE_GENERAL;

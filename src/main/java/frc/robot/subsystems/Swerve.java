@@ -14,6 +14,7 @@ import frc.lib.math.ClosedLoopUtil;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.Candle;
 import frc.lib.util.FieldUtil;
+import frc.lib.util.GyroLatencyBuffer;
 import frc.lib.util.LatencyDoubleBuffer;
 import frc.lib.util.LimeLight;
 import frc.lib.util.logging.LoggedSubsystem;
@@ -56,6 +57,7 @@ public class Swerve extends SubsystemBase {
     private final LoggedField autoField;
     private Translation2d autoErrorTranslation = new Translation2d();
     private Rotation2d autoErrorRotation = new Rotation2d();
+    public GyroLatencyBuffer gyroBuffer;
 
     public Swerve() {
         configPIDtoPoseControllers();
@@ -71,6 +73,9 @@ public class Swerve extends SubsystemBase {
         gyro = new Pigeon2(PIGEON_ID);
         TalonUtil.checkError(gyro.configFactoryDefault(), "Failed to config factory default on pigeon");
         zeroGyro();
+
+        gyroBuffer = new GyroLatencyBuffer(gyro, GYRO_BUFFER_SIZE, GYRO_BUFFER_PERIOD);
+        gyroBuffer.start();
 
         // logging
         logger = new LoggedSubsystem("Swerve", LoggingConstants.SWERVE);
@@ -362,18 +367,10 @@ public class Swerve extends SubsystemBase {
                     FieldConstants.RED_ORIGIN.getY() - pose.getY()), getAdjustedYaw());
         }
     }
+    
 
-    public LatencyDoubleBuffer yawBuffer = new LatencyDoubleBuffer(YAW_BUFFER_SIZE, YAW_BUFFER_PERIOD);
+    
 
-    public Runnable bufferYaw() {
-        return () -> {
-            yawBuffer.addMeasurement(getYaw().getRadians());
-        };
-    }
-
-    public double getBufferdYaw(double latencyMs) {
-        return yawBuffer.getMeasurement(latencyMs);
-    }
 
     private double lastTimePeriodic;
     private double lastTimeDrive;
@@ -426,6 +423,11 @@ public class Swerve extends SubsystemBase {
         return (INVERT_GYRO) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
 
+    public Rotation2d getYawAtTime(double time) {
+        return (INVERT_GYRO) ? Rotation2d.fromDegrees(360 - gyroBuffer.getYawAtSeconds(time))
+                : Rotation2d.fromDegrees(gyroBuffer.getYawAtSeconds(time));
+    }
+
     public Rotation2d getAdjustedYaw() {
         return DriverStation.getAlliance() == Alliance.Blue ? getYaw()
                 : getYaw().plus(new Rotation2d(Math.PI));
@@ -434,6 +436,12 @@ public class Swerve extends SubsystemBase {
     public Rotation3d getGyro() {
         return new Rotation3d(Math.toRadians(gyro.getRoll()), Math.toRadians(gyro.getPitch()),
                 Math.toRadians(gyro.getYaw()));
+    }
+
+    public Rotation3d getGyroAtTime(double timeInSec) {
+        return new Rotation3d(Math.toRadians(gyroBuffer.getYawAtSeconds(timeInSec)), 
+                Math.toRadians(gyroBuffer.getPitchAtSeconds(timeInSec)), 
+                Math.toRadians(gyroBuffer.getRollAtSeconds(timeInSec)));
     }
 
     public double getPitch() {
@@ -545,6 +553,10 @@ public class Swerve extends SubsystemBase {
         poseEstimation.updateOdometry(this, getPose());
         poseEstimation.justUpdate(this);
         RetroReflectiveTargeter.update(getPose(), true);
+
+
+        SmartDashboard.putNumber("delayed yaw", gyroBuffer.getYaw(30 * 20));
+        SmartDashboard.putNumber("yaw", getYaw().getDegrees());
 
         // SmartDashboard.putNumber("hor off", LimeLight.getHorizontalOffset());
         SmartDashboard.putNumber("XOffset", RetroReflectiveTargeter.getXOffset());

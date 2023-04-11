@@ -104,16 +104,16 @@ public class PoseEstimator {
 
                 // TODO check sign of pitch and maybe add pitch from gyro
                 Rotation3d gyroCalculatedAngle;
-                double yaw = swerve.getYaw().getRadians();
+                double yaw = swerve.getYawAtTime(result.getTimestampSeconds()).getRadians();
 
                 if (id > 4) 
                     gyroCalculatedAngle = new Rotation3d(0,
-                            -APRILTAG_CAM_POS.getRotation().getY() + swerve.getGyro().getY(),
+                            -APRILTAG_CAM_POS.getRotation().getY() + swerve.getGyroAtTime(result.getTimestampSeconds()).getY(),
                             -yaw);
 
                 else
                     gyroCalculatedAngle = new Rotation3d(0,
-                            -APRILTAG_CAM_POS.getRotation().getY() + swerve.getGyro().getY(),
+                            -APRILTAG_CAM_POS.getRotation().getY() + swerve.getGyroAtTime(result.getTimestampSeconds()).getY(),
                             (yaw > 0 ? 1 : -1) * Math.PI - yaw);
 
 

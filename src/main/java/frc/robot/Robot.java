@@ -5,6 +5,8 @@
 package frc.robot;
 
 
+import java.util.concurrent.CompletableFuture;
+
 import com.pathplanner.lib.server.PathPlannerServer;
 
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -90,10 +92,11 @@ public class Robot extends TimedRobot {
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
-    Thread thread = new Thread(() -> {
+    
+
+    CompletableFuture.runAsync(() -> {
       Logger.getInstance().log(0);
     });
-    thread.start();
 
 
 

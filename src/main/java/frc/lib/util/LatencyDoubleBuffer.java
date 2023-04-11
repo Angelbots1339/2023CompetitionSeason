@@ -3,8 +3,10 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.lib.util;
+import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj.Timer;
+
 
 /** Add your docs here. */
 public class LatencyDoubleBuffer {
@@ -20,6 +22,7 @@ public class LatencyDoubleBuffer {
         count = 0;
         this.period = period;
     }
+
     public void addMeasurement(Double item) {
         queue[rear] = item;
         rear = (rear + 1) % queue.length;
@@ -39,4 +42,9 @@ public class LatencyDoubleBuffer {
     public double getMeasurementAtSeconds(Double timeInSec){
         return getMeasurement((Timer.getFPGATimestamp() - timeInSec) * 1000);
     }
+
+   
+
+    
+    
 }

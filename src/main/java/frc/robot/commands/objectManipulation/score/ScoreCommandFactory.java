@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -173,18 +174,28 @@ public class ScoreCommandFactory {
 
         private static GenericEntry poseFinderOuttakePercent = poseFinder.add("outtake angle", 0)
         .withWidget(BuiltInWidgets.kNumberSlider)
-        .withProperties(Map.of("min", 0, "max", 30, "Block increment", 0.25)).getEntry();
+        .withProperties(Map.of("min", 0, "max", 1, "Block increment", 0.01)).getEntry();
+
+        
 
         public static Command throwCube(Wrist wrist, Elevator elevator, Intake intake){
-                poseFinderOuttakePercent.setDouble(FieldDependentConstants.CurrentField.CUBE_THROW_OUTTAKE_ANGLE);
-                return Commands.parallel(IntakeToPosition.poseFinder(wrist, elevator, FieldDependentConstants.CurrentField.CUBE_THROW), new RunCommand(() -> {
-                        if(wrist.getAngleDeg() >= ElevatorWristStateConstants.HOME.angle.getDegrees() + poseFinderOuttakePercent.getDouble(FieldDependentConstants.CurrentField.CUBE_THROW_OUTTAKE_ANGLE)){
+                poseFinderOuttakePercent.setDouble(FieldDependentConstants.CurrentField.CUBE_THROW_DELAY);
+                return Commands.parallel(new IntakeToPosition(wrist, elevator, FieldDependentConstants.CurrentField.CUBE_THROW), new RunCommand(() -> {
+                        Timer timer = new Timer();
+                        timer.start();
+                        if(timer.hasElapsed(poseFinderOuttakePercent.getDouble(FieldDependentConstants.CurrentField.CUBE_THROW_DELAY))){
                                 intake.runIntakeAtPercent(-1);
                         }
-                }, intake)).until(() -> {
-                        return !elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPoint() && wrist.atSetPoint();
-                });
+                        else
+                        {
+                                intake.runIntakeAtPercent(0.6);
+                        }
+                }, intake).finallyDo((boolean i) -> {
+                        intake.disable();
+
+                }));
         }
+        
 
 
 
