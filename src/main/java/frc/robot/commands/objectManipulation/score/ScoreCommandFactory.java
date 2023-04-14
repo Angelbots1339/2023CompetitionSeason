@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
@@ -107,7 +108,7 @@ public class ScoreCommandFactory {
         public static Command scoreCubeNode(Wrist wrist, Elevator elevator, Intake intake,
                         Supplier<Object> scoreHight) {
                 return new SelectCommand(Map.of(
-                                ScoreHight.HIGH, extendThenPlace(wrist, elevator, intake,
+                                ScoreHight.HIGH, extendThenPlaceCube(wrist, elevator, intake,
                                                 IntakePositionCommandFactory.IntakeToHighCubeNode(elevator, wrist),
                                                 FieldDependentConstants.CurrentField.HIGH_CUBE_OUTTAKE_PERCENT),
                                 ScoreHight.MID,
@@ -132,9 +133,35 @@ public class ScoreCommandFactory {
         public static Command outtakeConeAtSetPoint(Intake intake, Elevator elevator, Wrist wrist,
                         double outtakePercent) {
                 return new RunCommand(() -> {
-                        if (!elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndTimeHasPassed(0.1)
-                        && wrist.atSetPointAndTimeHasPassed(0.1)) {
+                        if (!elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndTimeHasPassed(0.05)
+                        && wrist.atSetPointAndTimeHasPassed(0.05)) {
                                 intake.runIntakeAtPercent(-outtakePercent);
+                        }
+                        else {
+                               // intake.runIntakeAtPercent(0.7);
+                        }
+
+                }, intake).finallyDo((boolean end) -> intake.disable());
+        }
+        public static Command extendThenPlaceCube(Wrist wrist, Elevator elevator, Intake intake,
+                        IntakeToPosition align, double outtakePercent) {
+                return align.alongWith(outtakeConeAtSetPoint
+                (intake, elevator, wrist, outtakePercent)).until(() -> {
+                       
+                        return !elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndTimeHasPassed(0.4) && wrist.atSetPointAndTimeHasPassed(0.4);
+                }); 
+                               
+        }
+
+        public static Command outtakeCubeAtSetPoint(Intake intake, Elevator elevator, Wrist wrist,
+                        double outtakePercent) {
+                return new RunCommand(() -> {
+                        if (!elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPoint()
+                        && wrist.atSetPoint()) {
+                                intake.runIntakeAtPercent(-outtakePercent);
+                        }
+                        else {
+                               // intake.runIntakeAtPercent(0.7);
                         }
 
                 }, intake).finallyDo((boolean end) -> intake.disable());
@@ -177,20 +204,20 @@ public class ScoreCommandFactory {
         .withProperties(Map.of("min", 0, "max", 1, "Block increment", 0.01)).getEntry();
 
         
-
+        static Timer cubeTimer = new Timer();
         public static Command throwCube(Wrist wrist, Elevator elevator, Intake intake){
-                poseFinderOuttakePercent.setDouble(FieldDependentConstants.CurrentField.CUBE_THROW_DELAY);
-                return Commands.parallel(new IntakeToPosition(wrist, elevator, FieldDependentConstants.CurrentField.CUBE_THROW), new RunCommand(() -> {
-                        Timer timer = new Timer();
-                        timer.start();
-                        if(timer.hasElapsed(poseFinderOuttakePercent.getDouble(FieldDependentConstants.CurrentField.CUBE_THROW_DELAY))){
+                return Commands.parallel(new IntakeToPosition(wrist, elevator, FieldDependentConstants.CurrentField.CUBE_THROW), new InstantCommand(() -> {
+                        cubeTimer.reset();
+                        cubeTimer.start();
+                }).andThen(new RunCommand(() -> {
+                        if(cubeTimer.get() > FieldDependentConstants.CurrentField.CUBE_THROW_DELAY){
                                 intake.runIntakeAtPercent(-1);
                         }
                         else
                         {
-                                intake.runIntakeAtPercent(0.6);
+                                intake.runIntakeAtPercent(1);
                         }
-                }, intake).finallyDo((boolean i) -> {
+                }, intake)).finallyDo((boolean i) -> {
                         intake.disable();
 
                 }));

@@ -48,8 +48,8 @@ public final class Constants {
 
         public static final int PIGEON_ID = 21;
         public static final boolean INVERT_GYRO = false; // Always ensure Gyro is CCW+ CW-
-        public static final int GYRO_BUFFER_PERIOD = 40; // 5ms
-        public static final int GYRO_BUFFER_SIZE = 20; // amount of values to store in buffer
+        public static final int GYRO_BUFFER_PERIOD = 10; // 5ms
+        public static final int GYRO_BUFFER_SIZE = 9; // amount of values to store in buffer
 
         /* Drivetrain Constants */
         public static final double TRACK_WIDTH = Units.inchesToMeters(19.75);
@@ -171,7 +171,7 @@ public final class Constants {
             public static final int DRIVE_MOTOR_ID = 4;
             public static final int CANCODER_ID = 5;
             public static final int ANGLE_MOTOR_ID = 6;
-            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(280.37109375);
+            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(280.01953125);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
@@ -181,7 +181,7 @@ public final class Constants {
             public static final int DRIVE_MOTOR_ID = 1;
             public static final int CANCODER_ID = 2;
             public static final int ANGLE_MOTOR_ID = 3;
-            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(223.330078125);
+            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(222.97851562500003);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
@@ -192,7 +192,7 @@ public final class Constants {
             public static final int DRIVE_MOTOR_ID = 9;
             public static final int CANCODER_ID = 10;
             public static final int ANGLE_MOTOR_ID = 11;
-            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(227.900390625);
+            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(228.2519);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
             ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
@@ -202,7 +202,7 @@ public final class Constants {
             public static final int DRIVE_MOTOR_ID = 12;
             public static final int CANCODER_ID = 13;
             public static final int ANGLE_MOTOR_ID = 14;
-            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(197.138671875);
+            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(198.369140625);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
@@ -265,7 +265,7 @@ public final class Constants {
         // Resonable value 0.1079
         //  Feed-forward gain so that 20% motor output is calculated when the requested speed is 2981 native units per 100ms.
         // F-gain = (0.2 X 1023) / 2981 F-gain = 0.06863
-        public static final double KF =0.06863; //cP100msToMPS(4.16 * 1023 / 12);
+        public static final double KF =0.068; //cP100msToMPS(4.16 * 1023 / 12);
 
         public static final double KS = 0.08; // test this is calculated from recalc
 
@@ -277,7 +277,7 @@ public final class Constants {
         
 
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 0.02; // Meters
-        public static final double TIME_TO_SETTLE = 0.7;//seconds 
+        public static final double TIME_TO_SETTLE = 0.5;//seconds 
 
         public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 
@@ -348,7 +348,7 @@ public final class Constants {
         public static final double CHAIN_SPROCKET = (48 / 16);
 
         //angle when intake is against wrist 
-        public static final double angleOffset = 44.735512;//6.907668; //126.555942;
+        public static final double angleOffset = 102.761655;// 44.735512;//6.907668; //126.555942;
         public static final double TimeBeforeReset = 1.5;//sec b/c through bore initializes with 0;
 
        // public static final double KP = 0.01; // 0.0731;
@@ -366,7 +366,8 @@ public final class Constants {
 
         public static final int S_CURVE_STRENGTH = 4; 
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 3; // Degrees
-        public static final double TIME_TO_SETTLE = 0.7;//seconds 
+        public static final double TIME_TO_SETTLE = 0.5
+        ;//seconds 
 
         public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 

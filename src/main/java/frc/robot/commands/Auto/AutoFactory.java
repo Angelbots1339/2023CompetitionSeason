@@ -58,9 +58,9 @@ public class AutoFactory {
 
         public static Command Score2BalancePos6NoTurn(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("2Balance6NoTurn",
+                                new PathConstraints(4, 2.3),
                                 new PathConstraints(3.1, 1.1),
-                                new PathConstraints(3.1, 1.1),
-                                new PathConstraints(3.1, 1.1));
+                                new PathConstraints(1, 0.5));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories.get(0)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
@@ -82,9 +82,9 @@ public class AutoFactory {
 
         public static Command Score3Pos6Cube(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories1 = PathPlanner.loadPathGroup("2Balance6NoTurn",
-                                new PathConstraints(3.1, 1.1));
+                                new PathConstraints(4, 2.3));
                 List<PathPlannerTrajectory> trajectories2 = PathPlanner.loadPathGroup("3rdPlaceCube6",
-                                new PathConstraints(3.1, 1.1));
+                                new PathConstraints(4.4, 3));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories1.get(0)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
@@ -96,16 +96,14 @@ public class AutoFactory {
                                                 swerve, intake,
                                                 elevator, wrist),
                                 ScoreCommandFactory.scoreCubeNode(wrist, elevator, intake, () -> ScoreHight.MID),
-                                Commands.parallel(
-                                                IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist),
-                                                ScoreCommandFactory.outtakeAtPercent(intake, FieldDependentConstants.CurrentField.OUTTAKE_GENERAL))
-                                                );
+                                IntakeToPosition.home(wrist, elevator));
+                           
         }
         public static Command Score3Pos1(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories1 = PathPlanner.loadPathGroup("2Balance1",
-                                new PathConstraints(3.1, 1.1));
+                new PathConstraints(4, 2.4));
                 List<PathPlannerTrajectory> trajectories2 = PathPlanner.loadPathGroup("3rdPlaceCube1",
-                                new PathConstraints(3.1, 1.1));
+                new PathConstraints(4.4, 3.3));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories1.get(0)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
@@ -116,12 +114,30 @@ public class AutoFactory {
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories2.get(0), true,
                                                 swerve, intake,
                                                 elevator, wrist),
-                                ScoreCommandFactory.scoreCubeNode(wrist, elevator, intake, () -> ScoreHight.MID),
-                                Commands.parallel(
-                                                IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist),
-                                                ScoreCommandFactory.outtakeAtPercent(intake, FieldDependentConstants.CurrentField.OUTTAKE_GENERAL))
-                                                );
+                                ScoreCommandFactory.scoreCubeNode(wrist, elevator, intake, () -> ScoreHight.MID));
         }
+
+        public static Command Shoot5Cubes(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
+                List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("5PlaceBumpSideStart",
+                                new PathConstraints(3.1, 1.1));
+
+                List<PathPlannerTrajectory> trajectories2 = PathPlanner.loadPathGroup("5PlaceBumpSideEnd",
+                                new PathConstraints(3.1, 1.1));
+                return Commands.sequence(
+                                resetGyroAndPos(swerve, trajectories.get(0)),
+                                ScoreCommandFactory.throwCube(wrist, elevator, intake)
+                                                .deadlineWith(new RunCommand(swerve::disable)),
+                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories.get(0), false,
+                                                swerve, intake,
+                                                elevator, wrist),
+                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories2.get(0), false,
+                                                swerve, intake,
+                                                elevator, wrist),
+                                                IntakeToPosition.home(wrist, elevator));
+        }
+        
+
+
 
         public static Command ScoreGrabBallance(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("2Balance6",

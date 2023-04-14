@@ -62,7 +62,7 @@ public class IntakePositionCommandFactory {
     }
 
     public static IntakeToPosition IntakeToFallenConeNode(Elevator elevator, Wrist wrist) {
-        return new IntakeToPosition(wrist, elevator, FieldDependentConstants.CurrentField.FALLEN_CONE);
+        return IntakeToPosition.poseFinder(wrist, elevator, FieldDependentConstants.CurrentField.FALLEN_CONE);
     }
 
 

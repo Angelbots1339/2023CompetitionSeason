@@ -23,10 +23,17 @@
             },
             "Robot": {
               "open": true
-            },
-            "open": true
+            }
           },
-          "open": true
+          "open": true,
+          "vis": {
+            "std": {
+              "Properties": {
+                "open": true
+              },
+              "open": true
+            }
+          }
         },
         "Swerve": {
           "Gyro": {
@@ -46,8 +53,7 @@
           },
           "Module:3": {
             "open": true
-          },
-          "open": true
+          }
         },
         "Swerve:PoseEstimator": {
           "Field": {
@@ -55,7 +61,10 @@
           },
           "open": true
         },
-        "open": true
+        "open": true,
+        "vis": {
+          "open": true
+        }
       },
       "SmartDashboard": {
         "open": true
@@ -193,6 +202,7 @@
       "/Shuffleboard/DriveSubsystem/Field": "Field2d",
       "/Shuffleboard/DriveSubsystem/ResetOdometry": "Command",
       "/Shuffleboard/DriveTuning/KeepHeadingPid": "PIDController",
+      "/Shuffleboard/Swerve:Auto/Field": "Field2d",
       "/Shuffleboard/Swerve:PoseEstimator/Field": "Field2d",
       "/SmartDashboard/auto": "String Chooser",
       "/SmartDashboard/elevator": "Mechanism2d"
@@ -206,7 +216,7 @@
     }
   },
   "NetworkTables Settings": {
-    "mode": "Client (NT3)",
+    "mode": "Client (NT4)",
     "serverTeam": "1339"
   },
   "Plots": {
@@ -228,16 +238,16 @@
                 0.6901960968971252,
                 1.0
               ],
-              "id": "NT:/SmartDashboard/Cone offset"
+              "id": "NT:/SmartDashboard/yaw"
             },
             {
               "color": [
-                1.0,
-                0.4427124857902527,
-                0.12962961196899414,
+                0.8666667342185974,
+                0.5176470875740051,
+                0.32156863808631897,
                 1.0
               ],
-              "id": "NT:/SmartDashboard/objectInIntake"
+              "id": "NT:/SmartDashboard/delayed yaw"
             }
           ]
         }

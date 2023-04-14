@@ -120,28 +120,31 @@ public class RobotContainer {
         private final Trigger autoScoreMid = new JoystickButton(driver,
                         XboxController.Button.kY.value);
 
-        private final Trigger runOuttakeGeneral = new JoystickButton(driver,
+        private final Trigger runOuttake = new JoystickButton(driver,
                         XboxController.Button.kRightBumper.value);
-        private final Trigger runIntakeGeneral = new JoystickButton(driver,
+
+        private final Trigger runIntake = new JoystickButton(driver,
                         XboxController.Button.kLeftBumper.value);
 
-        private final Trigger runOuttakeForHigh = runOuttakeGeneral.and(manualScoreHigh);
-        private final Trigger runOuttakeForLow = runOuttakeGeneral.and(manualScoreMid);
+        private final Trigger runIntakeGeneral = new Trigger(
+                        () -> runIntake.getAsBoolean() && !runOuttake.getAsBoolean());
+        private final Trigger runOuttakeGeneral = new Trigger(
+                        () -> runOuttake.getAsBoolean() && !runIntake.getAsBoolean());
 
-        //private final Trigger throwCube = runOuttakeGeneral.and(runIntakeGeneral);
+        private final Trigger runOuttakeForHigh = new Trigger(() -> runOuttakeGeneral.getAsBoolean() && manualScoreHigh.getAsBoolean() && intake.getDeadSensorOverrideSate() == IntakeState.CONE);
+        private final Trigger runOuttakeForMid = runOuttakeGeneral.and(manualScoreMid).and(new Trigger(() -> intake.getDeadSensorOverrideSate() == IntakeState.CONE));
 
         private final Trigger intakeToStandingCone = new Trigger(() -> driver.getLeftTriggerAxis() > 0.1);
         private final Trigger intakeToFallenCone = new Trigger(() -> driver.getRightTriggerAxis() > 0.1);
 
-        
         private final Trigger runIntakeFallenCone = runIntakeGeneral.and(intakeToFallenCone);
         private final Trigger runIntakeStandingCone = runIntakeGeneral.and(intakeToStandingCone);
         private final Trigger runOutakeStandingCone = runOuttakeGeneral.and(intakeToStandingCone);
-        
-        
-        
-        private final Trigger switchDeadSensorOverrideObject =  new JoystickButton(test,
-        XboxController.Button.kX.value);
+
+        private final Trigger throwCube = new Trigger(() -> runIntake.getAsBoolean() && runOuttake.getAsBoolean());
+
+        private final Trigger switchDeadSensorOverrideObject = new JoystickButton(test,
+                        XboxController.Button.kX.value);
         private final Trigger resetSensors = new JoystickButton(test,
                         XboxController.Button.kB.value);
         private final Trigger signalCube = new JoystickButton(test,
@@ -154,11 +157,8 @@ public class RobotContainer {
         private final Trigger dynamicHomeToggle = new JoystickButton(test,
                         XboxController.Button.kA.value);
 
-                        
         private final Trigger distSensorOverrideLeft = new Trigger(() -> test.getPOV() > 0 && test.getPOV() < 180);
         private final Trigger distSensorOverrideRight = new Trigger(() -> test.getPOV() > 180);
-
-
 
         /**
          * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -175,15 +175,12 @@ public class RobotContainer {
                 autoChooser.addOption("ScoreMobilityBallance",
                                 AutoFactory.ScoreMobilityBallance(wrist, elevator, intake, swerve));
                 autoChooser.addOption("ScoreMobility", AutoFactory.ScoreMobility(wrist, elevator, intake, swerve));
-                autoChooser.addOption("ScoreGrabBallance", AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
+                autoChooser.addOption("ScoreGrabBallance",
+                                AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
                 autoChooser.addOption("Score3Pos6", AutoFactory.Score3Pos6Cube(wrist, elevator, intake, swerve));
                 autoChooser.addOption("Score3Pos1", AutoFactory.Score3Pos1(wrist, elevator, intake, swerve));
 
-
                 autoChooser.addOption("Score", AutoFactory.Score(wrist, elevator, intake, swerve));
-
-
-
 
                 elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
 
@@ -192,6 +189,8 @@ public class RobotContainer {
                 configureButtonBindings();
 
         }
+
+        private double outtakeSpeed = FieldDependentConstants.CurrentField.OUTTAKE_GENERAL;
 
         /**
          * Use this method to define your button->command mappings. Buttons can be
@@ -206,25 +205,29 @@ public class RobotContainer {
                 zeroGyro.onTrue(new InstantCommand(swerve::resetGyroTowardsDriverStation));
                 // alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
 
-                //intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist).withName("intakeToStandingCone"));
-                intakeToFallenCone.whileTrue(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist).withName("intakeToFallenCone"));
+                intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist)
+                                .withName("intakeToStandingCone"));
+                intakeToFallenCone.whileTrue(IntakePositionCommandFactory.IntakeToFallenConeNode(elevator, wrist)
+                                .withName("intakeToFallenCone"));
 
-                manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake).withName("manualScoreHigh"));
-                manualScoreMid.whileTrue(IntakePositionCommandFactory.IntakeToMid(elevator, wrist, intake).withName("manualScoreMid"));
+                manualScoreHigh.whileTrue(IntakePositionCommandFactory.IntakeToHigh(elevator, wrist, intake)
+                                .withName("manualScoreHigh"));
+                manualScoreMid.whileTrue(IntakePositionCommandFactory.IntakeToMid(elevator, wrist, intake)
+                                .withName("manualScoreMid"));
                 // manualScoreMid.whileTrue(new AlignOnChargingStation(swerve));
 
-                autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve).withName("autoScoreHigh"));
-                autoScoreMid.whileTrue(ScoreCommandFactory.alignAndScoreMid(wrist, elevator, intake, swerve).withName("autoScoreMid"));
+                autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve)
+                                .withName("autoScoreHigh"));
+                autoScoreMid.whileTrue(ScoreCommandFactory.alignAndScoreMid(wrist, elevator, intake, swerve)
+                                .withName("autoScoreMid"));
 
+                throwCube.whileTrue(ScoreCommandFactory.throwCube(wrist, elevator, intake));
 
-                runIntakeFallenCone.whileTrue(IntakeCommandFactory.runIntakeForFallenCone(intake).withName("runIntakeFallenCone"));
-                runIntakeStandingCone.whileTrue(IntakeCommandFactory.runIntakeForStandingCone(intake).withName("runIntakeStandingCone"));
+                runIntakeFallenCone.whileTrue(
+                                IntakeCommandFactory.runIntakeForFallenCone(intake).withName("runIntakeFallenCone"));
+                runIntakeStandingCone.whileTrue(IntakeCommandFactory.runIntakeForStandingCone(intake)
+                                .withName("runIntakeStandingCone"));
 
-
-                runOuttakeForHigh.whileTrue(ScoreCommandFactory.outtakeHigh(intake).withName("runOuttakeForHigh"));
-                runOuttakeForLow.whileTrue(ScoreCommandFactory.outtakeMid(intake).withName("runOuttakeForLow"));
-
-                intakeToStandingCone.whileTrue(ScoreCommandFactory.throwCube(wrist, elevator, intake));
 
                 runIntakeGeneral.whileTrue(new StartEndCommand(
                                 () -> {
@@ -238,7 +241,8 @@ public class RobotContainer {
 
                 runOuttakeGeneral.whileTrue(new StartEndCommand(
                                 () -> {
-                                        intake.runIntakeAtPercent(-FieldDependentConstants.CurrentField.INTAKE_GENERAL);
+                                        intake.runIntakeAtPercent(manualScoreHigh.getAsBoolean() && intake.getDeadSensorOverrideSate() == IntakeState.CONE? -FieldDependentConstants.CurrentField.HIGH_CONE_OUTTAKE_PERCENT :  -FieldDependentConstants.CurrentField.OUTTAKE_GENERAL);
+
                                         Candle.getInstance().changeLedState(LEDState.ReverseIntake);
                                 },
                                 () -> {
@@ -246,10 +250,9 @@ public class RobotContainer {
                                         Candle.getInstance().changeLedState(LEDState.Idle);
                                 }, intake).withName("runOuttakeGeneral"));
 
-                
-
                 alignOnChargingStation.whileTrue(
-                                new AlignWithGyro(swerve, false).andThen(new RunCommand(swerve::xPos, swerve)).withName("alignOnChargingStation"));
+                                new AlignWithGyro(swerve, false).andThen(new RunCommand(swerve::xPos, swerve))
+                                                .withName("alignOnChargingStation"));
 
                 // Operator Buttons
                 switchDeadSensorOverrideObject.onTrue(new InstantCommand(() -> {
@@ -276,11 +279,10 @@ public class RobotContainer {
                                 },
                                 () -> Candle.getInstance().changeLedState(LEDState.Idle)));
 
-                
-
-                distSensorOverrideRight.whileTrue(new StartEndCommand(intake::setDistSensorOverrideRight, intake::resetDistSensorOverride));
-                distSensorOverrideLeft.whileTrue(new StartEndCommand(intake::setDistSensorOverrideLeft, intake::resetDistSensorOverride));
-
+                distSensorOverrideRight.whileTrue(new StartEndCommand(intake::setDistSensorOverrideRight,
+                                intake::resetDistSensorOverride));
+                distSensorOverrideLeft.whileTrue(new StartEndCommand(intake::setDistSensorOverrideLeft,
+                                intake::resetDistSensorOverride));
 
                 resetModules.onTrue(new InstantCommand(() -> resetToAbsloute()));
                 // manualScoreHigh.whileTrue(new IntakeToPosition(wrist, elevator, () -> new
@@ -296,16 +298,18 @@ public class RobotContainer {
         public Command getAutonomousCommand() {
                 // An ExampleCommand will run in autonomous
                 // return Commands.sequence(
-                //         new InstantCommand(swerve::resetGyroTowardsDriverStation),
-                //         ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
-                //         IntakeToPosition.home(wrist, elevator));
+                // new InstantCommand(swerve::resetGyroTowardsDriverStation),
+                // ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () ->
+                // ScoreHight.HIGH),
+                // IntakeToPosition.home(wrist, elevator));
                 return autoChooser.getSelected().withName("Auto"); // AutoFactory.Score2(wrist,
 
-                // List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("Mobility",
-                //                 new PathConstraints(2, 1));
+                // List<PathPlannerTrajectory> trajectories =
+                // PathPlanner.loadPathGroup("Mobility",
+                // new PathConstraints(2, 1));
 
                 // return AutoFactory.resetGyroAndPos(swerve, trajectories.get(0));
-                                              
+
                 // intake, swerve);
         }
 
@@ -313,7 +317,6 @@ public class RobotContainer {
                 swerve.resetToAbsolute();
         }
 
-   
         public boolean getLimelightLeftOfTarget() {
                 return RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), intake
                                 .getConeOffset()) < -FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE;
@@ -323,7 +326,7 @@ public class RobotContainer {
                 return RetroReflectiveTargeter.getYOffsetFromConeOffset(swerve.getPose(), intake
                                 .getConeOffset()) > FieldDependentConstants.CurrentField.LIMELIGHT_ALIGN_Y_TOLERANCE;
         }
-       
+
 
         // public void limeLightAlignAuto(){
         // RetroReflectiveTargeter.update(swerve.getPose(), true);

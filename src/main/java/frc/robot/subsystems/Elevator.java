@@ -85,6 +85,7 @@ public class Elevator extends SubsystemBase {
   public void periodic() {
 
     SmartDashboard.putNumber("Height", getHeightMeters());
+    SmartDashboard.putNumber("Vel", elevatorLeaderMotor.getSelectedSensorVelocity());
    
 
     

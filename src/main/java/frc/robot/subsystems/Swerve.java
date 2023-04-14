@@ -423,9 +423,9 @@ public class Swerve extends SubsystemBase {
         return (INVERT_GYRO) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
 
-    public Rotation2d getYawAtTime(double time) {
-        return (INVERT_GYRO) ? Rotation2d.fromDegrees(360 - gyroBuffer.getYawAtSeconds(time))
-                : Rotation2d.fromDegrees(gyroBuffer.getYawAtSeconds(time));
+    public Rotation2d getYawLatency(double time) {
+        return (INVERT_GYRO) ? Rotation2d.fromDegrees(360 - gyroBuffer.getYaw(time))
+                : Rotation2d.fromDegrees(gyroBuffer.getYaw(time));
     }
 
     public Rotation2d getAdjustedYaw() {
@@ -443,6 +443,7 @@ public class Swerve extends SubsystemBase {
                 Math.toRadians(gyroBuffer.getPitchAtSeconds(timeInSec)), 
                 Math.toRadians(gyroBuffer.getRollAtSeconds(timeInSec)));
     }
+  
 
     public double getPitch() {
         return gyro.getPitch();
@@ -553,6 +554,7 @@ public class Swerve extends SubsystemBase {
         poseEstimation.updateOdometry(this, getPose());
         poseEstimation.justUpdate(this);
         RetroReflectiveTargeter.update(getPose(), true);
+
 
 
         SmartDashboard.putNumber("delayed yaw", gyroBuffer.getYaw(30 * 20));

@@ -18,7 +18,7 @@ public class FieldDependentConstants {
         public PolynomialRegression HIGH_CONE_REGRESSION = ConeOffsetRegression.highPracticeFieldReg;
         
         //intake positions
-        public ElevatorWristState HIGH_CONE = new ElevatorWristState(110, 1.31);
+        public ElevatorWristState HIGH_CONE = new ElevatorWristState(107, 1.31);
         public double HIGH_CONE_HIGHT_BEFORE_ANGLE = 0.1;
         public double HIGH_CONE_OUTTAKE_PERCENT = 1;
         
@@ -40,14 +40,14 @@ public class FieldDependentConstants {
 
 
 
-        public ElevatorWristState CUBE_THROW = new ElevatorWristState(103.28, 0.76);
-        public double CUBE_THROW_DELAY = 0.1;
+        public ElevatorWristState CUBE_THROW = new ElevatorWristState(76.63, 0.37);
+        public double CUBE_THROW_DELAY = 0.085;
 
         public ElevatorWristState FALLEN_CONE = new ElevatorWristState(
-            118.52, 0.02);
+            126.52, 0.09);
 
-        public double INTAKE_GENERAL = 0.6;
-        public double OUTTAKE_GENERAL = 1;
+        public double INTAKE_GENERAL = 0.8;
+        public double OUTTAKE_GENERAL = 0.5;
 
         public double INTAKE_CUBE = 0.5;
         public double INTAKE_STANDING_CONE = INTAKE_GENERAL;
@@ -136,5 +136,5 @@ public class FieldDependentConstants {
 
 
     
-    public static FieldConstants CurrentField = COLORADO;
+    public static FieldConstants CurrentField = HOME_FIELD;
 }
