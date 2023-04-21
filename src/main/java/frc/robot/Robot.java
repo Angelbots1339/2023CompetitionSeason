@@ -148,6 +148,7 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
+    m_robotContainer.resetVisionState();
 
     Candle.getInstance().changeLedState(LEDState.Idle);
 

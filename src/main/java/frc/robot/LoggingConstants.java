@@ -13,7 +13,7 @@ public final class LoggingConstants {
         public static final Map<String, LoggingLevel> SWERVE = Map.of(
                         "Motor", LoggingLevel.NONE,
                         "Gyro", LoggingLevel.NONE,
-                        "Module", LoggingLevel.SHUFFLEBOARD,
+                        "Module", LoggingLevel.ONBOARD_ONLY,
                         "Pose", LoggingLevel.NONE,
                         "AngularDrive", LoggingLevel.NONE,
                         "Drive", LoggingLevel.NONE,

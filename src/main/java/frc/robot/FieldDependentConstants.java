@@ -16,11 +16,11 @@ public class FieldDependentConstants {
         //Defualt values
         public PolynomialRegression MID_CONE_REGRESSION = ConeOffsetRegression.midPracticeFieldReg;
         public PolynomialRegression HIGH_CONE_REGRESSION = ConeOffsetRegression.highPracticeFieldReg;
-        
+    
         //intake positions
-        public ElevatorWristState HIGH_CONE = new ElevatorWristState(107, 1.31);
+        public ElevatorWristState HIGH_CONE = new ElevatorWristState(110, 1.31);
         public double HIGH_CONE_HIGHT_BEFORE_ANGLE = 0.1;
-        public double HIGH_CONE_OUTTAKE_PERCENT = 1;
+        public double HIGH_CONE_OUTTAKE_PERCENT = 0.9;
         
         public ElevatorWristState MID_CONE = new ElevatorWristState(103.28, 0.76);
         public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.02;
@@ -32,7 +32,7 @@ public class FieldDependentConstants {
         
 
         public ElevatorWristState MID_CUBE = new ElevatorWristState(64.67, 0.41);
-        public double MID_CUBE_HIGHT_BEFORE_ANGLE = 0.1;
+        public double MID_CUBE_HIGHT_BEFORE_ANGLE = 0.05;
         public double MID_CUBE_OUTTAKE_PERCENT = 0.4;
 
         public ElevatorWristState STANDING_CONE = new ElevatorWristState(101.63, 0.1);
@@ -57,7 +57,7 @@ public class FieldDependentConstants {
 
         // //Vison
 
-        public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET =  1.577160;
+        public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET = 1.49458;
         public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.852018;
         public double HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.8 ;// 1.552556;
         public double MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.1;//0.913931;
@@ -117,9 +117,7 @@ public class FieldDependentConstants {
         COLORADO.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.75;
         COLORADO.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.05;
 
-        COLORADO.CUBE_ALIGN_OFFSET = 0.79;
-        COLORADO.CUBE_FIRST_ALIGN_OFFSET = 0.82;
-
+       
         COLORADO.LIMELIGHT_ALIGN_LEFT_BOUND =  0.047;
         COLORADO.LIMELIGHT_ALIGN_LEFT_HIGH_Y_OFFSET = -0.045862;
         COLORADO.LIMELIGHT_ALIGN_LEFT_MID_Y_OFFSET = -0.047894;
@@ -129,12 +127,20 @@ public class FieldDependentConstants {
         COLORADO.LIMELIGHT_ALIGN_RIGHT_MID_Y_OFFSET = 0.051564;
     }
     
-    public static FieldConstants PRACTICE_FELID = new FieldConstants();
+    public static FieldConstants WORLDS = new FieldConstants();
     static {
-    
+        WORLDS.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET = 1.412682
+        ;
+        WORLDS.MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.878105;
+        WORLDS.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.75;
+        WORLDS.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.05;
+
+        WORLDS.CUBE_ALIGN_OFFSET = 0.79;
+        WORLDS.CUBE_FIRST_ALIGN_OFFSET = 0.82;
+
     }
 
 
     
-    public static FieldConstants CurrentField = HOME_FIELD;
+    public static FieldConstants CurrentField = WORLDS;
 }

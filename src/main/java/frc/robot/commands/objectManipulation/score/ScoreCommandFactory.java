@@ -112,7 +112,7 @@ public class ScoreCommandFactory {
                                                 IntakePositionCommandFactory.IntakeToHighCubeNode(elevator, wrist),
                                                 FieldDependentConstants.CurrentField.HIGH_CUBE_OUTTAKE_PERCENT),
                                 ScoreHight.MID,
-                                extendThenPlace(wrist, elevator, intake,
+                                extendThenPlaceCube(wrist, elevator, intake,
                                                 IntakePositionCommandFactory.IntakeToMidCubeNode(elevator, wrist),
                                                 FieldDependentConstants.CurrentField.MID_CUBE_OUTTAKE_PERCENT)),
                                 scoreHight);
@@ -133,22 +133,22 @@ public class ScoreCommandFactory {
         public static Command outtakeConeAtSetPoint(Intake intake, Elevator elevator, Wrist wrist,
                         double outtakePercent) {
                 return new RunCommand(() -> {
-                        if (!elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndTimeHasPassed(0.05)
-                        && wrist.atSetPointAndTimeHasPassed(0.05)) {
+                        if (!elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndTimeHasPassed(0.15)
+                        && wrist.atSetPointAndTimeHasPassed(0.15)) {
                                 intake.runIntakeAtPercent(-outtakePercent);
                         }
                         else {
-                               // intake.runIntakeAtPercent(0.7);
+                               intake.runIntakeAtPercent(0.2);
                         }
 
                 }, intake).finallyDo((boolean end) -> intake.disable());
         }
         public static Command extendThenPlaceCube(Wrist wrist, Elevator elevator, Intake intake,
                         IntakeToPosition align, double outtakePercent) {
-                return align.alongWith(outtakeConeAtSetPoint
+                return align.alongWith(outtakeCubeAtSetPoint
                 (intake, elevator, wrist, outtakePercent)).until(() -> {
                        
-                        return !elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndTimeHasPassed(0.4) && wrist.atSetPointAndTimeHasPassed(0.4);
+                        return !elevator.goalAtHome() && !wrist.goalAtHome() && elevator.atSetPointAndTimeHasPassed(0.5) && wrist.atSetPointAndTimeHasPassed(0.5);
                 }); 
                                
         }

@@ -2,13 +2,13 @@
   "waypoints": [
     {
       "anchorPoint": {
-        "x": 1.8040001916302781,
-        "y": 3.2996925780328428
+        "x": 1.800706811290166,
+        "y": 1.0935819402503002
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.536208631136126,
-        "y": 3.2996925780328428
+        "x": 2.4411166260054955,
+        "y": 0.7702452415580985
       },
       "holonomicAngle": 180.0,
       "isReversal": false,
@@ -24,22 +24,22 @@
     },
     {
       "anchorPoint": {
-        "x": 6.0,
-        "y": 3.2996925780328428
+        "x": 5.322404381463569,
+        "y": 0.8558280461756654
       },
       "prevControl": {
-        "x": 4.701227147806792,
-        "y": 3.2996925780328428
+        "x": 4.60300703129408,
+        "y": 0.7758950072679421
       },
       "nextControl": {
-        "x": 4.701227147806792,
-        "y": 3.2996925780328428
+        "x": 5.7503184045514,
+        "y": 0.9033740487409814
       },
       "holonomicAngle": 180.0,
-      "isReversal": true,
+      "isReversal": false,
       "velOverride": null,
       "isLocked": false,
-      "isStopPoint": true,
+      "isStopPoint": false,
       "stopEvent": {
         "names": [],
         "executionBehavior": "parallel",
@@ -49,17 +49,17 @@
     },
     {
       "anchorPoint": {
-        "x": 4.2,
-        "y": 3.2996925780328428
+        "x": 6.996023671762648,
+        "y": 1.6070548867076377
       },
       "prevControl": {
-        "x": 4.726108925747478,
-        "y": 3.2996925780328463
+        "x": 5.921484013786537,
+        "y": 1.0269936554107983
       },
       "nextControl": null,
-      "holonomicAngle": 180.0,
+      "holonomicAngle": 45.97102193107919,
       "isReversal": false,
-      "velOverride": 0.35,
+      "velOverride": null,
       "isLocked": false,
       "isStopPoint": false,
       "stopEvent": {
@@ -70,6 +70,9 @@
       }
     }
   ],
+  "maxVelocity": 4.4,
+  "maxAcceleration": 2.0,
+  "isReversed": null,
   "markers": [
     {
       "position": 0.0,
@@ -78,15 +81,9 @@
       ]
     },
     {
-      "position": 0.0,
+      "position": 1.2727272727272727,
       "names": [
-        "Home"
-      ]
-    },
-    {
-      "position": 1.0,
-      "names": [
-        "Home"
+        "IntakeCube"
       ]
     }
   ]

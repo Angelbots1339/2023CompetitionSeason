@@ -171,7 +171,7 @@ public final class Constants {
             public static final int DRIVE_MOTOR_ID = 4;
             public static final int CANCODER_ID = 5;
             public static final int ANGLE_MOTOR_ID = 6;
-            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(280.01953125);
+            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(295.751953125);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
@@ -202,7 +202,7 @@ public final class Constants {
             public static final int DRIVE_MOTOR_ID = 12;
             public static final int CANCODER_ID = 13;
             public static final int ANGLE_MOTOR_ID = 14;
-            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(198.369140625);
+            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(195.820);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
@@ -226,8 +226,8 @@ public final class Constants {
     }
 
     public static final class AutoConstants {
-        public static final double X_KP = 1;
-        public static final double Y_KP = 1;
+        public static final double X_KP = 1.5;
+        public static final double Y_KP = 1.5;
         public static final double THETA_KP = 3.2;
     }
 
@@ -264,13 +264,15 @@ public final class Constants {
 
         // Resonable value 0.1079
         //  Feed-forward gain so that 20% motor output is calculated when the requested speed is 2981 native units per 100ms.
-        // F-gain = (0.2 X 1023) / 2981 F-gain = 0.06863
-        public static final double KF =0.068; //cP100msToMPS(4.16 * 1023 / 12);
+        // F-gain = (0.2 X 1023) / 2981 F-gain = 0.06863we
+        // F-gain = (0.2 X 1023) / 1800 F-gain = 0.06863
+        public static final double KF = 0.06; //cP100msToMPS(4.16 * 1023 / 12);
 
         public static final double KS = 0.08; // test this is calculated from recalc
 
+        
         public static final double MAX_VELOCITY = mPSToCP100ms(8.2); 
-        public static final double MAX_ACCELERATION = mPSToCP100ms(10); 
+        public static final double MAX_ACCELERATION = mPSToCP100ms(8); // 10 for fast
 
         public static final int S_CURVE_STRENGTH = 4; 
 
@@ -348,7 +350,7 @@ public final class Constants {
         public static final double CHAIN_SPROCKET = (48 / 16);
 
         //angle when intake is against wrist 
-        public static final double angleOffset = 102.761655;// 44.735512;//6.907668; //126.555942;
+        public static final double angleOffset = 42.596326;//102.761655;// 44.735512;//6.907668; //126.555942;
         public static final double TimeBeforeReset = 1.5;//sec b/c through bore initializes with 0;
 
        // public static final double KP = 0.01; // 0.0731;

@@ -50,8 +50,8 @@ public class AlignToAprilTag extends CommandBase {
  
   Pose2d finalDesiredPose = new Pose2d();
 
-  PIDController xController = new PIDController(1.5, 0, 0);
-  PIDController yController = new PIDController(1.5, 0, 0);
+  PIDController xController = new PIDController(2, 0, 0);
+  PIDController yController = new PIDController(2, 0, 0);
 
   boolean blueSide = false;
   boolean passedFirstAlign = false;

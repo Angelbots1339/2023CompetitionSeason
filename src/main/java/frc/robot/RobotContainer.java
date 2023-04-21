@@ -53,6 +53,7 @@ import frc.robot.commands.superStructure.IntakeToPosition;
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.Intake.IntakeState;
 import frc.robot.vision.RetroReflectiveTargeter;
+import frc.robot.vision.PoseEstimator.PoseEstimationState;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -179,8 +180,11 @@ public class RobotContainer {
                                 AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
                 autoChooser.addOption("Score3Pos6", AutoFactory.Score3Pos6Cube(wrist, elevator, intake, swerve));
                 autoChooser.addOption("Score3Pos1", AutoFactory.Score3Pos1(wrist, elevator, intake, swerve));
+                autoChooser.addOption("Score2Grab1", AutoFactory.Score2Grab1(wrist, elevator, intake, swerve));
 
                 autoChooser.addOption("Score", AutoFactory.Score(wrist, elevator, intake, swerve));
+
+                autoChooser.addOption("Test", AutoFactory.test(wrist, elevator, intake, swerve));
 
                 elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
 
@@ -315,6 +319,11 @@ public class RobotContainer {
 
         public void resetToAbsloute() {
                 swerve.resetToAbsolute();
+        }
+
+        public void resetVisionState(){
+                swerve.changeVisionState(PoseEstimationState.ALL);
+
         }
 
         public boolean getLimelightLeftOfTarget() {

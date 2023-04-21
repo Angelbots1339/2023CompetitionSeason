@@ -24,8 +24,8 @@ public class RetroReflectiveTargeter {
         LimeLight.setLedMode(3);
         LimeLight.setCamMode(0);
 
-        int highPipeLine = favorHigh ? VisionConstants.FAVOR_HIGH_HIGH_PIPELINE : VisionConstants.FAVOR_MID_HIGH_PIPELINE;
-        int midPipeLine = favorHigh ? VisionConstants.FAVOR_HIGH_MID_PIPELINE : VisionConstants.FAVOR_MID_MID_PIPELINE;
+        int highPipeLine = favorHigh ? VisionConstants.FAVOR_HIGH_HIGH_PIPELINE : VisionConstants.FAVOR_HIGH_HIGH_PIPELINE;
+        int midPipeLine = favorHigh ? VisionConstants.FAVOR_HIGH_MID_PIPELINE : VisionConstants.FAVOR_HIGH_MID_PIPELINE;
 
         if (LimeLight.hasTargets()) {
             double horizontalOffset = LimeLight.getHorizontalOffset();

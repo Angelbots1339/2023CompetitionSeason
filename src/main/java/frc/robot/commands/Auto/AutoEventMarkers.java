@@ -8,6 +8,7 @@ import java.util.Map;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
+import frc.lib.util.ElevatorWristState;
 import frc.robot.commands.objectManipulation.intake.IntakeCommandFactory;
 import frc.robot.commands.objectManipulation.score.ScoreCommandFactory;
 import frc.robot.commands.superStructure.IntakePositionCommandFactory;
@@ -27,7 +28,7 @@ public class AutoEventMarkers {
             "IntakeStandingCone", IntakeToPosition.home(wrist, elevator).withInterruptBehavior(InterruptionBehavior.kCancelSelf),
             "IntakeToHigh", IntakePositionCommandFactory.IntakeToHighCubeNode(elevator, wrist).withInterruptBehavior(InterruptionBehavior.kCancelSelf),
             "IntakeToMid", IntakePositionCommandFactory.IntakeToMidCubeNode(elevator, wrist).withInterruptBehavior(InterruptionBehavior.kCancelSelf),
-            "Home", IntakeToPosition.home(wrist, elevator).withInterruptBehavior(InterruptionBehavior.kCancelSelf)
+            "Home", new IntakeToPosition(wrist, elevator, new ElevatorWristState(1, 0)).withInterruptBehavior(InterruptionBehavior.kCancelSelf)
             );
     }
 }

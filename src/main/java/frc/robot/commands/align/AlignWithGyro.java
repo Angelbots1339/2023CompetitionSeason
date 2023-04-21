@@ -41,10 +41,10 @@ public class AlignWithGyro extends CommandBase {
   public void execute() {
     double xOut = 0;
     if(Math.abs(swerve.getPitch()) > FieldDependentConstants.CurrentField.CHARGE_STATION_MAX_ANGLE){
-      xOut = (backOn? -1 : 1) * Math.signum(swerve.getGyro().getY()) * 0.32;
+      xOut = (backOn? -1 : 1) * Math.signum(swerve.getGyro().getY()) * 0.3;
     }
     else if(minTimer.get() < 1){
-      xOut = (backOn? -1 : 1) * Math.signum(swerve.getGyro().getY()) * 0.32;
+      xOut = (backOn? -1 : 1) * Math.signum(swerve.getGyro().getY()) * 0.3;
     }
     else{
      //xOut = 0;
@@ -64,6 +64,6 @@ public class AlignWithGyro extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Math.abs(swerve.getPitch()) < FieldDependentConstants.CurrentField.CHARGE_STATION_MIN_ANGLE && (minTimer.get() > 1);
+    return Math.abs(swerve.getPitch()) < FieldDependentConstants.CurrentField.CHARGE_STATION_MIN_ANGLE && (minTimer.get() > 0.4);
   }
 }

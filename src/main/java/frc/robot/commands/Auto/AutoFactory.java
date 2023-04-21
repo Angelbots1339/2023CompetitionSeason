@@ -28,6 +28,7 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Swerve;
 import frc.robot.subsystems.Wrist;
+import frc.robot.vision.PoseEstimator.PoseEstimationState;
 
 /** Add your docs here. */
 public class AutoFactory {
@@ -84,9 +85,10 @@ public class AutoFactory {
                 List<PathPlannerTrajectory> trajectories1 = PathPlanner.loadPathGroup("2Balance6NoTurn",
                                 new PathConstraints(4, 2.3));
                 List<PathPlannerTrajectory> trajectories2 = PathPlanner.loadPathGroup("3rdPlaceCube6",
-                                new PathConstraints(4.4, 3));
+                                new PathConstraints(4.4, 3.2));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories1.get(0)),
+                                changeVisionState(swerve, PoseEstimationState.NON),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories1.get(0), true,
                                                 swerve, intake,
@@ -103,9 +105,10 @@ public class AutoFactory {
                 List<PathPlannerTrajectory> trajectories1 = PathPlanner.loadPathGroup("2Balance1",
                 new PathConstraints(4, 2.4));
                 List<PathPlannerTrajectory> trajectories2 = PathPlanner.loadPathGroup("3rdPlaceCube1",
-                new PathConstraints(4.4, 3.3));
+                new PathConstraints(4.4, 3.2));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories1.get(0)),
+                                changeVisionState(swerve, PoseEstimationState.CABLE),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
                                 SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories1.get(0), true,
                                                 swerve, intake,
@@ -115,6 +118,32 @@ public class AutoFactory {
                                                 swerve, intake,
                                                 elevator, wrist),
                                 ScoreCommandFactory.scoreCubeNode(wrist, elevator, intake, () -> ScoreHight.MID));
+        }
+        public static Command Score2Grab1(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
+                List<PathPlannerTrajectory> trajectories1 = PathPlanner.loadPathGroup("2Balance1",
+                new PathConstraints(4, 2));
+                List<PathPlannerTrajectory> trajectories2 = PathPlanner.loadPathGroup("3rdGrabCube1",
+                new PathConstraints(4, 2));
+                return Commands.sequence(
+                                resetGyroAndPos(swerve, trajectories1.get(0)),
+                                changeVisionState(swerve, PoseEstimationState.CABLE),
+                                ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
+                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories1.get(0), true,
+                                                swerve, intake,
+                                                elevator, wrist),
+                                ScoreCommandFactory.scoreCubeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
+                                SwerveFollowTrajectory.FollowTrajectoryWithEvents(trajectories2.get(0), true,
+                                                swerve, intake,
+                                                elevator, wrist));
+        }
+        public static Command test(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
+                List<PathPlannerTrajectory> trajectories1 = PathPlanner.loadPathGroup("2Balance1",
+                new PathConstraints(4, 2.4));
+                List<PathPlannerTrajectory> trajectories2 = PathPlanner.loadPathGroup("3rdPlaceCube1",
+                new PathConstraints(4.4, 3.2));
+                return Commands.sequence(
+                                resetGyroAndPos(swerve, trajectories1.get(0)),
+                                changeVisionState(swerve, PoseEstimationState.NON));
         }
 
         public static Command Shoot5Cubes(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
@@ -182,7 +211,7 @@ public class AutoFactory {
 
         public static Command ScoreMobilityBallance(Wrist wrist, Elevator elevator, Intake intake, Swerve swerve) {
                 List<PathPlannerTrajectory> trajectories = PathPlanner.loadPathGroup("Mobility",
-                                new PathConstraints(1.2, 0.4));
+                                new PathConstraints(1.2, 0.8));
                 return Commands.sequence(
                                 resetGyroAndPos(swerve, trajectories.get(0)),
                                 ScoreCommandFactory.scoreConeNode(wrist, elevator, intake, () -> ScoreHight.HIGH),
@@ -223,6 +252,9 @@ public class AutoFactory {
         public static Command resetGyroAndPos(Swerve swerve, PathPlannerTrajectory trajectory) {
                 return new InstantCommand(swerve::resetGyroTowardsDriverStation)
                                 .andThen(() -> SwerveFollowTrajectory.resetPos(trajectory, swerve));
+        }
+        public static Command changeVisionState(Swerve swerve, PoseEstimationState state) {
+                return new InstantCommand(() -> swerve.changeVisionState(state));
         }
 
 }

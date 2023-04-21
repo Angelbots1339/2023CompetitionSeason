@@ -10,6 +10,7 @@ import frc.robot.Constants.SwerveConstants;
 import frc.robot.commands.auto.SwerveFollowTrajectory;
 import frc.robot.vision.PoseEstimator;
 import frc.robot.vision.RetroReflectiveTargeter;
+import frc.robot.vision.PoseEstimator.PoseEstimationState;
 import frc.lib.math.ClosedLoopUtil;
 import frc.lib.team254.util.TalonUtil;
 import frc.lib.util.Candle;
@@ -356,6 +357,10 @@ public class Swerve extends SubsystemBase {
             return new Pose2d(new Translation2d(FieldConstants.RED_ORIGIN.getX() - pose.getX(),
                     FieldConstants.RED_ORIGIN.getY() - pose.getY()), getAdjustedYaw());
         }
+    }
+
+    public void changeVisionState(PoseEstimationState state) {
+        poseEstimation.state = state;
     }
 
     public Pose2d getPoseTranslatedForAutoOdometry() {
