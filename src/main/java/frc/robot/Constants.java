@@ -350,7 +350,7 @@ public final class Constants {
         public static final double CHAIN_SPROCKET = (48 / 16);
 
         //angle when intake is against wrist 
-        public static final double angleOffset = 42.596326;//102.761655;// 44.735512;//6.907668; //126.555942;42.348388
+        public static final double angleOffset = 50.530342;//48.709909;//42.596326;//102.761655;// 44.735512;//6.907668; //126.555942;42.348388
         public static final double TimeBeforeReset = 1.5;//sec b/c through bore initializes with 0;
 
        // public static final double KP = 0.01; // 0.0731;
