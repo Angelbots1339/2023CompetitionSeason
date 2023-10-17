@@ -24,7 +24,7 @@ public class FieldDependentConstants {
         
         public ElevatorWristState MID_CONE = new ElevatorWristState(103.28, 0.76);
         public double MID_CONE_HIGHT_BEFORE_ANGLE = 0.02;
-        public double MID_CONE_OUTTAKE_PERCENT = 0.5;
+        public double MID_CONE_OUTTAKE_PERCENT = 0.7;
         
         public ElevatorWristState HIGH_CUBE = new ElevatorWristState(85, 0.98);
         public double HIGH_CUBE_HIGHT_BEFORE_ANGLE = 0.2;
@@ -47,7 +47,7 @@ public class FieldDependentConstants {
             126.52, 0.09);
 
         public double INTAKE_GENERAL = 0.8;
-        public double OUTTAKE_GENERAL = 0.5;
+        public double OUTTAKE_GENERAL = 0.7;
 
         public double INTAKE_CUBE = 0.5;
         public double INTAKE_STANDING_CONE = INTAKE_GENERAL;
@@ -58,7 +58,7 @@ public class FieldDependentConstants {
         // //Vison
 
         public double HIGH_NODE_LIMELIGHT_ALIGN_OFFSET = 1.49458;
-        public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.852018;
+        public double MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.872018;
         public double HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.8 ;// 1.552556;
         public double MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.1;//0.913931;
 
@@ -88,6 +88,8 @@ public class FieldDependentConstants {
 
         public double CUBE_ALIGN_OFFSET = 0.684157;
         public double CUBE_FIRST_ALIGN_OFFSET = 0.8;
+        public double CUBE_Y_ALIGN_OFFSET = 0.0;
+
 
         public double CHARGING_STATION_ALIGN_OFFSET = 16.540988 - 12.450292648584131;
     }
@@ -129,8 +131,7 @@ public class FieldDependentConstants {
     
     public static FieldConstants WORLDS = new FieldConstants();
     static {
-        WORLDS.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET = 1.412682
-        ;
+        WORLDS.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET = 1.412682;
         WORLDS.MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.878105;
         WORLDS.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.75;
         WORLDS.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.05;
@@ -140,7 +141,22 @@ public class FieldDependentConstants {
 
     }
 
+    public static FieldConstants KCMT = new FieldConstants();
+    static {
+        KCMT.HIGH_NODE_LIMELIGHT_ALIGN_OFFSET = 1.350301;
+        KCMT.MID_NODE_LIMELIGHT_ALIGN_OFFSET = 0.917303;
+        KCMT.HIGH_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.575058;
+        KCMT.MID_NODE_LIMELIGHT_FIRST_ALIGN_OFFSET = 1.05;
+
+        KCMT.CUBE_ALIGN_OFFSET = 0.72;
+        KCMT.CUBE_FIRST_ALIGN_OFFSET = 0.82;
+
+        KCMT.CUBE_Y_ALIGN_OFFSET = 0;
+
+
+    }
+
 
     
-    public static FieldConstants CurrentField = WORLDS;
+    public static FieldConstants CurrentField = KCMT;
 }

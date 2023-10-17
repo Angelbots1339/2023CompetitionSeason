@@ -64,11 +64,13 @@ public class AlignToAprilTag extends CommandBase {
     passedFirstAlign = true;
 
     double alignOffset = FieldDependentConstants.CurrentField.CUBE_ALIGN_OFFSET;
+    double alignYOffset = FieldDependentConstants.CurrentField.CUBE_Y_ALIGN_OFFSET;
+
 
     Pose2d closetNode = swerve.getClosestCubeNode();
     blueSide = closetNode.getX() < 8.26;
     finalDesiredPose = closetNode.transformBy(new Transform2d(
-        new Translation2d(FieldDependentConstants.CurrentField.CUBE_ALIGN_OFFSET, 0), Rotation2d.fromDegrees(180)));
+        new Translation2d(FieldDependentConstants.CurrentField.CUBE_ALIGN_OFFSET, alignYOffset), Rotation2d.fromDegrees(180)));
 
     Pose2d firstDesiredPose = closetNode.transformBy(new Transform2d(
         new Translation2d(FieldDependentConstants.CurrentField.CUBE_FIRST_ALIGN_OFFSET, 0),
