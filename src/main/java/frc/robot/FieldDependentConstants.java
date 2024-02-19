@@ -158,5 +158,5 @@ public class FieldDependentConstants {
 
 
     
-    public static FieldConstants CurrentField = KCMT;
+    public static FieldConstants CurrentField = HOME_FIELD;
 }

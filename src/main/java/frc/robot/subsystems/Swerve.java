@@ -1,13 +1,13 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.sensors.Pigeon2;
-import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.PathPoint;
+// import com.pathplanner.lib.PathPlannerTrajectory;
+// import com.pathplanner.lib.PathPoint;
 
 import frc.robot.Constants.ElevatorWristStateConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.commands.auto.SwerveFollowTrajectory;
+// import frc.robot.commands.auto.SwerveFollowTrajectory;
 import frc.robot.vision.PoseEstimator;
 import frc.robot.vision.RetroReflectiveTargeter;
 import frc.robot.vision.PoseEstimator.PoseEstimationState;
@@ -85,14 +85,14 @@ public class Swerve extends SubsystemBase {
         autoField = new LoggedField("AutoField", logger, "Auto", true);
         poseEstimation = new PoseEstimator(field, getYaw(), getPositions());
 
-        SwerveFollowTrajectory.setLoggingCallbacks((PathPlannerTrajectory traj) -> {
-            autoField.setTrajectory("AutoPath", traj, true);
-        }, (Pose2d pose2d) -> {
-            autoField.addPose2d("DesiredPose", () -> pose2d, true);
-        }, null, (Translation2d translation2d, Rotation2d rotation2d) -> {
-            autoErrorTranslation = translation2d;
-            autoErrorRotation = rotation2d;
-        });
+        // SwerveFollowTrajectory.setLoggingCallbacks((PathPlannerTrajectory traj) -> {
+        //     autoField.setTrajectory("AutoPath", traj, true);
+        // }, (Pose2d pose2d) -> {
+        //     autoField.addPose2d("DesiredPose", () -> pose2d, true);
+        // }, null, (Translation2d translation2d, Rotation2d rotation2d) -> {
+        //     autoErrorTranslation = translation2d;
+        //     autoErrorRotation = rotation2d;
+        // });
 
         initializeLog();
     }
@@ -514,9 +514,9 @@ public class Swerve extends SubsystemBase {
         return Math.abs(pidToPoseYController.getPositionError()) <= TRANSLATION_PID_TOLERANCE;
     }
 
-    public void TestTrajectoryGeneration(PathPoint endpoint) {
-        field.setTrajectory("AlignTraj", SwerveFollowTrajectory.SwerveGenerateTrajectoryToPoint(endpoint, this), true);
-    }
+    // public void TestTrajectoryGeneration(PathPoint endpoint) {
+    //     field.setTrajectory("AlignTraj", SwerveFollowTrajectory.SwerveGenerateTrajectoryToPoint(endpoint, this), true);
+    // }
 
     private String command = "None";
 

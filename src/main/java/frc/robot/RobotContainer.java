@@ -6,9 +6,9 @@ import java.util.function.Supplier;
 
 import javax.swing.text.StyleContext.SmallAttributeSet;
 
-import com.pathplanner.lib.PathConstraints;
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
+// import com.pathplanner.lib.PathConstraints;
+// import com.pathplanner.lib.PathPlanner;
+// import com.pathplanner.lib.PathPlannerTrajectory;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -42,9 +42,9 @@ import static frc.robot.Constants.ElevatorWristStateConstants.*;
 import frc.robot.commands.*;
 import frc.robot.commands.align.AlignOnChargingStation;
 import frc.robot.commands.align.AlignWithGyro;
-import frc.robot.commands.auto.AutoFactory;
-import frc.robot.commands.auto.SwerveFollowTrajectory;
-import frc.robot.commands.auto.TestAutoFactory;
+// import frc.robot.commands.auto.AutoFactory;
+// import frc.robot.commands.auto.SwerveFollowTrajectory;
+// import frc.robot.commands.auto.TestAutoFactory;
 import frc.robot.commands.objectManipulation.intake.IntakeCommandFactory;
 import frc.robot.commands.objectManipulation.score.ScoreCommandFactory;
 import frc.robot.commands.objectManipulation.score.ScoreCommandFactory.ScoreHight;
@@ -170,21 +170,21 @@ public class RobotContainer {
                                                 true // Is field relative
                                 ));
 
-                autoChooser.addOption("Score2BalancePos6",
-                                AutoFactory.Score2BalancePos6(wrist, elevator, intake, swerve));
-                autoChooser.addOption("Score2Pos6", AutoFactory.Score2Pos6(wrist, elevator, intake, swerve));
-                autoChooser.addOption("ScoreMobilityBallance",
-                                AutoFactory.ScoreMobilityBallance(wrist, elevator, intake, swerve));
-                autoChooser.addOption("ScoreMobility", AutoFactory.ScoreMobility(wrist, elevator, intake, swerve));
-                autoChooser.addOption("ScoreGrabBallance",
-                                AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
-                autoChooser.addOption("Score3Pos6", AutoFactory.Score3Pos6Cube(wrist, elevator, intake, swerve));
-                autoChooser.addOption("Score3Pos1", AutoFactory.Score3Pos1(wrist, elevator, intake, swerve));
-                autoChooser.addOption("Score2Grab1", AutoFactory.Score2Grab1(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("Score2BalancePos6",
+                //                 AutoFactory.Score2BalancePos6(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("Score2Pos6", AutoFactory.Score2Pos6(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("ScoreMobilityBallance",
+                //                 AutoFactory.ScoreMobilityBallance(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("ScoreMobility", AutoFactory.ScoreMobility(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("ScoreGrabBallance",
+                //                 AutoFactory.ScoreGrabBallance(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("Score3Pos6", AutoFactory.Score3Pos6Cube(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("Score3Pos1", AutoFactory.Score3Pos1(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("Score2Grab1", AutoFactory.Score2Grab1(wrist, elevator, intake, swerve));
 
-                autoChooser.addOption("Score", AutoFactory.Score(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("Score", AutoFactory.Score(wrist, elevator, intake, swerve));
 
-                autoChooser.addOption("Test", AutoFactory.test(wrist, elevator, intake, swerve));
+                // autoChooser.addOption("Test", AutoFactory.test(wrist, elevator, intake, swerve));
 
                 elevator.setDefaultCommand(new IntakeToPosition(wrist, elevator, HOME));
 
@@ -207,7 +207,6 @@ public class RobotContainer {
         private void configureButtonBindings() {
                 /* Driver Buttons */
                 zeroGyro.onTrue(new InstantCommand(swerve::resetGyroTowardsDriverStation));
-                // alignOnChargingStation.whileTrue(new AlignOnChargingStation(swerve));
 
                 intakeToStandingCone.whileTrue(IntakePositionCommandFactory.IntakeToStandingConeNode(elevator, wrist)
                                 .withName("intakeToStandingCone"));
@@ -218,7 +217,6 @@ public class RobotContainer {
                                 .withName("manualScoreHigh"));
                 manualScoreMid.whileTrue(IntakePositionCommandFactory.IntakeToMid(elevator, wrist, intake)
                                 .withName("manualScoreMid"));
-                // manualScoreMid.whileTrue(new AlignOnChargingStation(swerve));
 
                 autoScoreHigh.whileTrue(ScoreCommandFactory.alignAndScoreHigh(wrist, elevator, intake, swerve)
                                 .withName("autoScoreHigh"));
@@ -258,6 +256,7 @@ public class RobotContainer {
                                 new AlignWithGyro(swerve, false).andThen(new RunCommand(swerve::xPos, swerve))
                                                 .withName("alignOnChargingStation"));
 
+                                                
                 // Operator Buttons
                 switchDeadSensorOverrideObject.onTrue(new InstantCommand(() -> {
                         if (intake.getDeadSensorOverrideSate() == IntakeState.CONE)
@@ -265,7 +264,7 @@ public class RobotContainer {
                         else
                                 intake.setDeadSensorOverrideSate(IntakeState.CONE);
                 }));
-                resetSensors.onTrue(new InstantCommand(() -> intake.resetSensors()));
+                // resetSensors.onTrue(new InstantCommand(() -> intake.resetSensors()));
 
                 signalCube.whileTrue(new StartEndCommand(
                                 () -> {
@@ -288,10 +287,8 @@ public class RobotContainer {
                 distSensorOverrideLeft.whileTrue(new StartEndCommand(intake::setDistSensorOverrideLeft,
                                 intake::resetDistSensorOverride));
 
-                resetModules.onTrue(new InstantCommand(() -> resetToAbsloute()));
-                // manualScoreHigh.whileTrue(new IntakeToPosition(wrist, elevator, () -> new
-                // ElevatorWristState(PoseFinderWrist.getDouble(13),
-                // PoseFinderElevator.getDouble(0))));
+                // resetModules.onTrue(new InstantCommand(() -> resetToAbsloute()));
+        
         }
 
         /**

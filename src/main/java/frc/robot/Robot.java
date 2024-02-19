@@ -7,7 +7,7 @@ package frc.robot;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.pathplanner.lib.server.PathPlannerServer;
+// import com.pathplanner.lib.server.PathPlannerServer;
 
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -65,7 +65,7 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
     //addPeriodic(m_robotContainer.getSwerveBuffer(), 0.005);
-    PathPlannerServer.startServer(5811);
+    // PathPlannerServer.startServer(5811);
     m_robotContainer.resetToAbsloute();
    Candle.getInstance().changeLedState(LEDState.PreMatch);
 

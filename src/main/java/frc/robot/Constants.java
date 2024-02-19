@@ -202,7 +202,7 @@ public final class Constants {
             public static final int DRIVE_MOTOR_ID = 12;
             public static final int CANCODER_ID = 13;
             public static final int ANGLE_MOTOR_ID = 14;
-            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(195.820);
+            public static final Rotation2d ANGLE_OFFSET = Rotation2d.fromDegrees(248.643);
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(DRIVE_MOTOR_ID,
                     ANGLE_MOTOR_ID, CANCODER_ID, ANGLE_OFFSET);
         }
@@ -368,8 +368,7 @@ public final class Constants {
 
         public static final int S_CURVE_STRENGTH = 4; 
         public static final double MOTION_MAGIC_ERROR_THRESHOLD = 3; // Degrees
-        public static final double TIME_TO_SETTLE = 0.5
-        ;//seconds 
+        public static final double TIME_TO_SETTLE = 0.5;//seconds 
 
         public static final NeutralMode NEUTRAL_MODE = NeutralMode.Brake;
 
